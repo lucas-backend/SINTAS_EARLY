@@ -17,11 +17,12 @@ export function errorHandler(error, req, res, next, logger = defaultLogger) {
   }
 
   const isExpected = error instanceof AppError
-  const statusCode = isExpected ? error.statusCode : 500
+  const isRateLimited = error.status === 429
+  const statusCode = isExpected ? error.statusCode : (isRateLimited ? 429 : 500)
   const response = {
     error: {
-      code: isExpected ? error.code : 'INTERNAL_SERVER_ERROR',
-      message: isExpected ? error.message : 'Terjadi kesalahan pada server.',
+      code: isExpected ? error.code : (isRateLimited ? 'RATE_LIMITED' : 'INTERNAL_SERVER_ERROR'),
+      message: isExpected ? error.message : (isRateLimited ? 'Terlalu banyak percobaan. Silakan coba lagi nanti.' : 'Terjadi kesalahan pada server.'),
     },
   }
 

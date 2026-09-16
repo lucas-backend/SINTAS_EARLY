@@ -8,6 +8,10 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().min(1).default('http://localhost:5173'),
   SCHOOL_TIMEZONE: z.string().min(1).default('Asia/Jakarta'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  JWT_SECRET: z.string().min(32).default('development-only-jwt-secret-change-me-32'),
+  JWT_ISSUER: z.string().min(1).default('project-kak-lia'),
+  ACCESS_TOKEN_TTL: z.string().min(1).default('15m'),
+  AUTH_COOKIE_NAME: z.string().min(1).default('auth_token'),
 })
 
 export function parseEnv(values = process.env) {
