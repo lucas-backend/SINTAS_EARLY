@@ -203,6 +203,5 @@ npm run prisma:seed
 
 Jangan menjalankan reset pada production. Migration harus diterapkan sebelum
 traffic menerima schema baru; backup dan prosedur rollback database merupakan
-tanggung jawab deployment.
-
-Open questions dari PRD yang harus dikunci sebelum migration final: timezone sekolah, aturan satu kelas aktif siswa, perilaku duplicate session, strategi finalisasi `TIDAK_HADIR`, format banner, alur reset password admin, dan format kolom export.
+tanggung jawab deployment. Runbook provider-neutral untuk startup, backup,
+restore, rollback, dan load test burst scan tersedia di [OPERATIONS.md](OPERATIONS.md).

@@ -4,21 +4,21 @@ Dokumen ini mengunci keputusan yang menjadi prasyarat migration dan implementasi
 
 ## 1. Timezone sekolah dan normalisasi UTC
 
-**Status: BLOCKED untuk nilai timezone sekolah; mekanisme normalisasi dikunci.**
+**Status: DECIDED.**
 
 - **Pilihan final:** Simpan seluruh timestamp sebagai UTC di database. Gunakan timezone sekolah berbasis IANA yang configurable dari environment/configuration, lalu konversi pada boundary service dan response API. `start_at`, `end_at`, `session_date`, periode banner, dan tampilan laporan harus memakai timezone sekolah; waktu scan berasal dari server dan dinormalisasi ke UTC.
 - **Alasan:** Ini diwajibkan oleh Backend Guide dan konsisten untuk deployment multi-instance. Nilai timezone spesifik sekolah belum disebutkan di PRD.
 - **Dampak database/API/UI:** Database menyimpan timestamp UTC; konfigurasi wajib divalidasi sebagai timezone IANA. API menerima/mengembalikan waktu dengan kontrak timezone yang jelas. UI menampilkan waktu lokal sekolah dan tidak menghitung status absensi sendiri.
-- **Asumsi yang masih perlu dikonfirmasi:** Identifier timezone sekolah, aturan jika sekolah mengubah timezone, dan apakah `session_date` ditafsirkan selalu menurut timezone sekolah.
+- **Keputusan operasional:** Nilai default deployment MVP adalah `Asia/Jakarta`; `session_date` ditafsirkan menurut timezone sekolah dan perubahan timezone hanya berlaku untuk sesi baru.
 
 ## 2. Satu kelas aktif per siswa
 
-**Status: BLOCKED.**
+**Status: DECIDED.**
 
-- **Pilihan final:** Belum ditetapkan apakah seorang siswa boleh memiliki lebih dari satu `class_students` aktif pada waktu yang sama.
-- **Alasan:** PRD menjadikan ini open question. Data model hanya menyatakan sistem harus mencegah lebih dari satu kelas aktif bila keputusan produk menetapkannya.
-- **Dampak database/API/UI:** Constraint atau validasi keanggotaan aktif belum boleh difinalkan. API plotting, query kelas aktif, authorization scan, dan UI admin akan berbeda bergantung pada pilihan ini.
-- **Asumsi yang masih perlu dikonfirmasi:** Apakah tepat satu kelas aktif diwajibkan, termasuk saat perpindahan kelas, dan apakah ada pengecualian sementara.
+- **Pilihan final:** Seorang siswa hanya boleh memiliki satu `class_students` aktif pada satu waktu.
+- **Alasan:** Ini mencegah scope kelas yang ambigu pada scan dan laporan.
+- **Dampak database/API/UI:** Validasi service plotting, query kelas aktif, authorization scan, dan UI admin memakai satu membership aktif per siswa.
+- **Dampak implementasi:** Service plotting menolak membership aktif kedua; perpindahan kelas dilakukan dengan menonaktifkan membership lama terlebih dahulu.
 
 ## 3. Sesi absensi duplikat
 
@@ -40,21 +40,21 @@ Dokumen ini mengunci keputusan yang menjadi prasyarat migration dan implementasi
 
 ## 5. Format dan periode banner
 
-**Status: BLOCKED.**
+**Status: DECIDED.**
 
-- **Pilihan final:** Belum ditetapkan format konten/media, ukuran atau rasio media, jumlah banner aktif, maupun aturan periode tampil.
-- **Alasan:** PRD hanya mengharuskan banner aktif tampil dan banner tersembunyi tidak tampil; format dan jumlah secara eksplisit ditunda ke open question.
-- **Dampak database/API/UI:** Model dapat menyiapkan `title`, `image_url` atau `content`, `is_active`, `display_start_at`, dan `display_end_at` seperti sketsa PRD, tetapi validasi field, filter aktif, urutan, batas jumlah, upload/storage, dan komponen beranda belum boleh diasumsikan.
-- **Asumsi yang masih perlu dikonfirmasi:** Apakah banner image-only, text-only, atau keduanya; apakah periode bersifat opsional; dan apakah beberapa banner dapat aktif bersamaan.
+- **Pilihan final:** Banner mendukung judul dan minimal salah satu dari `imageUrl` atau `content`; periode tampil opsional; beberapa banner aktif diperbolehkan dan endpoint hanya menampilkan banner aktif dalam periode.
+- **Alasan:** Ini sesuai field model dan validasi yang sudah tersedia tanpa menambahkan upload/storage baru.
+- **Dampak database/API/UI:** Model memakai `title`, `image_url` atau `content`, `is_active`, `display_start_at`, dan `display_end_at`; validasi field dan filter periode menjadi kontrak API.
+- **Dampak implementasi:** Media tetap berupa URL/path; binary upload dan pembatasan jumlah banner tidak termasuk MVP.
 
 ## 6. Password minimum dan reset manual Admin
 
-**Status: BLOCKED untuk kebijakan produk; mekanisme keamanan dasar dikunci.**
+**Status: DECIDED.**
 
-- **Pilihan final:** Password wajib di-hash dengan Argon2id dan tidak pernah disimpan plaintext. Panjang minimum, kompleksitas, serta apakah reset manual Admin menetapkan password tertentu atau menghasilkan password sementara belum ditetapkan.
+- **Pilihan final:** Password minimal 8 dan maksimal 128 karakter, di-hash Argon2id. Forgot-password memakai email + tanggal lahir untuk semua role, termasuk Admin; reset manual Admin di luar endpoint MVP dan tidak menambahkan password sementara.
 - **Alasan:** Argon2id diwajibkan oleh Backend Guide, tetapi PRD hanya menyebut validasi password baru/konfirmasi dan menanyakan detail reset manual.
-- **Dampak database/API/UI:** Hash dan verifikasi dapat diimplementasikan sekarang, tetapi schema validasi password, pesan form, endpoint reset Admin, audit trail, kewajiban ganti password saat login, dan cara penyampaian kredensial belum boleh dikunci.
-- **Asumsi yang masih perlu dikonfirmasi:** Nilai minimum password, aturan reuse/expiry, siapa yang dapat direset Admin, dan apakah password sementara dikirim melalui kanal di luar sistem.
+- **Dampak database/API/UI:** Schema validasi password dan pesan form mengikuti batas 8-128 karakter; audit trail, kewajiban ganti password, dan kanal kredensial tidak ditambahkan pada MVP.
+- **Dampak implementasi:** Tidak ada aturan reuse/expiry atau kanal pengiriman kredensial baru pada MVP.
 
 ## 7. Kolom dan nama file export XLSX
 
@@ -68,13 +68,19 @@ Dokumen ini mengunci keputusan yang menjadi prasyarat migration dan implementasi
 
 ## 8. Login dan lupa password Admin
 
-**Status: BLOCKED.**
+**Status: DECIDED.**
 
-- **Pilihan final:** Belum ditetapkan apakah Admin memakai endpoint dan alur login/lupa password yang sama dengan Siswa dan Guru.
+- **Pilihan final:** Admin memakai endpoint login yang sama dan boleh memakai forgot-password yang sama.
 - **Alasan:** Login untuk tiga role diwajibkan, tetapi user story lupa password secara eksplisit menyebut Siswa dan Guru; PRD kemudian menanyakan perlakuan Admin sebagai open question.
-- **Dampak database/API/UI:** Auth service, role policy, rate limit, reset eligibility, route UI, pesan error, dan test integration belum boleh mengasumsikan Admin termasuk atau dikecualikan dari forgot-password. Login tetap harus mendukung role Admin sesuai FR-01.
-- **Asumsi yang masih perlu dikonfirmasi:** Apakah Admin boleh self-service reset memakai email/tanggal lahir, atau hanya reset manual oleh Admin lain/operasional terpisah.
+- **Dampak database/API/UI:** Auth service, role policy, rate limit, dan pesan error memakai kontrak yang sama untuk Admin, Siswa, dan Guru.
+- **Dampak implementasi:** Eligibility reset mengikuti seluruh user role; pesan tetap generik agar tidak membocorkan identitas.
+
+## 9. Retensi data absensi
+
+**Status: DECIDED untuk MVP.**
+
+Record absensi tidak dihapus otomatis dan tidak ada endpoint penghapusan pada MVP. Retensi backup dan penghapusan manual mengikuti kebijakan deployment sekolah; prosedurnya wajib diaudit sebelum perubahan destruktif.
 
 ## Gate implementasi
 
-Migration final dan implementasi fitur yang bergantung pada keputusan di atas tidak boleh dikunci sebelum seluruh item `BLOCKED` memiliki keputusan produk eksplisit. Keputusan mekanisme yang sudah diwajibkan (UTC di database, timezone configurable, Argon2id, dan role login) tidak mengisi detail produk yang masih terbuka.
+Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.
