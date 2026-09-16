@@ -175,4 +175,34 @@ Operational minimum:
 5. Student history, teacher scoped detail, admin global report, dan Excel export.
 6. OpenAPI, unit/integration/load test, security review, dan deployment documentation.
 
+## 10. Local Migration dan Seed
+
+Siapkan `DATABASE_URL` pada environment lokal dengan database MySQL yang sudah
+dibuat, lalu jalankan dari direktori `backend/`:
+
+```bash
+npm run prisma:generate
+npx prisma migrate deploy
+npm run prisma:seed
+```
+
+Seed development bersifat idempotent dan hanya boleh dijalankan pada environment
+non-production. Password akun demo di-hash menggunakan Argon2id sebelum disimpan;
+nilai default `SEED_PASSWORD` adalah password development sementara dan dapat
+diganti melalui environment saat menjalankan seed. Seed tidak membuat record
+absensi, sehingga tidak menentukan status `HADIR`, `TERLAMBAT`, atau
+`TIDAK_HADIR`.
+
+Untuk reset database development secara destruktif, pastikan `DATABASE_URL`
+mengarah ke database yang benar lalu jalankan:
+
+```bash
+npx prisma migrate reset --force
+npm run prisma:seed
+```
+
+Jangan menjalankan reset pada production. Migration harus diterapkan sebelum
+traffic menerima schema baru; backup dan prosedur rollback database merupakan
+tanggung jawab deployment.
+
 Open questions dari PRD yang harus dikunci sebelum migration final: timezone sekolah, aturan satu kelas aktif siswa, perilaku duplicate session, strategi finalisasi `TIDAK_HADIR`, format banner, alur reset password admin, dan format kolom export.
