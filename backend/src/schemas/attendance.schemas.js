@@ -10,3 +10,7 @@ export const attendanceSessionSchema = z.object({
   endAt: isoDateTime,
   timezone: z.string().trim().min(1).max(100),
 }).strict()
+
+export const attendanceScanSchema = z.object({
+  qrPayload: z.string().trim().min(1).max(255),
+}).strict()

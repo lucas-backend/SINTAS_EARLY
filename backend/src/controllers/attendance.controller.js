@@ -6,5 +6,6 @@ export function createAttendanceController({ service }) {
     createSession: run((req) => service.createSession(req.user, req.body)),
     listSessions: run((req) => service.listSessions(req.user)),
     getQr: run((req) => service.getQr(req.user, Number(req.params.id))),
+    scan: run((req) => service.scan(req.user, req.body)),
   }
 }

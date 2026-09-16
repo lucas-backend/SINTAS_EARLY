@@ -32,5 +32,24 @@ export function createAttendanceRepository(prisma) {
         include: { assignment: { include: { class: true, subject: true } }, class: true },
       })
     },
+    findSessionForScan(qrPayload) {
+      return prisma.attendanceSession.findUnique({
+        where: { qrPayload },
+        include: { assignment: true },
+      })
+    },
+    findActiveMembership(classId, studentId) {
+      return prisma.classStudent.findFirst({
+        where: { classId, studentId, isActive: true },
+      })
+    },
+    createAttendanceRecord(data) {
+      return prisma.$transaction((transaction) => transaction.attendanceRecord.create({ data }))
+    },
+    findAttendanceRecord(sessionId, studentId) {
+      return prisma.attendanceRecord.findUnique({
+        where: { sessionId_studentId: { sessionId, studentId } },
+      })
+    },
   }
 }
