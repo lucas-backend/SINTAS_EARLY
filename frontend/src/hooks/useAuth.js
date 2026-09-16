@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { roleHome } from '../lib/permissions'
+import { clearUserScopedCache } from '../lib/queryClient'
 import {
   authKeys,
   forgotPassword,
@@ -16,6 +17,7 @@ export function useAuthLogin() {
   return useMutation({
     mutationFn: login,
     onSuccess(user) {
+      clearUserScopedCache(queryClient)
       useSessionStore.getState().setUser(user)
       queryClient.setQueryData(authKeys.session, user)
       navigate(roleHome(user.role), { replace: true })
@@ -29,6 +31,7 @@ export function useAuthLogout() {
   return useMutation({
     mutationFn: logout,
     onSuccess() {
+      clearUserScopedCache(queryClient)
       queryClient.removeQueries({ queryKey: authKeys.session })
       useSessionStore.getState().clearSession()
       navigate('/login', { replace: true })

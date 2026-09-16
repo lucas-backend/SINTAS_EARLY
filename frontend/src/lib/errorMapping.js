@@ -37,3 +37,7 @@ export function getFieldErrors(error) {
 export function getErrorCode(error) {
   return error instanceof ApiError ? error.code : null
 }
+
+export function isNetworkError(error) {
+  return getErrorCode(error) === 'NETWORK_ERROR'
+}

@@ -74,7 +74,7 @@ describe('routing dan guard', () => {
     )
     renderApp(['/app'])
     expect(
-      await screen.findByRole('heading', { name: 'Beranda Siswa' }),
+      await screen.findByRole('heading', { name: 'Halo, Siswa' }),
     ).toBeInTheDocument()
   })
 
@@ -121,7 +121,7 @@ describe('alur login', () => {
     await user.type(screen.getByLabelText('Password'), 'password-123')
     await user.click(screen.getByRole('button', { name: 'Masuk' }))
     expect(
-      await screen.findByRole('heading', { name: 'Beranda Siswa' }),
+      await screen.findByRole('heading', { name: 'Halo, Siswa' }),
     ).toBeInTheDocument()
   })
 

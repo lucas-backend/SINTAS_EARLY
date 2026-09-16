@@ -17,6 +17,12 @@ if (!globalThis.ResizeObserver) {
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 
+// Tanpa backoff retry supaya state error/offline langsung muncul di test
+// (test mengecek "Coba lagi" untuk memicu refetch secara manual).
+queryClient.setDefaultOptions({
+  queries: { ...queryClient.getDefaultOptions().queries, retry: 0 },
+})
+
 afterEach(() => {
   cleanup()
   server.resetHandlers()

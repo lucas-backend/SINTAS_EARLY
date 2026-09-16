@@ -15,6 +15,18 @@ export const handlers = [
   http.get(`${API_BASE_URL}/me`, () =>
     HttpResponse.json(UNAUTHENTICATED, { status: 401 }),
   ),
+  http.get(`${API_BASE_URL}/attendance/today`, () =>
+    HttpResponse.json({ data: [] }),
+  ),
+  http.get(`${API_BASE_URL}/banners`, () => HttpResponse.json({ data: [] })),
+  http.get(`${API_BASE_URL}/attendance/history`, () =>
+    HttpResponse.json({
+      data: {
+        items: [],
+        meta: { page: 1, limit: 20, total: 0, totalPages: 0 },
+      },
+    }),
+  ),
 ]
 
 export const server = setupServer(...handlers)

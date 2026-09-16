@@ -10,6 +10,8 @@ import LoginPage from '../pages/auth/LoginPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import ProfilePage from '../pages/profile/ProfilePage'
 import StudentDashboardPage from '../pages/student/DashboardPage'
+import StudentHistoryPage from '../pages/student/HistoryPage'
+import StudentSchedulePage from '../pages/student/SchedulePage'
 import TeacherDashboardPage from '../pages/teacher/DashboardPage'
 
 function RoleHome() {
@@ -27,6 +29,8 @@ export function AppRoutes() {
           <Route index element={<RoleHome />} />
           <Route path="student" element={<RoleRoute roles={[ROLES.STUDENT]} />}>
             <Route index element={<StudentDashboardPage />} />
+            <Route path="schedule" element={<StudentSchedulePage />} />
+            <Route path="history" element={<StudentHistoryPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
           <Route path="teacher" element={<RoleRoute roles={[ROLES.TEACHER]} />}>

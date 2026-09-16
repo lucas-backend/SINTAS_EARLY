@@ -7,7 +7,16 @@ import {
   MenuItem,
   MenuItems,
 } from '@headlessui/react'
-import { ChevronDown, Home, LogOut, Menu as MenuIcon, User, X } from 'lucide-react'
+import {
+  CalendarDays,
+  ChevronDown,
+  History,
+  Home,
+  LogOut,
+  Menu as MenuIcon,
+  User,
+  X,
+} from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuthLogout } from '../../hooks/useAuth'
@@ -15,7 +24,12 @@ import { ROLES, roleLabel, roleNav, roleSegment } from '../../lib/permissions'
 import { useSessionStore } from '../../stores/sessionStore'
 import { PageLoader } from '../feedback/PageLoader'
 
-const NAV_ICONS = { home: Home, user: User }
+const NAV_ICONS = {
+  home: Home,
+  user: User,
+  calendar: CalendarDays,
+  history: History,
+}
 
 function initials(name = '') {
   return (

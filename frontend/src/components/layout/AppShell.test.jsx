@@ -6,18 +6,27 @@ import { API_BASE_URL, server } from '../../test/server'
 import { renderApp, studentUser, teacherUser } from '../../test/fixtures'
 
 describe('app shell dan navigasi per role', () => {
-  it('menampilkan navigasi Beranda dan Profil untuk siswa', async () => {
+  it('menampilkan navigasi Beranda, Jadwal, Riwayat, dan Profil untuk siswa', async () => {
     server.use(
       http.get(`${API_BASE_URL}/me`, () =>
         HttpResponse.json({ data: { user: studentUser } }),
       ),
     )
     renderApp(['/app/student'])
-    await screen.findByRole('heading', { name: 'Beranda Siswa' })
+    await screen.findByRole('heading', { name: 'Halo, Siswa' })
     expect(screen.getAllByRole('link', { name: 'Beranda' }).length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('link', { name: 'Jadwal' }).length,
+    ).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('link', { name: 'Riwayat' }).length,
+    ).toBeGreaterThan(0)
     expect(
       screen.getAllByRole('link', { name: 'Profil' }).length,
     ).toBeGreaterThan(0)
+    expect(
+      screen.getByRole('link', { name: 'Jadwal' }).getAttribute('href'),
+    ).toBe('/app/student/schedule')
   })
 
   it('menampilkan navigasi Beranda dan Profil untuk guru', async () => {
