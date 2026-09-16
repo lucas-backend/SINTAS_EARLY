@@ -1,0 +1,1 @@
+console.info('No seed data configured for the backend foundation.')

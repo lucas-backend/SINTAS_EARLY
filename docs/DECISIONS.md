@@ -1,0 +1,79 @@
+# Technical Decisions
+
+Dokumen ini mengunci keputusan yang menjadi prasyarat migration dan implementasi. `BLOCKED` berarti PRD dan Backend Guide belum memberi dasar yang cukup untuk memilih; implementasi tidak boleh menebak keputusan tersebut.
+
+## 1. Timezone sekolah dan normalisasi UTC
+
+**Status: BLOCKED untuk nilai timezone sekolah; mekanisme normalisasi dikunci.**
+
+- **Pilihan final:** Simpan seluruh timestamp sebagai UTC di database. Gunakan timezone sekolah berbasis IANA yang configurable dari environment/configuration, lalu konversi pada boundary service dan response API. `start_at`, `end_at`, `session_date`, periode banner, dan tampilan laporan harus memakai timezone sekolah; waktu scan berasal dari server dan dinormalisasi ke UTC.
+- **Alasan:** Ini diwajibkan oleh Backend Guide dan konsisten untuk deployment multi-instance. Nilai timezone spesifik sekolah belum disebutkan di PRD.
+- **Dampak database/API/UI:** Database menyimpan timestamp UTC; konfigurasi wajib divalidasi sebagai timezone IANA. API menerima/mengembalikan waktu dengan kontrak timezone yang jelas. UI menampilkan waktu lokal sekolah dan tidak menghitung status absensi sendiri.
+- **Asumsi yang masih perlu dikonfirmasi:** Identifier timezone sekolah, aturan jika sekolah mengubah timezone, dan apakah `session_date` ditafsirkan selalu menurut timezone sekolah.
+
+## 2. Satu kelas aktif per siswa
+
+**Status: BLOCKED.**
+
+- **Pilihan final:** Belum ditetapkan apakah seorang siswa boleh memiliki lebih dari satu `class_students` aktif pada waktu yang sama.
+- **Alasan:** PRD menjadikan ini open question. Data model hanya menyatakan sistem harus mencegah lebih dari satu kelas aktif bila keputusan produk menetapkannya.
+- **Dampak database/API/UI:** Constraint atau validasi keanggotaan aktif belum boleh difinalkan. API plotting, query kelas aktif, authorization scan, dan UI admin akan berbeda bergantung pada pilihan ini.
+- **Asumsi yang masih perlu dikonfirmasi:** Apakah tepat satu kelas aktif diwajibkan, termasuk saat perpindahan kelas, dan apakah ada pengecualian sementara.
+
+## 3. Sesi absensi duplikat
+
+**Status: BLOCKED.**
+
+- **Pilihan final:** Belum ditetapkan apakah pembuatan sesi dengan assignment, tanggal, dan pasangan waktu yang sama harus mengembalikan sesi existing atau menolak dengan conflict.
+- **Alasan:** PRD dan Backend Guide secara eksplisit menyediakan dua perilaku dan meminta pilihan produk sebelum implementasi.
+- **Dampak database/API/UI:** Unique constraint/index tetap diperlukan untuk melindungi konsistensi, tetapi status HTTP, response `data`/`error`, idempotensi create, pesan UI, dan aksi tombol Generate QR belum dapat dikunci.
+- **Asumsi yang masih perlu dikonfirmasi:** Apakah klik ulang dianggap retry idempotent dan apakah hanya guru pembuat atau guru lain yang boleh melihat/menggunakan sesi existing.
+
+## 4. Finalisasi `TIDAK_HADIR`
+
+**Status: BLOCKED.**
+
+- **Pilihan final:** Belum ditetapkan apakah status dibuat oleh job otomatis setelah `end_at`, dihitung saat history/report dibuka, atau melalui proses manual.
+- **Alasan:** PRD dan Backend Guide menyebut seluruh opsi tersebut dan melarang pencampuran dua sumber kebenaran, tetapi tidak memilih salah satunya.
+- **Dampak database/API/UI:** Belum dapat ditentukan apakah `attendance_records` untuk siswa yang tidak scan dibuat secara fisik, kapan status muncul, kebutuhan worker/cron, perilaku retry, serta query history/report dan export.
+- **Asumsi yang masih perlu dikonfirmasi:** SLA keterlambatan finalisasi, apakah status boleh berubah setelah finalisasi, dan siapa yang boleh melakukan proses manual bila dipilih.
+
+## 5. Format dan periode banner
+
+**Status: BLOCKED.**
+
+- **Pilihan final:** Belum ditetapkan format konten/media, ukuran atau rasio media, jumlah banner aktif, maupun aturan periode tampil.
+- **Alasan:** PRD hanya mengharuskan banner aktif tampil dan banner tersembunyi tidak tampil; format dan jumlah secara eksplisit ditunda ke open question.
+- **Dampak database/API/UI:** Model dapat menyiapkan `title`, `image_url` atau `content`, `is_active`, `display_start_at`, dan `display_end_at` seperti sketsa PRD, tetapi validasi field, filter aktif, urutan, batas jumlah, upload/storage, dan komponen beranda belum boleh diasumsikan.
+- **Asumsi yang masih perlu dikonfirmasi:** Apakah banner image-only, text-only, atau keduanya; apakah periode bersifat opsional; dan apakah beberapa banner dapat aktif bersamaan.
+
+## 6. Password minimum dan reset manual Admin
+
+**Status: BLOCKED untuk kebijakan produk; mekanisme keamanan dasar dikunci.**
+
+- **Pilihan final:** Password wajib di-hash dengan Argon2id dan tidak pernah disimpan plaintext. Panjang minimum, kompleksitas, serta apakah reset manual Admin menetapkan password tertentu atau menghasilkan password sementara belum ditetapkan.
+- **Alasan:** Argon2id diwajibkan oleh Backend Guide, tetapi PRD hanya menyebut validasi password baru/konfirmasi dan menanyakan detail reset manual.
+- **Dampak database/API/UI:** Hash dan verifikasi dapat diimplementasikan sekarang, tetapi schema validasi password, pesan form, endpoint reset Admin, audit trail, kewajiban ganti password saat login, dan cara penyampaian kredensial belum boleh dikunci.
+- **Asumsi yang masih perlu dikonfirmasi:** Nilai minimum password, aturan reuse/expiry, siapa yang dapat direset Admin, dan apakah password sementara dikirim melalui kanal di luar sistem.
+
+## 7. Kolom dan nama file export XLSX
+
+**Status: BLOCKED.**
+
+- **Pilihan final:** Belum ditetapkan daftar kolom, filter/pengurutan yang diekspor, timezone presentasi, format tanggal/waktu, atau pola nama file.
+- **Alasan:** PRD hanya mensyaratkan workbook `.xlsx`, scope sesuai role, dan data lintas entitas untuk laporan Admin. Detail export disebut sebagai open question.
+- **Dampak database/API/UI:** Query export, header workbook, urutan kolom, format cell, `Content-Disposition`, empty-export behavior, dan test parser belum dapat difinalkan. Authorization dan filter tetap wajib diterapkan sebelum query.
+- **Asumsi yang masih perlu dikonfirmasi:** Kolom minimum untuk export Guru versus Admin, apakah identitas sensitif tertentu boleh disertakan, format nama file, dan apakah nama file memuat rentang tanggal/kelas.
+
+## 8. Login dan lupa password Admin
+
+**Status: BLOCKED.**
+
+- **Pilihan final:** Belum ditetapkan apakah Admin memakai endpoint dan alur login/lupa password yang sama dengan Siswa dan Guru.
+- **Alasan:** Login untuk tiga role diwajibkan, tetapi user story lupa password secara eksplisit menyebut Siswa dan Guru; PRD kemudian menanyakan perlakuan Admin sebagai open question.
+- **Dampak database/API/UI:** Auth service, role policy, rate limit, reset eligibility, route UI, pesan error, dan test integration belum boleh mengasumsikan Admin termasuk atau dikecualikan dari forgot-password. Login tetap harus mendukung role Admin sesuai FR-01.
+- **Asumsi yang masih perlu dikonfirmasi:** Apakah Admin boleh self-service reset memakai email/tanggal lahir, atau hanya reset manual oleh Admin lain/operasional terpisah.
+
+## Gate implementasi
+
+Migration final dan implementasi fitur yang bergantung pada keputusan di atas tidak boleh dikunci sebelum seluruh item `BLOCKED` memiliki keputusan produk eksplisit. Keputusan mekanisme yang sudah diwajibkan (UTC di database, timezone configurable, Argon2id, dan role login) tidak mengisi detail produk yang masih terbuka.
