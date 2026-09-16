@@ -35,10 +35,24 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
+// Error binary (mis. export .xlsx) tetap memakai kontrak JSON
+// { error: { code, message } }, tetapi datang sebagai Blob sehingga harus
+// dibaca asinkron sebelum dipetakan ke ApiError.
+async function readBlobError(data) {
+  if (!data) return {}
+  try {
+    const text = typeof data.text === 'function' ? await data.text() : String(data)
+    const parsed = JSON.parse(text)
+    return parsed?.error ?? {}
+  } catch {
+    return {}
+  }
+}
+
 apiClient.interceptors.response.use(
   (response) =>
     response.config.responseType === 'blob' ? response : response.data,
-  (error) => {
+  async (error) => {
     const { response } = error
     if (!response) {
       return Promise.reject(
@@ -49,7 +63,10 @@ apiClient.interceptors.response.use(
         }),
       )
     }
-    const errorBody = response.data?.error
+    const isBlobError = response.config?.responseType === 'blob'
+    const errorBody = isBlobError
+      ? await readBlobError(response.data)
+      : response.data?.error
     const apiError = new ApiError({
       status: response.status,
       code: errorBody?.code ?? 'UNKNOWN_ERROR',

@@ -15,6 +15,17 @@ if (!globalThis.ResizeObserver) {
   globalThis.ResizeObserver = ResizeObserverMock
 }
 
+// Unduhan memakai URL.createObjectURL + ankchor click; jsdom tidak
+// mengimplementasikan navigasi ke blob, sehingga di-stub agar tidak memicu
+// "Not implemented: navigation to another Document".
+if (!URL.createObjectURL) globalThis.URL.createObjectURL = () => 'blob:mock'
+if (!URL.revokeObjectURL) globalThis.URL.revokeObjectURL = () => {}
+const originalAnchorClick = HTMLAnchorElement.prototype.click
+HTMLAnchorElement.prototype.click = function () {
+  if (this.download) return
+  return originalAnchorClick.call(this)
+}
+
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 
 // Tanpa backoff retry supaya state error/offline langsung muncul di test

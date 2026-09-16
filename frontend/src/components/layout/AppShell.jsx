@@ -10,10 +10,12 @@ import {
 import {
   CalendarDays,
   ChevronDown,
+  ClipboardList,
   History,
   Home,
   LogOut,
   Menu as MenuIcon,
+  QrCode,
   User,
   X,
 } from 'lucide-react'
@@ -29,6 +31,8 @@ const NAV_ICONS = {
   user: User,
   calendar: CalendarDays,
   history: History,
+  clipboard: ClipboardList,
+  qr: QrCode,
 }
 
 function initials(name = '') {

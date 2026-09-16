@@ -12,7 +12,12 @@ import ProfilePage from '../pages/profile/ProfilePage'
 import StudentDashboardPage from '../pages/student/DashboardPage'
 import StudentHistoryPage from '../pages/student/HistoryPage'
 import StudentSchedulePage from '../pages/student/SchedulePage'
+import TeacherAssignmentsPage from '../pages/teacher/AssignmentsPage'
+import TeacherClassAttendancePage from '../pages/teacher/ClassAttendancePage'
+import TeacherCreateSessionPage from '../pages/teacher/CreateSessionPage'
 import TeacherDashboardPage from '../pages/teacher/DashboardPage'
+import TeacherSessionQrPage from '../pages/teacher/SessionQrPage'
+import TeacherSessionsPage from '../pages/teacher/SessionsPage'
 
 function RoleHome() {
   const user = useSessionStore((state) => state.user)
@@ -35,6 +40,14 @@ export function AppRoutes() {
           </Route>
           <Route path="teacher" element={<RoleRoute roles={[ROLES.TEACHER]} />}>
             <Route index element={<TeacherDashboardPage />} />
+            <Route path="assignments" element={<TeacherAssignmentsPage />} />
+            <Route path="sessions" element={<TeacherSessionsPage />} />
+            <Route path="sessions/new" element={<TeacherCreateSessionPage />} />
+            <Route path="sessions/:sessionId/qr" element={<TeacherSessionQrPage />} />
+            <Route
+              path="classes/:classId/attendance"
+              element={<TeacherClassAttendancePage />}
+            />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
           <Route path="admin" element={<RoleRoute roles={[ROLES.ADMIN]} />}>

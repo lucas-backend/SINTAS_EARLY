@@ -101,3 +101,59 @@ export function reportItem(overrides) {
     ...overrides,
   }
 }
+
+export function assignmentItem(overrides) {
+  return {
+    id: 60,
+    teacherId: 2,
+    classId: 30,
+    subjectId: 40,
+    isActive: true,
+    createdAt: '2026-09-01T02:00:00.000Z',
+    updatedAt: '2026-09-01T02:00:00.000Z',
+    class: {
+      id: 30,
+      name: 'XII IPA 1',
+      educationLevelId: 3,
+      createdAt: '2026-09-01T02:00:00.000Z',
+      updatedAt: '2026-09-01T02:00:00.000Z',
+      educationLevel: {
+        id: 3,
+        name: 'SMA',
+        createdAt: '2026-09-01T02:00:00.000Z',
+        updatedAt: '2026-09-01T02:00:00.000Z',
+      },
+    },
+    subject: {
+      id: 40,
+      name: 'Matematika',
+      createdAt: '2026-09-01T02:00:00.000Z',
+      updatedAt: '2026-09-01T02:00:00.000Z',
+    },
+    ...overrides,
+  }
+}
+
+export function sessionItem(overrides) {
+  return {
+    id: 10,
+    assignmentId: 60,
+    classId: 30,
+    className: 'XII IPA 1',
+    subjectId: 40,
+    subjectName: 'Matematika',
+    sessionDate: '2026-09-17T00:00:00.000Z',
+    startAt: '2026-09-17T01:00:00.000Z',
+    endAt: '2026-09-17T02:00:00.000Z',
+    createdAt: '2026-09-16T02:00:00.000Z',
+    ...overrides,
+  }
+}
+
+export function sessionQrItem(overrides) {
+  return {
+    ...sessionItem(),
+    qrPayload: 'S-'.padEnd(43, 'x'),
+    ...overrides,
+  }
+}

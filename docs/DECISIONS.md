@@ -111,6 +111,17 @@ Record absensi tidak dihapus otomatis dan tidak ada endpoint penghapusan pada MV
 - **Dampak database/API/UI:** `roleNav(role)` di `frontend/src/lib/permissions.js` adalah sumber daftar navigasi per role. `RoleRoute` memakai `Outlet` agar sub-route per role (index dashboard + `profile`) tersarang di dalam shell. Profil siswa menampilkan NIM sebagai read-only (PRD FR-03); username dan NIM tidak pernah dikirim ke `PATCH /me`.
 - **Asumsi yang masih perlu dikonfirmasi:** Tidak ada keputusan produk baru; hanya pembatasan tampilan sesuai ketersediaan fase.
 
+## 13. Workspace guru dan keputusan UI penunjang (F4)
+
+**Status: DECIDED untuk MVP.**
+
+- **Pilihan final:** Navigasi guru diperluas sesuai D12 dengan `Penugasan` dan `Sesi absensi` seiring halaman terkait tersedia. Alur utama guru: beranda → (daftar penugasan/daftar sesi) → form buat sesi → halaman QR sesi → detail kehadiran kelas → export XLSX.
+- **Pilihan final (form):** Form buat sesi mengirim `{ assignmentId, sessionDate, startAt, endAt, timezone }` persis kontrak `POST /attendance-sessions`; `startAt`/`endAt` dibentuk sebagai ISO 8601 **dengan offset timezone sekolah** (`VITE_SCHOOL_TIMEZONE`), bukan timestamp client. Setelah berhasil membuat sesi, pengguna langsung diarahkan ke halaman QR sesi tersebut (langkah kerja berikutnya paling natural); daftar sesi hanya menampilkan sesi milik guru yang login sesuai scope backend.
+- **Pilihan final (kehadiran & export):** Detail kehadiran kelas memakai paging + filter `from`/`to`/`status` dari server. Export mengeksekusi `GET /reports/attendance/export?classId=...` (guru selalu mengirim scope kelas), menyimpan binary response sebagai file dengan nama dari `Content-Disposition` (`laporan-kehadiran-{from}-{to}.xlsx`); nama fallback hanya dipakai bila header tidak ada. Error export dalam bentuk `404 NO_DATA_TO_EXPORT` / `429 EXPORT_BUSY` ditampilkan di UI memakai kontrak JSON yang dibaca ulang dari body Blob.
+- **Alasan:** Semua tampilan guru dikonsumsi dari kontrak backend yang sudah ada; frontend tidak menghitung role, waktu, status absensi, ataupun scope query — menghindari duplikasi aturan bisnis dan memenuhi aturan "scan-path constraint" yang dilarang dibebani query laporan.
+- **Dampak database/API/UI:** Tidak ada perubahan backend. UI menambahkan `frontend/src/features/teacher/`, `src/schemas/session.js`, halaman `pages/teacher/*`, service `academicService` (penugasan guru) serta perluasan `attendanceService` (sesi, QR, detail kelas, export), dan error mapping untuk `ASSIGNMENT_FORBIDDEN`, `INVALID_TIMEZONE`, `INVALID_DATETIME`, `INVALID_TIME_RANGE`, `INVALID_SESSION_DATE`.
+- **Asumsi yang masih perlu dikonfirmasi:** Format offset timezone yang dikirim form (`+07:00` untuk Asia/Jakarta tanpa DST) cukup untuk MVP; wallpaper jam dengan DST tetap dihitung console boundary (backend menilai via timezone IANA). QR demo dari seed tidak dapat dipindai (payload non-kontrak, hanya untuk pengisian data).
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

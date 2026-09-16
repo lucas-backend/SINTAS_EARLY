@@ -27,6 +27,12 @@ export const handlers = [
       },
     }),
   ),
+  http.get(`${API_BASE_URL}/academic/assignments`, () =>
+    HttpResponse.json({ data: [] }),
+  ),
+  http.get(`${API_BASE_URL}/attendance-sessions`, () =>
+    HttpResponse.json({ data: [] }),
+  ),
 ]
 
 export const server = setupServer(...handlers)

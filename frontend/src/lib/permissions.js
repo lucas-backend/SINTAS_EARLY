@@ -33,6 +33,8 @@ const ROLE_NAV = Object.freeze({
   ],
   TEACHER: [
     { to: '/app/teacher', label: 'Beranda', end: true, icon: 'home' },
+    { to: '/app/teacher/assignments', label: 'Penugasan', end: false, icon: 'clipboard' },
+    { to: '/app/teacher/sessions', label: 'Sesi absensi', end: false, icon: 'qr' },
     { to: '/app/teacher/profile', label: 'Profil', end: true, icon: 'user' },
   ],
   ADMIN: [
