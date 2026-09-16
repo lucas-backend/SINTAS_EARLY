@@ -58,12 +58,13 @@ Dokumen ini mengunci keputusan yang menjadi prasyarat migration dan implementasi
 
 ## 7. Kolom dan nama file export XLSX
 
-**Status: BLOCKED.**
+**Status: DECIDED untuk MVP.**
 
-- **Pilihan final:** Belum ditetapkan daftar kolom, filter/pengurutan yang diekspor, timezone presentasi, format tanggal/waktu, atau pola nama file.
-- **Alasan:** PRD hanya mensyaratkan workbook `.xlsx`, scope sesuai role, dan data lintas entitas untuk laporan Admin. Detail export disebut sebagai open question.
-- **Dampak database/API/UI:** Query export, header workbook, urutan kolom, format cell, `Content-Disposition`, empty-export behavior, dan test parser belum dapat difinalkan. Authorization dan filter tetap wajib diterapkan sebelum query.
-- **Asumsi yang masih perlu dikonfirmasi:** Kolom minimum untuk export Guru versus Admin, apakah identitas sensitif tertentu boleh disertakan, format nama file, dan apakah nama file memuat rentang tanggal/kelas.
+- **Pilihan final:** Guru dan Admin mengekspor kolom `Tanggal sesi`, `Kelas`, `Mata pelajaran`, `Nama siswa`, `NIM`, `Status`, `Menit terlambat`, dan `Waktu scan`. Data memakai filter report yang sama dan diurutkan berdasarkan tanggal sesi terbaru. Timestamp ditampilkan dalam timezone sekolah.
+- **Pilihan final:** Nama file adalah `laporan-kehadiran-{from}-{to}.xlsx`, dengan tanggal `YYYYMMDD`; nilai yang tidak difilter memakai `awal` dan `akhir`. Export tanpa baris mengembalikan `404 NO_DATA_TO_EXPORT`.
+- **Alasan:** Kolom adalah minimum yang dibutuhkan PRD untuk rekap kelas/global dan tidak menyertakan password, token, QR payload, atau tanggal lahir. Nama file stabil dan rentang filter terlihat.
+- **Dampak database/API/UI:** Authorization dan filter diterapkan sebelum query; endpoint mengembalikan `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` dengan `Content-Disposition: attachment`. NIM dianggap identitas akademik yang diperlukan untuk rekap dan bukan secret.
+- **Asumsi yang masih perlu dikonfirmasi:** Konfirmasi sekolah bahwa NIM boleh berada di file export dan bahwa empty export berbentuk error terstruktur lebih sesuai daripada workbook header-only.
 
 ## 8. Login dan lupa password Admin
 
