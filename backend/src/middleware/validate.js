@@ -8,7 +8,8 @@ export function validate(schema, source = 'body') {
       next(new AppError(400, 'VALIDATION_ERROR', 'Data yang dikirim tidak valid.', fieldErrors))
       return
     }
-    req[source] = result.data
+    if (source === 'body') req.body = result.data
+    else Object.assign(req[source], result.data)
     next()
   }
 }
