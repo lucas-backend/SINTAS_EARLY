@@ -22,12 +22,12 @@ Dokumen ini mengunci keputusan yang menjadi prasyarat migration dan implementasi
 
 ## 3. Sesi absensi duplikat
 
-**Status: BLOCKED.**
+**Status: DECIDED.**
 
-- **Pilihan final:** Belum ditetapkan apakah pembuatan sesi dengan assignment, tanggal, dan pasangan waktu yang sama harus mengembalikan sesi existing atau menolak dengan conflict.
+- **Pilihan final:** Pembuatan sesi dengan assignment, tanggal, dan pasangan waktu yang sama ditolak dengan HTTP `409` dan code `DUPLICATE_ATTENDANCE_SESSION`.
 - **Alasan:** PRD dan Backend Guide secara eksplisit menyediakan dua perilaku dan meminta pilihan produk sebelum implementasi.
-- **Dampak database/API/UI:** Unique constraint/index tetap diperlukan untuk melindungi konsistensi, tetapi status HTTP, response `data`/`error`, idempotensi create, pesan UI, dan aksi tombol Generate QR belum dapat dikunci.
-- **Asumsi yang masih perlu dikonfirmasi:** Apakah klik ulang dianggap retry idempotent dan apakah hanya guru pembuat atau guru lain yang boleh melihat/menggunakan sesi existing.
+- **Dampak database/API/UI:** Unique constraint/index menjadi perlindungan terakhir; API mengembalikan conflict tanpa data session existing. Guru hanya dapat membaca session dari assignment aktif miliknya, sedangkan Admin dapat membaca metadata seluruh session.
+- **Asumsi yang masih perlu dikonfirmasi:** Tidak ada untuk scope attendance session ini.
 
 ## 4. Finalisasi `TIDAK_HADIR`
 
