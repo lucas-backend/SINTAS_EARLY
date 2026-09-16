@@ -31,12 +31,12 @@ Dokumen ini mengunci keputusan yang menjadi prasyarat migration dan implementasi
 
 ## 4. Finalisasi `TIDAK_HADIR`
 
-**Status: BLOCKED.**
+**Status: DECIDED.**
 
-- **Pilihan final:** Belum ditetapkan apakah status dibuat oleh job otomatis setelah `end_at`, dihitung saat history/report dibuka, atau melalui proses manual.
-- **Alasan:** PRD dan Backend Guide menyebut seluruh opsi tersebut dan melarang pencampuran dua sumber kebenaran, tetapi tidak memilih salah satunya.
-- **Dampak database/API/UI:** Belum dapat ditentukan apakah `attendance_records` untuk siswa yang tidak scan dibuat secara fisik, kapan status muncul, kebutuhan worker/cron, perilaku retry, serta query history/report dan export.
-- **Asumsi yang masih perlu dikonfirmasi:** SLA keterlambatan finalisasi, apakah status boleh berubah setelah finalisasi, dan siapa yang boleh melakukan proses manual bila dipilih.
+- **Pilihan final:** Status `TIDAK_HADIR` dihitung saat history/report dibuka jika waktu server sudah melewati `end_at` dan siswa merupakan anggota aktif kelas sesi. Sistem tidak membuat atau mengubah `attendance_records` untuk status ini.
+- **Alasan:** Tidak ada worker/scheduler pada MVP; computed status memberi satu sumber kebenaran tanpa menambah proses operasional atau row duplikat.
+- **Dampak database/API/UI:** `attendance_records` hanya berisi scan. History/report menggabungkan record scan dengan status computed dan mengembalikan bentuk item yang sama. Status dapat berubah dari belum muncul menjadi `TIDAK_HADIR` setelah sesi selesai.
+- **Asumsi yang masih perlu dikonfirmasi:** Membership aktif saat query menjadi dasar eligibility historis karena model belum memiliki effective date; perubahan membership historis dapat memengaruhi laporan lama.
 
 ## 5. Format dan periode banner
 

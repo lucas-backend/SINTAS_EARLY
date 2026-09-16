@@ -4,7 +4,7 @@ import { createAuthRouter } from './auth.routes.js'
 import { createAcademicRouter } from './academic.routes.js'
 import { createUserRouter } from './user.routes.js'
 import { createBannerRouter } from './banner.routes.js'
-import { createAttendanceRouter, createAttendanceScanRouter } from './attendance.routes.js'
+import { createAttendanceHistoryRouter, createAttendanceReportRouter, createAttendanceRouter, createAttendanceScanRouter } from './attendance.routes.js'
 
 export function createRoutes({ prisma, env }) {
   const router = Router()
@@ -15,6 +15,8 @@ export function createRoutes({ prisma, env }) {
   const banners = createBannerRouter({ prisma, env })
   const attendance = createAttendanceRouter({ prisma, env })
   const attendanceScans = createAttendanceScanRouter({ prisma, env })
+  const attendanceHistory = createAttendanceHistoryRouter({ prisma, env })
+  const attendanceReports = createAttendanceReportRouter({ prisma, env })
 
   router.get('/health/live', health.live)
   router.get('/health/ready', health.ready)
@@ -26,6 +28,8 @@ export function createRoutes({ prisma, env }) {
   router.use('/api/v1/banners', banners)
   router.use('/api/v1/attendance-sessions', attendance)
   router.use('/api/v1/attendance-scans', attendanceScans)
+  router.use('/api/v1/attendance', attendanceHistory)
+  router.use('/api/v1/reports', attendanceReports)
 
   return router
 }

@@ -51,5 +51,24 @@ export function createAttendanceRepository(prisma) {
         where: { sessionId_studentId: { sessionId, studentId } },
       })
     },
+    listReportSessions({ user, query, studentId, classId }) {
+      const from = query.from ? new Date(query.from) : undefined
+      const to = query.to ? new Date(query.to) : undefined
+      const sessionWhere = {
+        ...(from || to ? { sessionDate: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } } : {}),
+        ...(classId ? { classId } : {}),
+        ...(query.assignmentId ? { assignmentId: query.assignmentId } : {}),
+        ...(user.role === 'TEACHER' ? { assignment: { teacherId: user.id, isActive: true } } : {}),
+        ...(studentId ? { class: { memberships: { some: { studentId, isActive: true } } } } : {}),
+      }
+      const include = {
+        assignment: { include: { subject: true } },
+        class: { include: { memberships: { where: { isActive: true }, include: { student: { include: { studentProfile: true } } } } } },
+        records: { ...(studentId ? { where: { studentId } } : {}), include: { student: { include: { studentProfile: true } } } },
+      }
+      const orderBy = query.sort === 'scannedAt' ? { records: { _count: query.order } } : { [query.sort]: query.order }
+      const args = { where: sessionWhere, include, orderBy, skip: (query.page - 1) * query.limit, take: query.limit }
+      return Promise.all([prisma.attendanceSession.findMany(args), prisma.attendanceSession.count({ where: sessionWhere })])
+    },
   }
 }

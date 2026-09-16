@@ -30,6 +30,26 @@ const scanMetadata = (record, duplicate = false) => ({
   duplicate,
 })
 
+const reportMetadata = ({ session, student, record, status }) => ({
+  id: record?.id ?? `computed-${session.id}-${student.id}`,
+  sessionId: session.id,
+  studentId: student.id,
+  studentName: student.name,
+  studentNumber: student.studentProfile?.studentNumber ?? null,
+  sessionDate: session.sessionDate,
+  classId: session.classId,
+  className: session.class?.name,
+  subjectId: session.assignment?.subjectId,
+  subjectName: session.assignment?.subject?.name,
+  startAt: session.startAt,
+  endAt: session.endAt,
+  scannedAt: record?.scannedAt ?? null,
+  status,
+  lateMinutes: record?.lateMinutes ?? 0,
+})
+
+const pageResult = (items, query, total) => ({ items, meta: { page: query.page, limit: query.limit, total, totalPages: Math.ceil(total / query.limit) } })
+
 export function createAttendanceService({ repository, env, now = () => new Date() }) {
   return {
     async createSession(user, data) {
@@ -98,6 +118,33 @@ export function createAttendanceService({ repository, env, now = () => new Date(
         if (!existing) throw error
         return scanMetadata(existing, true)
       }
+    },
+    async history(user, query) {
+      if (user.role !== 'STUDENT') throw new AppError(403, 'FORBIDDEN', 'Hanya siswa yang dapat melihat riwayat pribadi.')
+      return this.listReport(user, query, { studentId: user.id })
+    },
+    async classAttendance(user, query, classId) {
+      if (user.role !== 'TEACHER') throw new AppError(403, 'FORBIDDEN', 'Hanya guru yang dapat melihat detail kehadiran kelas.')
+      return this.listReport(user, query, { classId })
+    },
+    async globalReport(user, query) {
+      if (user.role !== 'ADMIN') throw new AppError(403, 'FORBIDDEN', 'Hanya admin yang dapat melihat laporan global.')
+      return this.listReport(user, query)
+    },
+    async listReport(user, query, scope = {}) {
+      const reportQuery = { page: 1, limit: 20, sort: 'sessionDate', order: 'desc', ...query }
+      const [sessions, total] = await repository.listReportSessions({ user, query: reportQuery, ...scope })
+      const nowValue = now()
+      const items = sessions.flatMap((session) => {
+        const students = scope.studentId ? session.class.memberships.filter((membership) => membership.studentId === scope.studentId).map((membership) => membership.student) : session.class.memberships.map((membership) => membership.student)
+        return students.flatMap((student) => {
+          const record = session.records.find((value) => value.studentId === student.id)
+          const status = record?.status ?? (nowValue > session.endAt ? 'TIDAK_HADIR' : null)
+          if (!status || (reportQuery.status && reportQuery.status !== status)) return []
+          return [reportMetadata({ session, student, record, status })]
+        })
+      })
+      return pageResult(items, reportQuery, total)
     },
   }
 }
