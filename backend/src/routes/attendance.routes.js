@@ -52,6 +52,12 @@ export function createAttendanceHistoryRouter({ prisma, env }) {
   });
   const controller = createAttendanceController({ service });
   router.get(
+    "/today",
+    authenticate,
+    authorize("STUDENT"),
+    controller.todaySchedule,
+  );
+  router.get(
     "/history",
     authenticate,
     authorize("STUDENT"),

@@ -421,6 +421,17 @@ paths:
         parameters: [{ $ref: "#/components/parameters/ReportQuery" }],
         responses: { "200": { $ref: "#/components/responses/Data" } },
       }
+  /api/v1/attendance/today:
+    get:
+      {
+        tags: [Attendance],
+        security: [{ cookieAuth: [] }],
+        responses:
+          {
+            "200": { $ref: "#/components/responses/Data" },
+            "403": { $ref: "#/components/responses/Forbidden" },
+          },
+      }
   /api/v1/attendance/classes/{id}:
     get:
       tags: [Attendance]

@@ -11,7 +11,7 @@ export function assertTimezone(timezone, expectedTimezone) {
   }
 }
 
-function localDate(value, timezone) {
+export function localDate(value, timezone) {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(value)
   return parts.reduce((result, part) => (part.type === 'year' || part.type === 'month' || part.type === 'day' ? { ...result, [part.type]: part.value } : result), {})
 }

@@ -118,6 +118,26 @@ export function createAttendanceRepository(prisma) {
         include: { assignment: true },
       });
     },
+    listTodaySessionsForStudent(studentId, sessionDate) {
+      return prisma.attendanceSession.findMany({
+        where: {
+          sessionDate,
+          assignment: { isActive: true },
+          class: { memberships: { some: { studentId, isActive: true } } },
+        },
+        orderBy: [{ startAt: "asc" }],
+        include: {
+          assignment: {
+            include: {
+              subject: true,
+              teacher: { select: { name: true } },
+            },
+          },
+          class: true,
+          records: { where: { studentId } },
+        },
+      });
+    },
     findActiveMembership(classId, studentId) {
       return prisma.classStudent.findFirst({
         where: { classId, studentId, isActive: true },

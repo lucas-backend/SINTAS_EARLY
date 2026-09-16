@@ -81,6 +81,27 @@ Dokumen ini mengunci keputusan yang menjadi prasyarat migration dan implementasi
 
 Record absensi tidak dihapus otomatis dan tidak ada endpoint penghapusan pada MVP. Retensi backup dan penghapusan manual mengikuti kebijakan deployment sekolah; prosedurnya wajib diaudit sebelum perubahan destruktif.
 
+## 10. Endpoint jadwal siswa "bisa absen" hari ini
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Tambahkan endpoint read-only `GET /api/v1/attendance/today` khusus STUDENT yang mengembalikan sesi pada tanggal kalender sekolah hari ini (berdasarkan waktu server dan `SCHOOL_TIMEZONE`, bukan jam client) untuk satu kelas aktif siswa, hanya dari assignment aktif. Setiap item memuat metadata sesi plus status yang **dihitung server**:
+  - `windowStatus`: `BELUM_DIBUKA` (sebelum `startAt - 15 menit`), `BISA_ABSEN` (di dalam jendela `startAt - 15 menit` sampai `endAt`, inklusif), atau `SELESAI` (setelah `endAt`).
+  - `attendanceStatus`: status record yang sudah ada (`HADIR`/`TERLAMBAT`), atau `TIDAK_HADIR` computed hanya jika sesi telah selesai tanpa record (konsisten D4), atau `null` bila sesi belum selesai dan belum discan.
+  - `scanned`: boolean — jawaban langsung "apakah saya sudah absen?" untuk ringkasan beranda.
+  - Urutan `startAt` naik; tanpa pagination; tanpa parameter query (hanya hari ini, tanggal kalender sekolah).
+- **Alasan:** Beranda dan time rail siswa (DESIGN_BRIEF S1/S2, PRD FR-06) butuh status "Bisa absen"/"Belum dibuka"/"Selesai" dan status hari ini tanpa membiarkan client menghitung aturan window atau timezone. Ini menutup open item API_CONTRACT lama ("belum ada endpoint jadwal siswa aktif hari ini") dengan kontrak ringan yang tidak membaca data siswa lain.
+- **Dampak database/API/UI:** Tidak ada migration. Repository menambah satu query `attendanceSession` yang disaring `sessionDate` == tanggal sekolah hari ini, `assignment.isActive`, dan membership aktif kelas siswa (satu kelas aktif, D2). Frontend menyusun `Jadwal terdekat` / `Absensi hari ini` dari response ini; label UI `Hadir`, `Terlambat`, `Tidak Hadir`, `Bisa absen`, `Belum dibuka`, `Selesai`.
+- **Asumsi yang masih perlu dikonfirmasi:** Rentang lebih dari satu hari (mis. "Besok" pada jadwal) tidak disediakan MVP; cukup memperluas kontrak bila product meminta date-range. Metadata guru (`teacherName`) diikutsertakan karena tampilan jadwal menampilkan guru (DESIGN_BRIEF S2), bukan untuk kontrol akses.
+
+## 11. Konvensi sesi dan guard frontend (F0)
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Session store (Zustand) hanya menyimpan user sanitized, `status` (`loading`/`authenticated`/`unauthenticated`), dan `sessionExpired`. Semua server state tinggal di React Query. Axios menyalin nilai cookie `csrf_token` (non-HttpOnly) ke header `x-csrf-token` untuk request state-changing; error dinormalisasi ke `ApiError { status, code, message, fieldErrors }`. Response `401` memicu `handleUnauthorized()` yang hanya menandai sesi berakhir bila status sebelumnya `authenticated` (agar kegagalan login tidak mengumbar pesan "sesi berakhir").
+- **Dampak UI:** `ProtectedRoute` menunggu `loading` sebelum menampilkan halaman; tanpa user diarahkan ke `/login`; `RoleRoute` menampilkan halaman akses ditolak untuk role yang tidak cocok. `/app` me-redirect ke beranda role (`/app/student|teacher|admin`). Pesan `sessionExpired` ditampilkan di halaman login saat sesi benar-benar berakhir.
+- **Dampak implementasi:** Test routing memakai MSW sebagai test double (diizinkan GUIDE: rute publik dan protected diuji tanpa server eksternal); bukan mock API runtime. `.env.example` minimal `VITE_API_BASE_URL` dan `VITE_SCHOOL_TIMEZONE`; `.env*` di-gitignore.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

@@ -68,6 +68,7 @@ status absensi, atau scope laporan.
   3. `GET /api/v1/academic/my-classes` → `{ "data": [ ...membership ] }`
   4. `GET /api/v1/banners` dan `GET /api/v1/banners/manage` →
      `{ "data": [ ...banner ] }`
+  5. `GET /api/v1/attendance/today` → `{ "data": [ ...scheduleItem ] }`
 
 - Export `.xlsx` → body biner, bukan JSON (lihat section 9).
 
@@ -677,14 +678,54 @@ Perilaku bersama:
   - Guru → hanya **classId** yang diminta + assignment aktif miliknya.
   - Admin → global.
 
-### 11.1 `GET /api/v1/attendance/history` — riwayat siswa
+### 11.1 `GET /api/v1/attendance/today` — jadwal siswa "bisa absen" hari ini
+
+- Auth: STUDENT only. Tanpa parameter query. Keputusan produk: D10
+  (docs/DECISIONS.md).
+- Mengembalikan sesi pada **tanggal kalender sekolah hari ini** (dihitung dari
+  waktu server + `SCHOOL_TIMEZONE`; bukan jam client) pada kelas aktif siswa,
+  hanya assignment aktif, urut `startAt` naik.
+- Success `200`: `{ "data": [ scheduleItem, ... ] }` (array, tidak terpaginasi).
+  `scheduleItem`:
+
+  ```json
+  {
+    "id": 10,
+    "assignmentId": 60,
+    "classId": 30,
+    "className": "XII IPA 1",
+    "subjectId": 40,
+    "subjectName": "Matematika",
+    "teacherName": "Guru Demo",
+    "sessionDate": "2026-09-17T00:00:00.000Z",
+    "startAt": "2026-09-17T01:00:00.000Z",
+    "endAt": "2026-09-17T02:00:00.000Z",
+    "createdAt": "2026-09-16T02:00:00.000Z",
+    "windowStatus": "BISA_ABSEN",
+    "attendanceStatus": null,
+    "scanned": false
+  }
+  ```
+
+- Aturan status dihitung server (bukan client):
+  - `windowStatus`: `BELUM_DIBUKA` (sebelum `startAt - 15 menit`) |
+    `BISA_ABSEN` (`startAt - 15 menit` s.d. `endAt`, inklusif) | `SELESAI`
+    (setelah `endAt`).
+  - `attendanceStatus`: `HADIR`/`TERLAMBAT` dari record yang sudah ada; atau
+    `TIDAK_HADIR` computed bila sesi sudah selesai tanpa record (D4); atau
+    `null` bila belum selesai dan belum discan.
+  - `scanned`: `true` bila siswa sudah memiliki record untuk sesi tersebut.
+- Errors: `401 UNAUTHENTICATED`, `403 FORBIDDEN` "Hanya siswa yang dapat melihat
+  jadwal hari ini." untuk role lain.
+
+### 11.2 `GET /api/v1/attendance/history` — riwayat siswa
 
 - Auth: STUDENT only.
 - Success `200`: `{ "data": { "items": [reportMetadata], "meta": {...} } }`.
 - Error role lain: `403 FORBIDDEN` "Hanya siswa yang dapat melihat riwayat
   pribadi."
 
-### 11.2 `GET /api/v1/attendance/classes/:id` — detail kehadiran kelas (guru)
+### 11.3 `GET /api/v1/attendance/classes/:id` — detail kehadiran kelas (guru)
 
 - Auth: TEACHER only. Params `id` = classId (int > 0).
 - Success `200`: `{ "data": { "items": [reportMetadata], "meta": {...} } }`.
@@ -692,7 +733,7 @@ Perilaku bersama:
 - Error role lain: `403 FORBIDDEN` "Hanya guru yang dapat melihat detail
   kehadiran kelas."
 
-### 11.3 `GET /api/v1/reports/attendance` — laporan global (admin)
+### 11.4 `GET /api/v1/reports/attendance` — laporan global (admin)
 
 - Auth: ADMIN only.
 - Success `200`: `{ "data": { "items": [reportMetadata], "meta": {...} } }`.
@@ -700,7 +741,7 @@ Perilaku bersama:
 - Error role lain: `403 FORBIDDEN` "Hanya admin yang dapat melihat laporan
   global."
 
-### 11.4 `GET /api/v1/reports/attendance/export` — export XLSX
+### 11.5 `GET /api/v1/reports/attendance/export` — export XLSX
 
 - Auth: `[authenticate, authorize('ADMIN','TEACHER')]`.
 - Query: `attendanceReportQuerySchema` (pagination diabaikan untuk export —
@@ -770,6 +811,7 @@ Perilaku bersama:
 | `POST` | `/api/v1/attendance-scans` | cookie | STUDENT | Scan |
 | `GET` | `/api/v1/attendance/history` | cookie | STUDENT | Riwayat |
 | `GET` | `/api/v1/attendance/classes/:id` | cookie | TEACHER* | Detail kelas |
+| `GET` | `/api/v1/attendance/today` | cookie | STUDENT | Jadwal hari ini |
 | `GET` | `/api/v1/reports/attendance` | cookie | ADMIN | Report global |
 | `GET` | `/api/v1/reports/attendance/export` | cookie | ADMIN, TEACHER* | Export |
 
@@ -787,11 +829,11 @@ klien).
 - 401 → hapus state user, arahkan ke `/login`; 403 → halaman akses ditolak.
 - Label UI boleh berbeda dari enum API; mapping terpusat `HADIR`,
   `TERLAMBAT`, `TIDAK_HADIR`.
-- **Gap yang diketahui (belum ada endpoint):** tidak ada endpoint khusus
-  "jadwal/bisa-absen hari ini" untuk siswa atau "scanned today status" — PRD
-  tidak mendefinisikan endpoint jadwal khusus; siswa menyusun tampilan dari
-  `history` (status computed) dan `my-classes`. Ini adalah open item dan
-  **jangan ditambahkan tanpa keputusan produk** (lihat Appendix, Open items).
+- **Gap yang diketahui (sudah ditutup):** endpoint `GET /api/v1/attendance/today`
+  (jadwal siswa "bisa absen" hari ini) kini tersedia sesuai keputusan D10
+  (docs/DECISIONS.md). Frontend memakai endpoint ini untuk `Absensi hari ini`,
+  `Jadwal terdekat`, dan badge `Bisa absen`/`Belum dibuka`/`Selesai` — tanpa
+  menghitung status dari jam lokal.
 
 ---
 
@@ -813,7 +855,8 @@ Metode verifikasi yang dijalankan saat dokumen ini dibuat:
    - `/api/v1/banners` (GET, POST), `/manage`, `/:id` (PATCH, DELETE)
    - `/api/v1/attendance-sessions` (GET, POST), `/:id/qr`
    - `/api/v1/attendance-scans` (POST)
-   - `/api/v1/attendance/history`, `/api/v1/attendance/classes/:id`
+   - `/api/v1/attendance/history`, `/api/v1/attendance/classes/:id`,
+     `/api/v1/attendance/today`
    - `/api/v1/reports/attendance`, `/api/v1/reports/attendance/export`
    Tidak ada path tambahan di luar tabel Section 12. Tidak ada metode yang
    terlewat.
@@ -850,9 +893,10 @@ Metode verifikasi yang dijalankan saat dokumen ini dibuat:
 
 ### Open items / risiko yang dicatat tanpa mengubah kontrak
 
-1. **Belum ada endpoint "jadwal siswa aktif hari ini".** Tidak
-   mengarang endpoint baru; menunggu keputusan produk. Frontend saat ini
-   menyusun tampilan dari `history`/`my-classes` + `attendance-sessions`.
+1. **`GET /api/v1/attendance/today`** (jadwal siswa "bisa absen" hari ini)
+   ditambahkan dan dikunci lewat keputusan D10 (docs/DECISIONS.md). Tanpa
+   parameter query; hanya tanggal kalender sekolah hari ini. Pebaruan jadi
+   open untuk rentang multi-hari ("Besok") bila product meminta.
 2. **Seed demo session** (`qrPayload: "dev-session-matematika-20260917"`)
    tidak memenuhi format opaque `/^[A-Za-z0-9_-]{43}$/`, sehingga **tidak dapat
    discan** lewat endpoint scan (akan `400 INVALID_QR_PAYLOAD`). Sesi QR lain

@@ -1,6 +1,9 @@
 import { createQrPayload } from "../domain/attendanceQr.js";
-import { normalizeSessionTimes } from "../domain/attendanceSession.js";
-import { classifyAttendanceScan } from "../domain/attendanceStatus.js";
+import { normalizeSessionTimes, localDate } from "../domain/attendanceSession.js";
+import {
+  classifyAttendanceScan,
+  classifyScheduleItem,
+} from "../domain/attendanceStatus.js";
 import { isOpaqueQrPayload } from "../domain/attendanceQr.js";
 import { AppError } from "../middleware/errorHandler.js";
 import ExcelJS from "exceljs";
@@ -34,6 +37,23 @@ const scanMetadata = (record, duplicate = false) => ({
   status: record.status,
   lateMinutes: record.lateMinutes ?? 0,
   duplicate,
+});
+
+const scheduleItem = (session, schedule) => ({
+  id: session.id,
+  assignmentId: session.assignmentId,
+  classId: session.classId,
+  className: session.class?.name,
+  subjectId: session.assignment?.subjectId,
+  subjectName: session.assignment?.subject?.name,
+  teacherName: session.assignment?.teacher?.name ?? null,
+  sessionDate: session.sessionDate,
+  startAt: session.startAt,
+  endAt: session.endAt,
+  createdAt: session.createdAt,
+  windowStatus: schedule.windowStatus,
+  attendanceStatus: schedule.attendanceStatus,
+  scanned: schedule.scanned,
 });
 
 const reportMetadata = ({ session, student, record, status }) => ({
@@ -167,6 +187,37 @@ export function createAttendanceService({
       if (!session)
         throw new AppError(404, "NOT_FOUND", "Sesi absensi tidak ditemukan.");
       return { ...sessionMetadata(session), qrPayload: session.qrPayload };
+    },
+    async todaySchedule(user) {
+      if (user.role !== "STUDENT")
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Hanya siswa yang dapat melihat jadwal hari ini.",
+        );
+      const nowValue = now();
+      const { year, month, day } = localDate(
+        nowValue,
+        env.SCHOOL_TIMEZONE,
+      );
+      const sessionDate = new Date(
+        `${year}-${month}-${day}T00:00:00.000Z`,
+      );
+      const sessions = await repository.listTodaySessionsForStudent(
+        user.id,
+        sessionDate,
+      );
+      return sessions.map((session) =>
+        scheduleItem(
+          session,
+          classifyScheduleItem({
+            startAt: session.startAt,
+            endAt: session.endAt,
+            now: nowValue,
+            record: session.records?.[0] ?? null,
+          }),
+        ),
+      );
     },
     async scan(user, data) {
       if (!isOpaqueQrPayload(data.qrPayload))
