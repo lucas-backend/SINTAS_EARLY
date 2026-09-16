@@ -16,12 +16,43 @@ const ROLE_LABEL = Object.freeze({
   ADMIN: 'Admin',
 })
 
+const ROLE_SEGMENT = Object.freeze({
+  STUDENT: 'student',
+  TEACHER: 'teacher',
+  ADMIN: 'admin',
+})
+
+// Navigasi per role (F1): hanya halaman yang tersedia pada fase ini.
+// Item berikutnya ditambahkan per fase (lihat docs/DECISIONS.md D12).
+const ROLE_NAV = Object.freeze({
+  STUDENT: [
+    { to: '/app/student', label: 'Beranda', end: true, icon: 'home' },
+    { to: '/app/student/profile', label: 'Profil', end: true, icon: 'user' },
+  ],
+  TEACHER: [
+    { to: '/app/teacher', label: 'Beranda', end: true, icon: 'home' },
+    { to: '/app/teacher/profile', label: 'Profil', end: true, icon: 'user' },
+  ],
+  ADMIN: [
+    { to: '/app/admin', label: 'Beranda', end: true, icon: 'home' },
+    { to: '/app/admin/profile', label: 'Profil', end: true, icon: 'user' },
+  ],
+})
+
 export function roleHome(role) {
   return ROLE_HOME[role] ?? '/login'
 }
 
 export function roleLabel(role) {
   return ROLE_LABEL[role] ?? role
+}
+
+export function roleSegment(role) {
+  return ROLE_SEGMENT[role] ?? ''
+}
+
+export function roleNav(role) {
+  return ROLE_NAV[role] ?? []
 }
 
 export function hasRole(user, roles) {

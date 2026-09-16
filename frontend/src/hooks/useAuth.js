@@ -1,7 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { roleHome } from '../lib/permissions'
-import { authKeys, forgotPassword, login, logout } from '../services/authService'
+import {
+  authKeys,
+  forgotPassword,
+  login,
+  logout,
+  updateMe,
+} from '../services/authService'
 import { useSessionStore } from '../stores/sessionStore'
 
 export function useAuthLogin() {
@@ -31,7 +37,22 @@ export function useAuthLogout() {
 }
 
 export function useAuthForgotPassword() {
+  const navigate = useNavigate()
   return useMutation({
     mutationFn: forgotPassword,
+    onSuccess() {
+      navigate('/login', { replace: true, state: { passwordReset: true } })
+    },
+  })
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: updateMe,
+    onSuccess(user) {
+      queryClient.setQueryData(authKeys.session, user)
+      useSessionStore.getState().setUser(user)
+    },
   })
 }

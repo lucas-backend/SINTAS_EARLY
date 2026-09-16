@@ -21,3 +21,8 @@ export async function getMe() {
   const payload = await apiClient.get('/me')
   return payload.data.user
 }
+
+export async function updateMe(payload) {
+  const body = await apiClient.patch('/me', payload)
+  return body.data.user
+}

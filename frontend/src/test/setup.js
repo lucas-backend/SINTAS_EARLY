@@ -5,6 +5,16 @@ import { queryClient } from '../lib/queryClient'
 import { initialSessionState, useSessionStore } from '../stores/sessionStore'
 import { server } from './server'
 
+// Headless UI (menu/dialog) memakai ResizeObserver yang belum ada di jsdom.
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+if (!globalThis.ResizeObserver) {
+  globalThis.ResizeObserver = ResizeObserverMock
+}
+
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 
 afterEach(() => {

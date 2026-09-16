@@ -77,6 +77,34 @@ describe('routing dan guard', () => {
       await screen.findByRole('heading', { name: 'Beranda Siswa' }),
     ).toBeInTheDocument()
   })
+
+  it('mengarahkan guru ke beranda guru setelah redirect role', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/me`, () =>
+        HttpResponse.json({
+          data: { user: { ...studentUser, id: 2, role: 'TEACHER' } },
+        }),
+      ),
+    )
+    renderApp(['/app'])
+    expect(
+      await screen.findByRole('heading', { name: 'Beranda Guru' }),
+    ).toBeInTheDocument()
+  })
+
+  it('mengarahkan admin ke beranda admin setelah redirect role', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/me`, () =>
+        HttpResponse.json({
+          data: { user: { ...studentUser, id: 3, role: 'ADMIN' } },
+        }),
+      ),
+    )
+    renderApp(['/app'])
+    expect(
+      await screen.findByRole('heading', { name: 'Beranda Admin' }),
+    ).toBeInTheDocument()
+  })
 })
 
 describe('alur login', () => {

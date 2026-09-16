@@ -102,6 +102,15 @@ Record absensi tidak dihapus otomatis dan tidak ada endpoint penghapusan pada MV
 - **Dampak UI:** `ProtectedRoute` menunggu `loading` sebelum menampilkan halaman; tanpa user diarahkan ke `/login`; `RoleRoute` menampilkan halaman akses ditolak untuk role yang tidak cocok. `/app` me-redirect ke beranda role (`/app/student|teacher|admin`). Pesan `sessionExpired` ditampilkan di halaman login saat sesi benar-benar berakhir.
 - **Dampak implementasi:** Test routing memakai MSW sebagai test double (diizinkan GUIDE: rute publik dan protected diuji tanpa server eksternal); bukan mock API runtime. `.env.example` minimal `VITE_API_BASE_URL` dan `VITE_SCHOOL_TIMEZONE`; `.env*` di-gitignore.
 
+## 12. Scope navigasi app shell frontend (F1)
+
+**Status: DECIDED untuk MVP.**
+
+- **Pilihan final:** Navigasi per role pada fase F1 hanya memuat halaman yang benar-benar tersedia: `Beranda` dan `Profil`. Item navigasi berikutnya (jadwal/riwayat untuk Siswa, sesi/QR untuk Guru, banner/pengguna/kelas/laporan untuk Admin) ditambahkan seiring fase fitur yang menyediakan halaman tersebut, bukan sebagai placeholder mati.
+- **Alasan:** DESIGN_BRIEF melarang layar buntu dan tombol tanpa hasil tindakan; menampilkan item navigasi ke halaman yang belum ada akan menghasilkan dead-end. Scope fase F1 (auth, app shell, app bar, role navigation, logout, profile) hanya menghadirkan dua halaman tersebut.
+- **Dampak database/API/UI:** `roleNav(role)` di `frontend/src/lib/permissions.js` adalah sumber daftar navigasi per role. `RoleRoute` memakai `Outlet` agar sub-route per role (index dashboard + `profile`) tersarang di dalam shell. Profil siswa menampilkan NIM sebagai read-only (PRD FR-03); username dan NIM tidak pernah dikirim ke `PATCH /me`.
+- **Asumsi yang masih perlu dikonfirmasi:** Tidak ada keputusan produk baru; hanya pembatasan tampilan sesuai ketersediaan fase.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

@@ -3,44 +3,77 @@
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
-  --color-school-blue-050: #eff6ff;
-  --color-school-blue-100: #dbeafe;
-  --color-school-blue-500: #3b82f6;
-  --color-school-blue-700: #1d4ed8;
-  --color-school-blue-900: #1e3a8a;
+  /* Color tokens (docs/DESIGN_BRIEF.md) */
+  --color-ink-500: #687b8f;
+  --color-ink-700: #3e5064;
+  --color-ink-900: #132238;
 
-  --color-ink-700: #374151;
-  --color-ink-900: #111827;
+  --color-school-blue-050: #eaf4fb;
+  --color-school-blue-700: #0f6b9a;
+  --color-school-blue-900: #123b5d;
+
+  --color-coral-600: #c94f35;
+
+  --color-success-700: #147d3f;
+  --color-warning-700: #9a5b00;
+  --color-danger-700: #b42318;
 
   --color-surface-0: #ffffff;
-  --color-surface-50: #f8fafc;
+  --color-surface-50: #f6f8fa;
+  --color-line-200: #d7e0e8;
 
-  --color-line-200: #e2e8f0;
-  --color-line-300: #cbd5e1;
+  /* Typography (docs/DESIGN_BRIEF.md) */
+  --text-display-sm: 1.75rem;
+  --text-display-sm--line-height: 2.25rem;
+  --text-display-sm--font-weight: 700;
 
-  --color-danger-700: #b91c1c;
-  --color-success-600: #16a34a;
-  --color-warning-600: #d97706;
+  --text-heading-lg: 1.5rem;
+  --text-heading-lg--line-height: 2rem;
+  --text-heading-lg--font-weight: 700;
+
+  --text-heading-md: 1.25rem;
+  --text-heading-md--line-height: 1.75rem;
+  --text-heading-md--font-weight: 700;
+
+  --text-heading-sm: 1rem;
+  --text-heading-sm--line-height: 1.5rem;
+  --text-heading-sm--font-weight: 700;
+
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.5rem;
 
   --text-body-md: 0.875rem;
-  --text-body-md--line-height: 1.375rem;
+  --text-body-md--line-height: 1.25rem;
+
   --text-label-md: 0.875rem;
   --text-label-md--line-height: 1.25rem;
   --text-label-md--font-weight: 600;
-  --text-heading-sm: 1.125rem;
-  --text-heading-sm--line-height: 1.5rem;
-  --text-heading-lg: 1.375rem;
-  --text-heading-lg--line-height: 1.75rem;
-  --text-heading-xl: 1.5rem;
-  --text-heading-xl--line-height: 2rem;
 
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+
+  --text-data: 0.875rem;
+  --text-data--line-height: 1.25rem;
+  --text-data--font-weight: 600;
+
+  /* Radius (docs/DESIGN_BRIEF.md) */
   --radius-sm: 0.375rem;
   --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-pill: 9999px;
 
-  --shadow-1: 0 1px 3px rgb(0 0 0 / 0.1);
+  /* Shadow (docs/DESIGN_BRIEF.md) */
+  --shadow-1: 0 1px 2px 0 rgb(18 35 56 / 0.06), 0 1px 3px 0 rgb(18 35 56 / 0.1);
+  --shadow-2: 0 1px 3px 0 rgb(18 35 56 / 0.06), 0 4px 12px 0 rgb(18 35 56 / 0.1);
 }
 
 @layer base {
+  *:focus-visible {
+    outline: 2px solid var(--color-school-blue-700);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
   body {
     @apply bg-surface-50 font-sans text-ink-900 antialiased;
   }

@@ -8,6 +8,7 @@ import AdminDashboardPage from '../pages/admin/DashboardPage'
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage'
 import LoginPage from '../pages/auth/LoginPage'
 import NotFoundPage from '../pages/NotFoundPage'
+import ProfilePage from '../pages/profile/ProfilePage'
 import StudentDashboardPage from '../pages/student/DashboardPage'
 import TeacherDashboardPage from '../pages/teacher/DashboardPage'
 
@@ -24,30 +25,18 @@ export function AppRoutes() {
       <Route path="/app" element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route index element={<RoleHome />} />
-          <Route
-            path="student"
-            element={
-              <RoleRoute roles={[ROLES.STUDENT]}>
-                <StudentDashboardPage />
-              </RoleRoute>
-            }
-          />
-          <Route
-            path="teacher"
-            element={
-              <RoleRoute roles={[ROLES.TEACHER]}>
-                <TeacherDashboardPage />
-              </RoleRoute>
-            }
-          />
-          <Route
-            path="admin"
-            element={
-              <RoleRoute roles={[ROLES.ADMIN]}>
-                <AdminDashboardPage />
-              </RoleRoute>
-            }
-          />
+          <Route path="student" element={<RoleRoute roles={[ROLES.STUDENT]} />}>
+            <Route index element={<StudentDashboardPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
+          <Route path="teacher" element={<RoleRoute roles={[ROLES.TEACHER]} />}>
+            <Route index element={<TeacherDashboardPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
+          <Route path="admin" element={<RoleRoute roles={[ROLES.ADMIN]} />}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, Navigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuthLogin } from '../../hooks/useAuth'
 import { getErrorMessage, getFieldErrors } from '../../lib/errorMapping'
@@ -8,6 +9,8 @@ import { loginSchema } from '../../schemas/auth'
 import { useSessionStore } from '../../stores/sessionStore'
 
 export default function LoginPage() {
+  const location = useLocation()
+  const [passwordReset] = useState(() => Boolean(location.state?.passwordReset))
   const user = useSessionStore((state) => state.user)
   const sessionExpired = useSessionStore((state) => state.sessionExpired)
   const login = useAuthLogin()
@@ -46,6 +49,11 @@ export default function LoginPage() {
         {sessionExpired ? (
           <p role="status" className="mt-3 rounded-radius-sm bg-school-blue-050 p-3 text-sm text-school-blue-900">
             Sesi Anda berakhir. Silakan masuk kembali.
+          </p>
+        ) : null}
+        {passwordReset ? (
+          <p role="status" className="mt-3 rounded-radius-sm bg-success-700 px-3 py-2 text-sm text-white">
+            Password berhasil diubah. Silakan masuk kembali.
           </p>
         ) : null}
         {errors.root?.server ? (

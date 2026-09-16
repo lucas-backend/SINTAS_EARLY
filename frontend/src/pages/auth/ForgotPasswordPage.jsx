@@ -1,11 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuthForgotPassword } from '../../hooks/useAuth'
 import { getErrorMessage, getFieldErrors } from '../../lib/errorMapping'
+import { roleHome } from '../../lib/permissions'
 import { forgotPasswordSchema } from '../../schemas/auth'
+import { useSessionStore } from '../../stores/sessionStore'
 
 export default function ForgotPasswordPage() {
+  const user = useSessionStore((state) => state.user)
   const forgotPassword = useAuthForgotPassword()
   const {
     register,
@@ -21,6 +24,8 @@ export default function ForgotPasswordPage() {
       passwordConfirmation: '',
     },
   })
+
+  if (user) return <Navigate to={roleHome(user.role)} replace />
 
   const onSubmit = (values) => {
     forgotPassword.mutateAsync(values).catch((error) => {
@@ -48,11 +53,6 @@ export default function ForgotPasswordPage() {
         {errors.root?.server ? (
           <p role="alert" className="mt-3 rounded-radius-sm bg-danger-700 px-3 py-2 text-sm text-white">
             {errors.root.server.message}
-          </p>
-        ) : null}
-        {forgotPassword.isSuccess ? (
-          <p role="status" className="mt-3 rounded-radius-sm bg-school-blue-050 p-3 text-sm text-school-blue-900">
-            Password berhasil diubah. Silakan masuk kembali.
           </p>
         ) : null}
         <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-4" noValidate>
