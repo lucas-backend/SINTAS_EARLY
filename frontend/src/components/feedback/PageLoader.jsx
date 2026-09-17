@@ -9,7 +9,7 @@ export function PageLoader({ label = 'Memuat…' }) {
     >
       <div className="flex flex-col items-center gap-3">
         <Loader2
-          className="h-8 w-8 animate-spin text-school-blue-700"
+          className="h-8 w-8 animate-spin text-school-blue-700 motion-reduce:animate-none"
           aria-hidden="true"
         />
         <p className="text-sm text-ink-700">{label}</p>
