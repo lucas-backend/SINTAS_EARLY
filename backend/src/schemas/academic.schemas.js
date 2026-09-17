@@ -43,6 +43,25 @@ export const resetUserPasswordSchema = z.object({
   }
 })
 
+// Listing admin untuk penempatan/penugasan (read-only, scope ADMIN). Sort
+// dibatasi ke `createdAt`; filter opsional membatasi scope tabel sesuai
+// docs/API_CONTRACT.md.
+export const membershipListSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.enum(['createdAt']).default('createdAt'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+  classId: id.optional(),
+}).strict()
+
+export const assignmentListSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.enum(['createdAt']).default('createdAt'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+  teacherId: id.optional(),
+}).strict()
+
 export const membershipSchema = z.object({ classId: id, studentId: id }).strict()
 export const assignmentSchema = z.object({ teacherId: id, classId: id, subjectId: id }).strict()
 export const statusSchema = z.object({ isActive: z.boolean() }).strict()

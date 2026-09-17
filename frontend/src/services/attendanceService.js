@@ -8,6 +8,8 @@ export const attendanceKeys = {
   sessionQr: (id) => ['attendance', 'sessions', id, 'qr'],
   classAttendanceBase: ['attendance', 'classes'],
   classAttendance: (classId, filters) => ['attendance', 'classes', classId, filters],
+  adminReportBase: ['reports', 'attendance'],
+  adminReport: (filters) => ['reports', 'attendance', filters],
 }
 
 export async function getTodaySchedule() {
@@ -62,4 +64,19 @@ export function exportAttendanceReport(params) {
     params,
     responseType: 'blob',
   })
+}
+
+// Laporan global admin; scope/filter ditentukan backend (allowlist query).
+export async function getGlobalAttendanceReport({
+  from,
+  to,
+  status,
+  classId,
+  page = 1,
+  limit = 20,
+} = {}) {
+  const payload = await apiClient.get('/reports/attendance', {
+    params: { from, to, status, classId, page, limit },
+  })
+  return payload.data
 }

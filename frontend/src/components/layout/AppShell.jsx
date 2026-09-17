@@ -9,14 +9,19 @@ import {
 } from '@headlessui/react'
 import {
   CalendarDays,
+  ChartNoAxesColumn,
   ChevronDown,
   ClipboardList,
   History,
   Home,
   LogOut,
+  Megaphone,
   Menu as MenuIcon,
+  Network,
   QrCode,
+  School,
   User,
+  Users,
   X,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -29,10 +34,15 @@ import { PageLoader } from '../feedback/PageLoader'
 const NAV_ICONS = {
   home: Home,
   user: User,
+  users: Users,
   calendar: CalendarDays,
   history: History,
   clipboard: ClipboardList,
   qr: QrCode,
+  megaphone: Megaphone,
+  school: School,
+  network: Network,
+  chart: ChartNoAxesColumn,
 }
 
 function initials(name = '') {

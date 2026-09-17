@@ -39,6 +39,11 @@ const ROLE_NAV = Object.freeze({
   ],
   ADMIN: [
     { to: '/app/admin', label: 'Beranda', end: true, icon: 'home' },
+    { to: '/app/admin/banners', label: 'Banner', end: false, icon: 'megaphone' },
+    { to: '/app/admin/users', label: 'Pengguna', end: false, icon: 'users' },
+    { to: '/app/admin/academic', label: 'Akademik', end: false, icon: 'school' },
+    { to: '/app/admin/plotting', label: 'Penempatan', end: false, icon: 'network' },
+    { to: '/app/admin/reports', label: 'Laporan', end: false, icon: 'chart' },
     { to: '/app/admin/profile', label: 'Profil', end: true, icon: 'user' },
   ],
 })

@@ -26,3 +26,17 @@ export const bannerPatchSchema = z.object(bannerFields).partial().strict().super
 })
 
 export const activeBannerQuerySchema = z.object({ at: z.coerce.date().optional() }).strict()
+
+const isActiveQuery = z
+  .enum(['true', 'false'])
+  .transform((value) => value === 'true')
+  .optional()
+
+export const bannerListSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.enum(['createdAt']).default('createdAt'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+  isActive: isActiveQuery,
+  search: z.string().trim().max(100).optional(),
+}).strict()

@@ -4,7 +4,11 @@ export function createBannerService({ repository }) {
   const adminOnly = (user) => { if (user.role !== 'ADMIN') throw new AppError(403, 'FORBIDDEN', 'Anda tidak memiliki akses ke sumber daya ini.') }
   return {
     listActive(_user, at = new Date()) { return repository.listActive(at) },
-    listAll(user) { adminOnly(user); return repository.listAll() },
+    async listAll(user, query) {
+      adminOnly(user)
+      const [items, total] = await repository.listAll(query)
+      return { items, meta: { page: query.page, limit: query.limit, total, totalPages: Math.ceil(total / query.limit) } }
+    },
     create(user, data) { adminOnly(user); return repository.create({ ...data, createdById: user.id }) },
     async update(user, id, data) {
       adminOnly(user)

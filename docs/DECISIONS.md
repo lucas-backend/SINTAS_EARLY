@@ -122,6 +122,39 @@ Record absensi tidak dihapus otomatis dan tidak ada endpoint penghapusan pada MV
 - **Dampak database/API/UI:** Tidak ada perubahan backend. UI menambahkan `frontend/src/features/teacher/`, `src/schemas/session.js`, halaman `pages/teacher/*`, service `academicService` (penugasan guru) serta perluasan `attendanceService` (sesi, QR, detail kelas, export), dan error mapping untuk `ASSIGNMENT_FORBIDDEN`, `INVALID_TIMEZONE`, `INVALID_DATETIME`, `INVALID_TIME_RANGE`, `INVALID_SESSION_DATE`.
 - **Asumsi yang masih perlu dikonfirmasi:** Format offset timezone yang dikirim form (`+07:00` untuk Asia/Jakarta tanpa DST) cukup untuk MVP; wallpaper jam dengan DST tetap dihitung console boundary (backend menilai via timezone IANA). QR demo dari seed tidak dapat dipindai (payload non-kontrak, hanya untuk pengisian data).
 
+## 14. Workspace admin dan perbaikan middleware validasi query (F5)
+
+- **Pilihan final (endpoint):** Workspace admin (F5) memakai endpoint backend yang
+  sudah ada (users, education-levels, classes, subjects, reports/export, banners,
+  attendance-sessions) ditambah TIGA penambahan read-only/query kecil:
+  1. `GET /api/v1/academic/memberships` (ADMIN, paginated, filter `classId`) —
+     listing penempatan siswa untuk halaman Plotting.
+  2. `GET /api/v1/academic/assignments/manage` (ADMIN, paginated, filter
+     `teacherId`) — listing penugasan guru untuk halaman Plotting; sengaja
+     dipisah path dari `GET /academic/assignments` (TEACHER-only, behavior tidak
+     diubah).
+  3. `GET /api/v1/banners/manage` kini ter-paginasi + filter `isActive`/
+     `search` (schema `bannerListSchema`) agar tabel admin tidak perlu menarik
+     seluruh banner sekaligus.
+- **Pilihan final (bugfix middleware):** `validate` sekarang mengganti
+  `req.query`/`req.params` dengan data hasil parse via `Object.defineProperty`.
+  Versi lama memakai `Object.assign(req.query, ...)` yang pada Express 5.1
+  tidak bertahan (getter query mengembalikan objek baru), sehingga default
+  `page`/`limit`/`sort`/`order` dan semua filter query **tidak pernah
+  diterapkan** pada seluruh endpoint list (academic, users, banners, report).
+  Perbaikan ini mengaktifkan filter/pagination yang selama ini diam; tidak ada
+  perubahan kontrak response.
+- **Alasan:** Frontend tidak pernah menjadi sumber kebenaran scope/filter; semua
+  pemfilteran dan pagination dibatasi allowlist query schema backend
+  (strict) sehingga parameter tak dikenal ditolak `400 VALIDATION_ERROR`.
+  Dashboard admin tidak menambah endpoint analitik baru di luar PRD — ringkasan
+  memakai data dari endpoint list yang ada (meta.total) + sesi hari ini.
+- **Dampak database/API/UI:** Tidak ada migration. `docs/API_CONTRACT.md` dan
+  `docs/openapi.yaml` diperbarui. UI menambah `frontend/src/features/admin/`,
+  `pages/admin/*`, `userService`, perluasan `academicService`/`bannerService`/
+  `attendanceService`, `ConfirmDialog` + `Pagination`, dan `clearUserScopedCache`
+  untuk prefix users/banners/academic/reports.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

@@ -1,0 +1,187 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { getErrorMessage, getFieldErrors } from '../../../lib/errorMapping'
+import { createUserSchema, toCreateUserPayload } from '../../../schemas/admin'
+import { useCreateUser } from '../hooks/useAdminUsers'
+import { DialogShell, FieldError, inputClass } from './DialogShell'
+
+const EMPTY_FORM = {
+  username: '',
+  password: '',
+  role: 'STUDENT',
+  name: '',
+  email: '',
+  phone: '',
+  birthDate: '',
+  studentNumber: '',
+}
+
+export function UserFormDialog({ open, onClose }) {
+  const [rootError, setRootError] = useState(null)
+  const createUser = useCreateUser()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: EMPTY_FORM,
+  })
+
+  const onSubmit = (values) => {
+    setRootError(null)
+    createUser
+      .mutateAsync(toCreateUserPayload(values))
+      .then(() => onClose())
+      .catch((error) => {
+        const entries = Object.entries(getFieldErrors(error))
+        if (entries.length === 0) setRootError(getErrorMessage(error))
+        else setRootError(entries.map(([, messages]) => messages[0]).join(' '))
+      })
+  }
+
+  return (
+    <DialogShell
+      open={open}
+      title="Pengguna baru"
+      description="Akun dibuat dengan password yang Anda isi; siswa mendapat nomor induk (NISN)."
+      onClose={onClose}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {rootError ? (
+          <p role="alert" className="rounded-radius-sm bg-danger-700 px-3 py-2 text-body-md text-white">
+            {rootError}
+          </p>
+        ) : null}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="user-role" className="block text-label-md text-ink-700">
+              Peran
+            </label>
+            <select
+              id="user-role"
+              className={inputClass}
+              {...register('role')}
+            >
+              <option value="STUDENT">Siswa</option>
+              <option value="TEACHER">Guru</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="user-username" className="block text-label-md text-ink-700">
+              Username
+            </label>
+            <input
+              id="user-username"
+              className={inputClass}
+              aria-invalid={errors.username ? true : undefined}
+              aria-describedby={errors.username ? 'user-username-error' : undefined}
+              {...register('username')}
+            />
+            <FieldError id="user-username-error" message={errors.username?.message} />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="user-name" className="block text-label-md text-ink-700">
+            Nama lengkap
+          </label>
+          <input
+            id="user-name"
+            className={inputClass}
+            aria-invalid={errors.name ? true : undefined}
+            aria-describedby={errors.name ? 'user-name-error' : undefined}
+            {...register('name')}
+          />
+          <FieldError id="user-name-error" message={errors.name?.message} />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="user-password" className="block text-label-md text-ink-700">
+              Password awal
+            </label>
+            <input
+              id="user-password"
+              type="password"
+              className={inputClass}
+              aria-invalid={errors.password ? true : undefined}
+              aria-describedby={errors.password ? 'user-password-error' : undefined}
+              {...register('password')}
+            />
+            <FieldError id="user-password-error" message={errors.password?.message} />
+          </div>
+          <div>
+            <label htmlFor="user-email" className="block text-label-md text-ink-700">
+              Email
+            </label>
+            <input
+              id="user-email"
+              type="email"
+              className={inputClass}
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? 'user-email-error' : undefined}
+              {...register('email')}
+            />
+            <FieldError id="user-email-error" message={errors.email?.message} />
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label htmlFor="user-phone" className="block text-label-md text-ink-700">
+              Telepon
+            </label>
+            <input
+              id="user-phone"
+              className={inputClass}
+              {...register('phone')}
+            />
+          </div>
+          <div>
+            <label htmlFor="user-birth" className="block text-label-md text-ink-700">
+              Tanggal lahir
+            </label>
+            <input
+              id="user-birth"
+              type="date"
+              className={inputClass}
+              {...register('birthDate')}
+            />
+          </div>
+          <div>
+            <label htmlFor="user-student-number" className="block text-label-md text-ink-700">
+              NISN (siswa)
+            </label>
+            <input
+              id="user-student-number"
+              className={inputClass}
+              {...register('studentNumber')}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={createUser.isPending}
+            className="rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:opacity-60"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={createUser.isPending}
+            className="inline-flex items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white hover:bg-school-blue-900 disabled:opacity-60"
+          >
+            {createUser.isPending ? 'Membuat…' : 'Buat pengguna'}
+          </button>
+        </div>
+      </form>
+    </DialogShell>
+  )
+}

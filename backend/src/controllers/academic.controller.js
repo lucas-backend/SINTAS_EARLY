@@ -18,6 +18,8 @@ export function createAcademicController({ service }) {
     createAssignment: run((req) => service.createAssignment(req.user, req.body)),
     updateAssignment: run((req) => service.updateAssignment(req.user, Number(req.params.id), req.body)),
     listAssignments: run((req) => service.listAssignments(req.user)),
+    listMemberships: run((req) => service.listMemberships(req.user, req.query)),
+    listAssignmentsManage: run((req) => service.listAssignmentsManage(req.user, req.query)),
     listMyClasses: run((req) => service.listMyClasses(req.user)),
   }
 }

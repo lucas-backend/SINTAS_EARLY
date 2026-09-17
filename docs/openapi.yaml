@@ -255,6 +255,12 @@ paths:
           },
       }
   /api/v1/academic/memberships:
+    get:
+      {
+        tags: [Academic],
+        security: [{ cookieAuth: [] }],
+        responses: { "200": { $ref: "#/components/responses/Data" }, "403": { $ref: "#/components/responses/Forbidden" } },
+      }
     post:
       {
         tags: [Academic],
@@ -281,6 +287,13 @@ paths:
             "200": { $ref: "#/components/responses/Data" },
             "403": { $ref: "#/components/responses/Forbidden" },
           },
+      }
+  /api/v1/academic/assignments/manage:
+    get:
+      {
+        tags: [Academic],
+        security: [{ cookieAuth: [] }],
+        responses: { "200": { $ref: "#/components/responses/Data" }, "403": { $ref: "#/components/responses/Forbidden" } },
       }
   /api/v1/academic/assignments/{id}:
     patch:

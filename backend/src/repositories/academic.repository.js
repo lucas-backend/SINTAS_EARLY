@@ -155,5 +155,29 @@ export function createAcademicRepository(prisma) {
         include: { class: { include: { educationLevel: true } } },
       });
     },
+    listMemberships(query) {
+      const where = query.classId ? { classId: query.classId } : undefined;
+      const args = pageArgs(query);
+      return Promise.all([
+        prisma.classStudent.findMany({
+          ...args,
+          where,
+          include: { class: true, student: true },
+        }),
+        prisma.classStudent.count({ where }),
+      ]);
+    },
+    listAssignmentsForAdmin(query) {
+      const where = query.teacherId ? { teacherId: query.teacherId } : undefined;
+      const args = pageArgs(query);
+      return Promise.all([
+        prisma.teacherAssignment.findMany({
+          ...args,
+          where,
+          include: { class: true, subject: true, teacher: true },
+        }),
+        prisma.teacherAssignment.count({ where }),
+      ]);
+    },
   };
 }

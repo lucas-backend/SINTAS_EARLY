@@ -367,7 +367,7 @@ x-csrf-token: <csrf_token>
 
 Role: semua route admin = `[authenticate, authorize('ADMIN')]`; kelas & subject
 GET = `[authenticate, authorize('ADMIN','TEACHER')]`; assignments GET = TEACHER;
-my-classes GET = STUDENT.
+assignments/manage GET = ADMIN; my-classes GET = STUDENT.
 
 Query list (`listAcademicSchema`, diterapkan ke list): strict,
 `page`(1)/`limit`(20,max100)/`sort`(`name`|`createdAt`, default `name`)/
@@ -407,8 +407,13 @@ Pola identik classes. `GET` (staff) mengembalikan `{ "data": { "items": [Subject
 
 | Method | Path | Admin | Request | Success / Errors |
 |---|---|---|---|---|
+| `GET` | `/memberships` | ya | query list admin | `{ "data": { "items": [ClassStudent+class+student], "meta" } }`; filter opsional `classId` |
 | `POST` | `/memberships` | ya | body `{ "classId": int>0, "studentId": int>0 }` | `{ "data": ClassStudent+class+student }` (isActive selalu `true`) |
 | `PATCH` | `/memberships/:id` | ya | params id; body `{ "isActive": boolean }` | `{ "data": ClassStudent }`; `404` "Penempatan siswa tidak ditemukan." |
+
+Query list membership (`membershipListSchema`): strict, `page`(1)/`limit`(20,max100)/
+`sort`(`createdAt` default)/`order`(`desc` default) + `classId` (filter penempatan
+per kelas).
 
 - `404 NOT_FOUND` "Siswa tidak ditemukan." (studentId harus user ber-role
   STUDENT) / "Kelas tidak ditemukan.".
@@ -422,8 +427,13 @@ Pola identik classes. `GET` (staff) mengembalikan `{ "data": { "items": [Subject
 | Method | Path | Auth | Request | Success / Errors |
 |---|---|---|---|---|
 | `GET` | `/assignments` | TEACHER only | — | `{ "data": [ Assignment+class.educationLevel+subject ] }` — hanya assignment aktif milik sendiri |
+| `GET` | `/assignments/manage` | ADMIN only | query list admin | `{ "data": { "items": [Assignment+class+subject+teacher], "meta" } }`; filter opsional `teacherId` |
 | `POST` | `/assignments` | ADMIN only | body `{ "teacherId", "classId", "subjectId": int>0 }` | `{ "data": Assignment+class+subject+teacher }` (isActive true) |
 | `PATCH` | `/assignments/:id` | ADMIN only | params id; body `{ "isActive": boolean }` | `{ "data": TeacherAssignment }`; `404` "Penugasan tidak ditemukan." |
+
+Query list assignment admin (`assignmentListSchema`): strict, `page`(1)/
+`limit`(20,max100)/`sort`(`createdAt` default)/`order`(`desc` default) +
+`teacherId` (filter penugasan per guru).
 
 - `404 NOT_FOUND`: "Guru tidak ditemukan." / "Kelas tidak ditemukan." /
   "Mata pelajaran tidak ditemukan."
@@ -495,8 +505,11 @@ Semua route `[authenticate, authorize('ADMIN')]`.
 
 ### 8.2 `GET /api/v1/banners/manage`
 
-- Auth: ADMIN. Success `200`: `{ "data": [ Banner ] }` — semua banner,
-  urut `createdAt desc`.
+- Auth: ADMIN. Success `200`: `{ "data": { "items": [ Banner ], "meta" } }` —
+  semua banner, urut `createdAt desc`.
+- Query (`bannerListSchema`) — strict: `page`(1)/`limit`(20,max100)/
+  `sort`(`createdAt` default)/`order`(`desc` default) + filter
+  `isActive?` (`true`|`false`) dan `search?` (title contains, ≤100).
 
 ### 8.3 `POST /api/v1/banners`
 
@@ -791,9 +804,11 @@ Perilaku bersama:
 | `POST` | `/api/v1/academic/subjects` | cookie | ADMIN | Academic |
 | `PATCH` | `/api/v1/academic/subjects/:id` | cookie | ADMIN | Academic |
 | `DELETE` | `/api/v1/academic/subjects/:id` | cookie | ADMIN | Academic |
+| `GET` | `/api/v1/academic/memberships` | cookie | ADMIN | Academic |
 | `POST` | `/api/v1/academic/memberships` | cookie | ADMIN | Academic |
 | `PATCH` | `/api/v1/academic/memberships/:id` | cookie | ADMIN | Academic |
 | `GET` | `/api/v1/academic/assignments` | cookie | TEACHER | Academic |
+| `GET` | `/api/v1/academic/assignments/manage` | cookie | ADMIN | Academic |
 | `POST` | `/api/v1/academic/assignments` | cookie | ADMIN | Academic |
 | `PATCH` | `/api/v1/academic/assignments/:id` | cookie | ADMIN | Academic |
 | `GET` | `/api/v1/academic/my-classes` | cookie | STUDENT | Academic |
@@ -906,7 +921,7 @@ Metode verifikasi yang dijalankan saat dokumen ini dibuat:
    `POST /users`, dan forgot-password bila email unik dilanggar (Prisma
    `P2002` → saat ini jatuh ke `500 INTERNAL_SERVER_ERROR`). Diluar scope
    kontrak; buka issue/migration test bila ingin menetapkan `409`.
-4. `GET /api/v1/users` search cocok `username` ATAU `name`; `GET /memberships`
-   dan `GET /assignments` tidak ada — listing penempatan/assignment memakai
-   `my-classes`/`assignments` (scope role) dan admin memakai kombinasi
-   `users` + endpoint master.
+4. `GET /api/v1/users` search cocok `username` ATAU `name`. Listing
+   penempatan/assignment untuk admin memakai `GET /memberships` (filter
+   `classId`) dan `GET /assignments/manage` (filter `teacherId`) yang
+   ditambahkan bersama F5 (lihat §6.4 dan §6.5).

@@ -6,7 +6,7 @@ import { createAuthenticate } from '../middleware/authenticate.js'
 import { authorize } from '../middleware/authorize.js'
 import { validate } from '../middleware/validate.js'
 import { idParamSchema } from '../schemas/common.schemas.js'
-import { activeBannerQuerySchema, bannerPatchSchema, bannerSchema } from '../schemas/banner.schemas.js'
+import { activeBannerQuerySchema, bannerListSchema, bannerPatchSchema, bannerSchema } from '../schemas/banner.schemas.js'
 
 export function createBannerRouter({ prisma, env }) {
   const router = Router()
@@ -15,7 +15,7 @@ export function createBannerRouter({ prisma, env }) {
   const controller = createBannerController({ service })
   const admin = [authenticate, authorize('ADMIN')]
   router.get('/', authenticate, validate(activeBannerQuerySchema, 'query'), controller.listActive)
-  router.get('/manage', ...admin, controller.listAll)
+  router.get('/manage', ...admin, validate(bannerListSchema, 'query'), controller.listAll)
   router.post('/', ...admin, validate(bannerSchema), controller.create)
   router.patch('/:id', ...admin, validate(idParamSchema, 'params'), validate(bannerPatchSchema), controller.update)
   router.delete('/:id', ...admin, validate(idParamSchema, 'params'), controller.delete)

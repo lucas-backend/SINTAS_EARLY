@@ -187,6 +187,14 @@ export function createAcademicService({ repository }) {
         );
       return repository.listAssignmentsForTeacher(user.id);
     },
+    async listMemberships(user, query) {
+      requireAdmin(user);
+      return pageResult(await repository.listMemberships(query), query);
+    },
+    async listAssignmentsManage(user, query) {
+      requireAdmin(user);
+      return pageResult(await repository.listAssignmentsForAdmin(query), query);
+    },
     async listMyClasses(user) {
       if (user.role !== "STUDENT")
         throw new AppError(

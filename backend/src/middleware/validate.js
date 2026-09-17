@@ -9,7 +9,13 @@ export function validate(schema, source = 'body') {
       return
     }
     if (source === 'body') req.body = result.data
-    else Object.assign(req[source], result.data)
+    else
+      Object.defineProperty(req, source, {
+        value: result.data,
+        configurable: true,
+        writable: true,
+        enumerable: true,
+      })
     next()
   }
 }

@@ -25,13 +25,20 @@ function createPrisma() {
     class: { findMany: vi.fn(), count: vi.fn(), findUnique: vi.fn().mockResolvedValue({ id: 30, name: 'X IPA 1' }), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     subject: { findMany: vi.fn(), count: vi.fn(), findUnique: vi.fn().mockResolvedValue({ id: 40, name: 'Math' }), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     classStudent: {
-      findUnique: vi.fn().mockResolvedValue(null), findMany: vi.fn().mockResolvedValue([{ id: 50, isActive: true, class: { id: 30, name: 'X IPA 1' } }]), create: vi.fn(), update: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([{ id: 50, isActive: true, class: { id: 30, name: 'X IPA 1' }, student: users[2] }]),
+      count: vi.fn().mockResolvedValue(1),
+      create: vi.fn(), update: vi.fn(),
     },
     teacherAssignment: {
-      findUnique: vi.fn().mockResolvedValue(null), findMany: vi.fn(({ where }) => Promise.resolve([{ id: 60, teacherId: where.teacherId, classId: 30, subjectId: 40, isActive: true }])), create: vi.fn(), update: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn(({ where } = {}) => Promise.resolve([{ id: 60, teacherId: where?.teacherId, classId: 30, subjectId: 40, isActive: true }])),
+      count: vi.fn().mockResolvedValue(1),
+      create: vi.fn(), update: vi.fn(),
     },
     banner: {
       findMany: vi.fn().mockImplementation(({ where }) => Promise.resolve(where.isActive ? (banner.isActive ? [banner] : []) : [banner])),
+      count: vi.fn().mockResolvedValue(1),
       findUnique: vi.fn().mockImplementation(() => Promise.resolve(banner)),
       create: vi.fn(), update: vi.fn().mockImplementation((_args) => { banner = { ...banner, ..._args.data }; return Promise.resolve(banner) }), delete: vi.fn(),
     },
@@ -91,6 +98,38 @@ describe('academic, assignment, membership, and banner scope', () => {
     expect((await request(app).get('/api/v1/banners').set('Cookie', studentCookie)).body.data).toHaveLength(0)
   })
 
+  it('lists banners for the admin with pagination meta and applies filters', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const adminCookie = await login(app, 'admin')
+    const response = await request(app).get('/api/v1/banners/manage?isActive=false&search=Event').set('Cookie', adminCookie)
+    expect(response.status).toBe(200)
+    expect(response.body.data.items).toHaveLength(1)
+    expect(response.body.data.meta).toMatchObject({ page: 1, limit: 20, total: 1, totalPages: 1 })
+    expect(prisma.banner.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { isActive: false, title: { contains: 'Event' } }, orderBy: { createdAt: 'desc' } }),
+    )
+  })
+
+  it('rejects non-admin banner manage listing without querying', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'teacher')
+    const response = await request(app).get('/api/v1/banners/manage').set('Cookie', cookie)
+    expect(response.status).toBe(403)
+    expect(response.body.error.code).toBe('FORBIDDEN')
+    expect(prisma.banner.findMany).not.toHaveBeenCalled()
+  })
+
+  it('rejects unknown banner manage filter params', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'admin')
+    const response = await request(app).get('/api/v1/banners/manage?createdById=1').set('Cookie', cookie)
+    expect(response.status).toBe(400)
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
+  })
+
   it('rejects pagination values outside the allowlist', async () => {
     const { prisma } = createPrisma()
     const app = createApp({ prisma, env, logger: { error: vi.fn() } })
@@ -99,5 +138,64 @@ describe('academic, assignment, membership, and banner scope', () => {
     expect(response.status).toBe(400)
     expect(response.body.error.code).toBe('VALIDATION_ERROR')
     expect(prisma.class.findMany).not.toHaveBeenCalled()
+  })
+
+  it('lists memberships for the admin with class+student and pagination meta', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'admin')
+    const response = await request(app).get('/api/v1/academic/memberships?classId=30').set('Cookie', cookie)
+    expect(response.status).toBe(200)
+    expect(response.body.data.items).toHaveLength(1)
+    expect(response.body.data.meta).toMatchObject({ page: 1, limit: 20, total: 1, totalPages: 1 })
+    expect(prisma.classStudent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { classId: 30 },
+        include: { class: true, student: true },
+      }),
+    )
+  })
+
+  it('rejects non-admin listing of memberships without querying', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'student')
+    const response = await request(app).get('/api/v1/academic/memberships').set('Cookie', cookie)
+    expect(response.status).toBe(403)
+    expect(response.body.error.code).toBe('FORBIDDEN')
+    expect(prisma.classStudent.findMany).not.toHaveBeenCalled()
+  })
+
+  it('lists assignments for the admin with class+subject+teacher', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'admin')
+    const response = await request(app).get('/api/v1/academic/assignments/manage').set('Cookie', cookie)
+    expect(response.status).toBe(200)
+    expect(response.body.data.items).toHaveLength(1)
+    expect(prisma.teacherAssignment.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: { class: true, subject: true, teacher: true },
+      }),
+    )
+  })
+
+  it('rejects non-admin manage listing of assignments', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'student')
+    const response = await request(app).get('/api/v1/academic/assignments/manage').set('Cookie', cookie)
+    expect(response.status).toBe(403)
+    expect(response.body.error.code).toBe('FORBIDDEN')
+    expect(prisma.teacherAssignment.findMany).not.toHaveBeenCalled()
+  })
+
+  it('rejects unknown filter params on assignment manage listing', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'admin')
+    const response = await request(app).get('/api/v1/academic/assignments/manage?subjectId=1').set('Cookie', cookie)
+    expect(response.status).toBe(400)
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 })

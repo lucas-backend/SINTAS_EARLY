@@ -6,7 +6,7 @@ import { createAuthenticate } from '../middleware/authenticate.js'
 import { authorize } from '../middleware/authorize.js'
 import { validate } from '../middleware/validate.js'
 import { idParamSchema } from '../schemas/common.schemas.js'
-import { assignmentSchema, classSchema, educationLevelSchema, listAcademicSchema, membershipSchema, statusSchema, subjectSchema } from '../schemas/academic.schemas.js'
+import { assignmentSchema, assignmentListSchema, classSchema, educationLevelSchema, listAcademicSchema, membershipListSchema, membershipSchema, statusSchema, subjectSchema } from '../schemas/academic.schemas.js'
 
 export function createAcademicRouter({ prisma, env }) {
   const router = Router()
@@ -30,10 +30,12 @@ export function createAcademicRouter({ prisma, env }) {
   router.patch('/subjects/:id', ...admin, ...id, validate(subjectSchema), controller.updateSubject)
   router.delete('/subjects/:id', ...admin, ...id, controller.deleteSubject)
   router.post('/memberships', ...admin, validate(membershipSchema), controller.createMembership)
+  router.get('/memberships', ...admin, validate(membershipListSchema, 'query'), controller.listMemberships)
   router.patch('/memberships/:id', ...admin, ...id, validate(statusSchema), controller.updateMembership)
   router.post('/assignments', ...admin, validate(assignmentSchema), controller.createAssignment)
   router.patch('/assignments/:id', ...admin, ...id, validate(statusSchema), controller.updateAssignment)
   router.get('/assignments', authenticate, authorize('TEACHER'), controller.listAssignments)
+  router.get('/assignments/manage', ...admin, validate(assignmentListSchema, 'query'), controller.listAssignmentsManage)
   router.get('/my-classes', authenticate, authorize('STUDENT'), controller.listMyClasses)
   return router
 }
