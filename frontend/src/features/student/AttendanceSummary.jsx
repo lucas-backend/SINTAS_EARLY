@@ -1,10 +1,11 @@
 import { CalendarCheck2, ListTodo } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export function AttendanceSummary({ items }) {
   const total = items.length
   const scannedCount = items.filter((item) => item.scanned).length
   const remaining = total - scannedCount
-  const hasOpenSession = items.some(
+  const openSession = items.find(
     (item) => item.windowStatus === 'BISA_ABSEN' && !item.scanned,
   )
 
@@ -35,10 +36,18 @@ export function AttendanceSummary({ items }) {
               ? `Belum mengikuti ${remaining} sesi hari ini.`
               : 'Semua absensi hari ini tercatat.'}
           </p>
-          {hasOpenSession ? (
+          {openSession ? (
             <p className="mt-1 text-caption text-success-700">
               Ada sesi dengan status Bisa absen hari ini.
             </p>
+          ) : null}
+          {openSession ? (
+            <Link
+              to={`/app/student/scan?session=${openSession.id}`}
+              className="mt-4 inline-flex w-full items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900 sm:w-auto"
+            >
+              Mulai absen
+            </Link>
           ) : null}
         </div>
       )}

@@ -47,6 +47,8 @@ describe('dashboard siswa', () => {
     expect(screen.getByText('Hadir')).toBeInTheDocument()
     expect(screen.getByText('Bisa absen')).toBeInTheDocument()
     expect(screen.getByText('Belum dibuka')).toBeInTheDocument()
+    const scanCta = screen.getByRole('link', { name: 'Mulai absen' })
+    expect(scanCta).toHaveAttribute('href', '/app/student/scan?session=2')
     expect(screen.getAllByText(/Guru Demo/).length).toBeGreaterThan(0)
     expect(
       screen.getByRole('link', { name: /Riwayat absensi/ }),
@@ -92,6 +94,9 @@ describe('dashboard siswa', () => {
     expect(
       await screen.findByText('Belum ada sesi hari ini'),
     ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Mulai absen' }),
+    ).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Belum ada jadwal hari ini' }),
     ).toBeInTheDocument()

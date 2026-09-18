@@ -4,6 +4,7 @@ export const attendanceKeys = {
   today: ['attendance', 'today'],
   historyBase: ['attendance', 'history'],
   history: (filters) => ['attendance', 'history', filters],
+  scan: ['attendance', 'scan'],
   teacherSessions: ['attendance', 'sessions'],
   sessionQr: (id) => ['attendance', 'sessions', id, 'qr'],
   classAttendanceBase: ['attendance', 'classes'],
@@ -14,6 +15,14 @@ export const attendanceKeys = {
 
 export async function getTodaySchedule() {
   const payload = await apiClient.get('/attendance/today')
+  return payload.data
+}
+
+// Satu mutation per scan (docs/PROMPT_GUIDE.md F3): payload QR hasil decode
+// dikirim apa adanya; validitas waktu/status ditentukan server. Duplicate scan
+// idempotent dikembalikan 200 dengan `duplicate: true`, bukan error.
+export async function scanAttendance(qrPayload) {
+  const payload = await apiClient.post('/attendance-scans', { qrPayload })
   return payload.data
 }
 

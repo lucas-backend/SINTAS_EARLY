@@ -48,6 +48,9 @@ describe('halaman jadwal siswa', () => {
     expect(screen.getAllByText('Hadir').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/Guru Demo/).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/^\d{2}\.\d{2}$/).length).toBeGreaterThan(0)
+    const scanLinks = screen.getAllByRole('link', { name: 'Absen sekarang' })
+    expect(scanLinks).toHaveLength(1)
+    expect(scanLinks[0]).toHaveAttribute('href', '/app/student/scan?session=1')
   })
 
   it('menampilkan label persis field server meski bertentangan dengan jam', async () => {

@@ -1,4 +1,5 @@
 import { CalendarDays, Clock } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { StatusBadge } from '../../components/common/StatusBadge'
 import { Skeleton } from '../../components/common/Skeleton'
 import {
@@ -19,6 +20,7 @@ export function ScheduleCard({ item }) {
   const end = formatSchoolTime(item.endAt)
   const duration = durationMinutes(item.startAt, item.endAt)
   const attendanceLabel = attendanceStatusLabel(item.attendanceStatus)
+  const canScan = item.windowStatus === 'BISA_ABSEN' && !item.scanned
 
   return (
     <article
@@ -68,6 +70,14 @@ export function ScheduleCard({ item }) {
           ) : null}
         </div>
       </div>
+      {canScan ? (
+        <Link
+          to={`/app/student/scan?session=${item.id}`}
+          className="mt-3 inline-flex w-full items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white hover:bg-school-blue-900 sm:w-auto"
+        >
+          Absen sekarang
+        </Link>
+      ) : null}
     </article>
   )
 }
