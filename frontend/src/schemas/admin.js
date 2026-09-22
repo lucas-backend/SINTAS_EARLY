@@ -96,6 +96,15 @@ export const createUserSchema = z.object({
   phone: z.string().trim().max(30),
   birthDate: dateField,
   studentNumber: z.string().trim().max(50),
+  educationLevelId: z.string().trim().optional(),
+}).superRefine((value, context) => {
+  if (value.role === 'STUDENT' && !value.educationLevelId) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['educationLevelId'],
+      message: 'Pilih jenjang untuk siswa.',
+    })
+  }
 })
 
 export function toCreateUserPayload(values) {
@@ -108,7 +117,7 @@ export function toCreateUserPayload(values) {
     phone: values.phone || null,
     birthDate: values.birthDate || null,
     ...(values.role === 'STUDENT' && values.studentNumber
-      ? { studentNumber: values.studentNumber }
+      ? { studentNumber: values.studentNumber, educationLevelId: Number(values.educationLevelId) }
       : {}),
   }
 }

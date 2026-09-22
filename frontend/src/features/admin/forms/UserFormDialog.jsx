@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { getErrorMessage, getFieldErrors } from '../../../lib/errorMapping'
 import { createUserSchema, toCreateUserPayload } from '../../../schemas/admin'
 import { useCreateUser } from '../hooks/useAdminUsers'
+import { useEducationLevels } from '../hooks/useAcademicMasters'
 import { DialogShell, FieldError, inputClass } from './DialogShell'
 
 const EMPTY_FORM = {
@@ -15,19 +16,24 @@ const EMPTY_FORM = {
   phone: '',
   birthDate: '',
   studentNumber: '',
+  educationLevelId: '',
 }
 
 export function UserFormDialog({ open, onClose }) {
   const [rootError, setRootError] = useState(null)
   const createUser = useCreateUser()
+  const { data: educationLevels } = useEducationLevels({ limit: 100 })
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm({
     resolver: zodResolver(createUserSchema),
     defaultValues: EMPTY_FORM,
   })
+
+  const role = watch('role')
 
   const onSubmit = (values) => {
     setRootError(null)
@@ -163,6 +169,29 @@ export function UserFormDialog({ open, onClose }) {
             />
           </div>
         </div>
+
+        {role === 'STUDENT' && (
+          <div>
+            <label htmlFor="user-education-level" className="block text-label-md text-ink-700">
+              Jenjang (siswa)
+            </label>
+            <select
+              id="user-education-level"
+              className={inputClass}
+              aria-invalid={errors.educationLevelId ? true : undefined}
+              aria-describedby={errors.educationLevelId ? 'user-education-level-error' : undefined}
+              {...register('educationLevelId')}
+            >
+              <option value="">Pilih jenjang</option>
+              {educationLevels?.items?.map((level) => (
+                <option key={level.id} value={String(level.id)}>
+                  {level.name}
+                </option>
+              ))}
+            </select>
+            <FieldError id="user-education-level-error" message={errors.educationLevelId?.message} />
+          </div>
+        )}
 
         <div className="flex justify-end gap-2">
           <button
