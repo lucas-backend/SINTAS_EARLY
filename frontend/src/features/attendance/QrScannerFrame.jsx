@@ -9,14 +9,21 @@ import { requestCameraPermission } from './cameraPermission'
 
 // Area scan dibatasi kotak tengah 1:1 (matching frame rasio 1:1) supaya QR
 // di luar frame tidak terbaca, dan video tetap object-cover full width.
+// PENTING: `object-cover` memotong video ke tengah, jadi kotak scan harus
+// digeser dengan offset crop; kalau tidak, area yang dipindai tidak sama
+// dengan bingkai yang dilihat siswa (QR di tengah/bawah jadi lambat terbaca).
 function scanRegion(video) {
-  const size = Math.min(video.videoWidth || 720, video.videoHeight || 720)
+  const width = video.videoWidth || 720
+  const height = video.videoHeight || 720
+  const size = Math.min(width, height)
+  const offsetX = (width - size) / 2
+  const offsetY = (height - size) / 2
   const margin = Math.round(size * 0.1)
   return {
-    x: margin,
-    y: margin,
-    width: size - margin * 2,
-    height: size - margin * 2,
+    x: Math.round(offsetX + margin),
+    y: Math.round(offsetY + margin),
+    width: Math.round(size - margin * 2),
+    height: Math.round(size - margin * 2),
     downScaledWidth: 480,
     downScaledHeight: 480,
   }
