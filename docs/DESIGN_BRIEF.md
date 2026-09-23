@@ -11,7 +11,7 @@ Produk ini adalah aplikasi absensi sekolah berbasis QR Code untuk tiga role: Sis
 Keputusan desain utama:
 
 - Gunakan satu sistem visual untuk seluruh role, dengan navigasi dan prioritas konten yang berubah sesuai tugas role.
-- Pertahankan biru sebagai warna kepercayaan dan aksi utama, tetapi hindari layar yang didominasi biru penuh.
+- Biru (`blue-500`) menjadi latar atas dan aksi utama, dengan konten jatuh ke lembaran putih `rounded-t-[60px]` — pola mobile-first golden master sesuai kontrak visual PLAN bagian 3. `[OVERRIDE → golden master]`
 - Status Hadir, Terlambat, dan Tidak Hadir selalu ditulis dengan label dan teks pendukung; warna dan ikon hanya menjadi penguat.
 - QR Code statis bukan berarti alurnya boleh tanpa konfirmasi. Sistem tetap harus menjelaskan sesi, jendela waktu, hasil scan, dan kegagalan.
 - Semua keputusan waktu mengikuti timezone sekolah. Tepat 15 menit setelah jam mulai masih berstatus Hadir, sesuai PRD.
@@ -53,6 +53,8 @@ Satu nama aksi, satu token spacing, satu pola header, satu pola status, dan satu
 
 ## 2. Visual Direction
 
+> **Disinkronkan fase M0 (PLAN_MERGE_UI).** Bagian ini tidak boleh bertentangan dengan kontrak visual PLAN bagian 3 yang bersumber dari golden master (`frontend_new/`). Item yang sengaja di-override oleh golden master diberi tanda `[OVERRIDE → golden master]`; item tanpa tanda tetap berlaku di kedua proyek. Keputusan terkait: DECISIONS §15 D1–D8.
+
 ### 2.1 Mood dan referensi gaya
 
 Mood: **calm school operations**. Rasanya bersih, tepercaya, dan cukup hangat untuk siswa, tetapi cukup terstruktur untuk guru dan admin. Referensi perilaku visualnya adalah aplikasi transit/utility yang cepat dipindai, dashboard akademik yang rapi, dan papan pengumuman sekolah yang modern: informasi penting tampil singkat, status kuat, dekorasi terkendali.
@@ -69,17 +71,17 @@ Signature yang dipakai: **time rail**. Pada daftar jadwal dan riwayat, waktu men
 
 ### 2.3 Yang wajib dibuang atau dihindari
 
-- Header biru penuh di setiap layar jika tidak membawa konteks; gunakan top bar ringkas dengan area konten putih.
+- Latar atas `bg-blue-500` + lembaran putih `rounded-t-[60px]` adalah pola standar untuk beranda dan login. `[OVERRIDE → golden master]` Top bar ringkas (bukan biru penuh) dipakai untuk layar dalam (jadwal/scan/riwayat).
 - Shadow besar dan blur di bawah header.
 - Teks biru muda berukuran kecil seperti “Lebih lengkap” yang sulit dibaca.
 - Emoji, ikon dekoratif, atau simbol matematika sebagai pengganti ikon pelajaran resmi.
 - Tombol icon-only tanpa accessible name.
-- Campuran radius 4, 8, 12, dan 16 px tanpa aturan.
-- Carousel banner dengan panah kecil yang tidak jelas; gunakan satu banner aktif dengan indikator yang dapat diakses atau daftar yang dapat digeser dengan keyboard.
+- Radius memakai skala Tailwind default golden master (`rounded-lg/xl/2xl/full`, `rounded-t-[60px]`); jangan mencampur ukuran ad hoc. `[OVERRIDE → golden master]`
+- Carousel banner memakai panah prev/next yang berlabel dan punya state disabled; autoplay tidak dipakai pada MVP (keputusan D5). `[OVERRIDE → golden master]`
 - Pesan sukses generik seperti “Terima Kasih” tanpa status absensi.
-- Search di Beranda sebelum ada kebutuhan pencarian yang nyata.
-- Notifikasi bell karena fitur notifikasi bukan bagian dari PRD.
-- All-caps untuk seluruh label tombol; gunakan sentence case agar lebih mudah dibaca.
+- Search di Beranda hanya boleh muncul sebagai filter fungsional nyata (menyaring grid fitur + jadwal terdekat), bukan elemen dekoratif (keputusan D3). `[OVERRIDE → golden master]`
+- Notifikasi bell karena fitur notifikasi bukan bagian dari PRD (keputusan D2).
+- Label tombol CTA primary mengikuti golden master: uppercase (mis. `MASUK`); teks selain tombol tetap sentence case (keputusan D6). `[OVERRIDE → golden master]`
 
 ### 2.4 Arah fotografi dan ilustrasi
 
@@ -87,34 +89,40 @@ Banner boleh memakai foto atau ilustrasi event sekolah yang nyata, cerah, dan ti
 
 ## 3. Design Tokens
 
+> **Disinkronkan fase M0 (PLAN_MERGE_UI).** Nilai token di bawah mengikuti palet golden master yang menjadi kontrak visual PLAN bagian 3. Token lama yang bertentangan ditandai `[OVERRIDE → golden master]`. Pemetaan alias di `frontend/src/index.css` dirinci pada PLAN bagian 7 (nama token lama dipertahankan sebagai alias dengan nilai baru saat komponen masih memakainya; prefix lama dihapus fase M5).
+
 ### 3.1 Color tokens
 
-| Token             | Hex       | Penggunaan                                                                                   |
-| ----------------- | --------- | -------------------------------------------------------------------------------------------- |
-| `ink-900`         | `#132238` | Teks utama, heading, data penting                                                            |
-| `ink-700`         | `#3E5064` | Teks sekunder dan label                                                                      |
-| `ink-500`         | `#687B8F` | Placeholder dan metadata non-kritis; tidak untuk teks kecil di atas putih jika gagal kontras |
-| `school-blue-700` | `#0F6B9A` | Primary button, link, focus ring                                                             |
-| `school-blue-900` | `#123B5D` | App bar, teks pada area biru                                                                 |
-| `school-blue-050` | `#EAF4FB` | Surface biru muda, selected state                                                            |
-| `coral-600`       | `#C94F35` | Accent event, bukan warna teks normal di atas putih                                          |
-| `success-700`     | `#147D3F` | Hadir/sukses; dipasangkan dengan label                                                       |
-| `warning-700`     | `#9A5B00` | Terlambat/peringatan                                                                         |
-| `danger-700`      | `#B42318` | Error, Tidak Hadir, destructive                                                              |
-| `surface-0`       | `#FFFFFF` | Surface utama                                                                                |
-| `surface-50`      | `#F6F8FA` | Background halaman                                                                           |
-| `line-200`        | `#D7E0E8` | Border dan divider                                                                           |
+| Token             | Hex                      | Penggunaan                                                                                                                                                  |
+| ----------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ink-900`         | `#132238`                | Teks utama, heading, data penting                                                                                                                           |
+| `ink-700`         | `#3E5064`                | Teks sekunder dan label (label grid fitur golden master memakai `slate-700`)                                                                                |
+| `ink-500`         | `#687B8F`                | Placeholder dan metadata non-kritis; tidak untuk teks kecil di atas putih jika gagal kontras                                                                |
+| `blue-500`        | `#3B82F6`                | **Brand/aksi utama**: latar atas header beranda & login, bottom nav aktif, tombol primary. Menggantikan `school-blue-700`. `[OVERRIDE → golden master]`      |
+| `blue-400`        | `#60A5FA`                | Ikon/aksen di atas latar biru (header)                                                                                                                      |
+| `blue-100`        | `#DBEAFE`                | Latar bulatan ikon pada Feature Grid, latar Bottom Nav. Menggantikan `school-blue-050`. `[OVERRIDE → golden master]`                                        |
+| `orange-400`      | `#FB923C`                | CTA login/secondary (mis. tombol `MASUK`), aksen event. Menggantikan `coral-600`. `[OVERRIDE → golden master]`                                              |
+| `slate-700`       | `#334155`                | Label grid fitur (`text-sm font-medium`), teks sekunder kuat                                                                                                |
+| `green-500`/`600` | `#22C55E`/`#16A34A`      | Status hadir/sukses (dot + teks). Menggantikan `success-700`. `[OVERRIDE → golden master]`                                                                  |
+| `red-500`         | `#EF4444`                | Status belum absen/error (dot + teks). Menggantikan `danger-700` untuk status dot. `[OVERRIDE → golden master]`                                             |
+| `orange-300`      | `#FDBA74`                | Aksen pendukung sekunder (carousel/CTA kedua)                                                                                                               |
+| `surface-0`       | `#FFFFFF`                | Surface utama (lembaran putih)                                                                                                                              |
+| `black/10`        | `rgba(0,0,0,0.10)`       | Border halus `border-black/10` (search, grid) — menggantikan `line-200`. `[OVERRIDE → golden master]`                                                       |
+
+Token warisan yang belum digantikan karena golden master belum punya referensi (dipakai dari DESIGN_BRIEF lama sampai referensi muncul): `warning-700` (`#9A5B00`, Terlambat/peringatan), `danger-700` (`#B42318`, error/destructive), `surface-50` (`#F6F8FA`, background halaman), `school-blue-900` (tidak dipakai lagi untuk app bar — app bar kini `blue-500`).
 
 Rules:
 
 - Teks utama selalu `ink-900` atau lebih gelap.
-- Warna status tidak pernah dipakai sendirian untuk menyampaikan makna.
-- `coral-600` dipakai sebagai aksen visual atau background dengan teks gelap/putih yang diuji, bukan sebagai body text kecil.
-- Pada tombol primary, gunakan `school-blue-700` dengan teks putih. Pada app bar, gunakan `school-blue-900` dengan teks putih.
+- Warna status tidak pernah dipakai sendirian untuk menyampaikan makna (selalu ada teks/ikon).
+- Tombol primary memakai `blue-500` dengan teks putih; app bar/header memakai `blue-500` dengan teks putih (menggantikan `school-blue-900`).
+- `orange-400` dipakai sebagai aksen visual/CTA sekunder, bukan body text kecil.
+- **Catatan kontras:** kombinasi pada bagian 10.1 divalidasi ulang terhadap nilai baru saat token diaplikasikan (fase M2), khususnya white-on-`blue-500` untuk tombol primary (`text-lg` putih ≈ 3.7:1 — lolos 3:1 untuk teks besar, perlu keputusan bila target AA 4.5:1 untuk teks normal; risiko dicatat di DECISIONS §15).
+- Pemetaan alias: nama token lama yang masih dipakai komponen di-*map* ke nilai golden master (PLAN bagian 7), bukan disisipkan hex baru acak.
 
 ### 3.2 Typography
 
-Font wajib: **Plus Jakarta Sans** untuk seluruh UI. Bentuk hurufnya ramah namun tetap memiliki angka yang mudah dibaca pada jadwal. Jangan mencampur font lain pada MVP; konsistensi angka dan label lebih penting daripada efek dekoratif.
+Font wajib: **Plus Jakarta Sans** untuk seluruh UI. Bentuk hurufnya ramah namun tetap memiliki angka yang mudah dibaca pada jadwal. Jangan mencampur font lain pada MVP; konsistensi angka dan label lebih penting daripada efek dekoratif. (Keputusan D4: `frontend/` sudah memakai font ini; golden master menambahkannya pada fase M1 — hingga M1, golden master masih memakai font sistem.)
 
 | Token        | Size / line height | Weight | Penggunaan                                                |
 | ------------ | ------------------ | ------ | --------------------------------------------------------- |
@@ -128,19 +136,14 @@ Font wajib: **Plus Jakarta Sans** untuk seluruh UI. Bentuk hurufnya ramah namun 
 | `caption`    | 12 / 16 px         | 400    | Metadata; tidak boleh memuat informasi wajib sendirian    |
 | `data`       | 14 / 20 px         | 600    | Jam, status, jumlah menit                                 |
 
-Gunakan sentence case. Jangan mengecilkan font untuk memaksa konten masuk satu baris; biarkan wrap pada mobile.
+Gunakan sentence case untuk teks umum. Label tombol CTA primary memakai uppercase sesuai golden master (keputusan D6, mis. `MASUK`); selain tombol, mulai dari heading sampai status, sentence case. Jangan mengecilkan font untuk memaksa konten masuk satu baris; biarkan wrap pada mobile.
 
 ### 3.3 Spacing, radius, dan shadow
 
-Spacing base 4 px: `space-1` 4, `space-2` 8, `space-3` 12, `space-4` 16, `space-5` 20, `space-6` 24, `space-8` 32, `space-10` 40, `space-12` 48, `space-16` 64.
+Spacing memakai skala Tailwind default golden master (`px-4`, `py-8`, `pt-13`, `pb-8`, `gap-4`, dst.) — tidak memakai base 4-px custom `space-*`. `[OVERRIDE → golden master]`
 
-- `radius-sm`: 6 px untuk input dan compact control.
-- `radius-md`: 10 px untuk card, banner, and button.
-- `radius-lg`: 16 px untuk modal dan bottom sheet.
-- `radius-pill`: 999 px hanya untuk status badge dan avatar.
-- `shadow-1`: `0 1px 3px rgba(19, 34, 56, 0.10)` untuk card terangkat.
-- `shadow-2`: `0 8px 24px rgba(19, 34, 56, 0.12)` untuk modal/bottom sheet saja.
-- Hindari shadow pada setiap section; divider cukup untuk konten padat.
+- Radius memakai skala Tailwind default: `rounded-lg` (8 px—input/button), `rounded-xl` (12 px—card, banner), `rounded-2xl` (16 px—item aktif bottom nav / modal / bottom sheet), `rounded-full` (9999 px—pill status, avatar, bulatan ikon), `rounded-t-[60px]` (lembaran putih). Radius lama (`radius-sm/md/lg` = 6/10/16 px) dipetakan ke nilai ini. `[OVERRIDE → golden master]`
+- Shadow diminimalkan; batas antar section memakai `border border-black/10` sesuai golden master. `shadow-1`/`shadow-2` lama (berbasis `ink-900` rgba) hanya untuk card terangkat/modal bila diperlukan, bukan shadow besar di bawah header.
 
 ## 4. Screen Inventory
 

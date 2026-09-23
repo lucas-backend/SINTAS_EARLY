@@ -55,25 +55,25 @@ dikunci, risiko, dan pertanyaan yang masih terbuka.
 ## 3. Fase M0 — Kunci Keputusan dan Sinkronisasi Dokumentasi
 
 ```text
-Kunci keputusan UI merger sesuai bagian 11 PLAN_MERGE_UI.md SEBELUM coding. Ini fase dokumentasi,
-tanpa mengubah implementasi.
+	Kunci keputusan UI merger sesuai bagian 11 PLAN_MERGE_UI.md SEBELUM coding. Ini fase dokumentasi,
+	tanpa mengubah implementasi.
 
-Buat entri keputusan di docs/DECISIONS.md (format: pilihan final, alasan, dampak database/API/UI,
-asumsi) untuk minimal:
-1. Ikon: apakah frontend/ memakai MUI Material icons (parity penuh) atau tetap lucide-react.
-2. Bell notification di header beranda — PRD meniadakan notifikasi; pilih hapus dari golden master
-	atau biarkan sebagai elemen visual murni.
-3. Search bar di beranda — biarkan sebagai filter fungsional atau hapus.
-4. Font — Plus Jakarta Sans diterapkan di KEDUA proyek (tambah ke frontend_new/) atau font default.
-5. Banner carousel golden master vs "satu banner + indikator" pada DESIGN_BRIEF.
-6. All-caps tombol ("MASUK") vs sentence case.
-7. App shell desktop Guru/Admin: sidebar tetap dengan token golden master, atau buat referensi
-	sidebar baru di golden master terlebih dahulu.
-8. Branding/nama app: ganti "LIMAN" menjadi "Kak Lia".
+	Buat entri keputusan di docs/DECISIONS.md (format: pilihan final, alasan, dampak database/API/UI,
+	asumsi) untuk minimal:
+	1. Ikon: apakah frontend/ memakai MUI Material icons (parity penuh) atau tetap lucide-react.
+	2. Bell notification di header beranda — PRD meniadakan notifikasi; pilih hapus dari golden master
+		atau biarkan sebagai elemen visual murni.
+	3. Search bar di beranda — biarkan sebagai filter fungsional atau hapus.
+	4. Font — Plus Jakarta Sans diterapkan di KEDUA proyek (tambah ke frontend_new/) atau font default.
+	5. Banner carousel golden master vs "satu banner + indikator" pada DESIGN_BRIEF.
+	6. All-caps tombol ("MASUK") vs sentence case.
+	7. App shell desktop Guru/Admin: sidebar tetap dengan token golden master, atau buat referensi
+		sidebar baru di golden master terlebih dahulu.
+	8. Branding/nama app: ganti "LIMAN" menjadi "Kak Lia".
 
-Setelah keputusan terkunci, sinkronkan docs/DESIGN_BRIEF.md (bagian Visual Direction dan
-Design Tokens) agar TIDAK bertentangan dengan kontrak visual PLAN_MERGE_UI bagian 3. Tandai
-bagian yang sengaja di-override oleh golden master. Jangan menyentuh kode aplikasi pada fase ini.
+	Setelah keputusan terkunci, sinkronkan docs/DESIGN_BRIEF.md (bagian Visual Direction dan
+	Design Tokens) agar TIDAK bertentangan dengan kontrak visual PLAN_MERGE_UI bagian 3. Tandai
+	bagian yang sengaja di-override oleh golden master. Jangan menyentuh kode aplikasi pada fase ini.
 ```
 
 **Checkpoint:** `docs/DECISIONS.md` memuat D1–D8 dengan status/jawaban jelas; `DESIGN_BRIEF.md` konsisten dengan kontrak visual; tidak ada keputusan penting yang diam-diam dipilih di lain tempat.

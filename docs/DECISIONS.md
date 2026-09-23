@@ -155,6 +155,94 @@ Record absensi tidak dihapus otomatis dan tidak ada endpoint penghapusan pada MV
   `attendanceService`, `ConfirmDialog` + `Pagination`, dan `clearUserScopedCache`
   untuk prefix users/banners/academic/reports.
 
+## 15. Keputusan visual merger dua frontend (M0)
+
+**Status: DECIDED — fase M0 `PLAN_MERGE_UI.md`.**
+
+Golden master (`frontend_new/`) adalah sumber keputusan visual; `frontend/` menirunya secara persis. Keputusan D1–D8 ini mengunci kontrak visual bagian 3 `PLAN_MERGE_UI.md` sebelum coding dan menyelaraskan `DESIGN_BRIEF.md` (bagian Visual Direction & Design Tokens). Implementasi (M1–M5) hanya mengubah lapisan presentasi; tidak ada perubahan business logic.
+
+### D1 — Ikon: MUI Material icons di kedua proyek
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Pakai MUI Material icons (`@mui/icons-material`) di **kedua** proyek. `frontend/` menambahkan dependency `@mui/icons-material` dan mengganti impor `lucide-react` pada seluruh lapisan presentasi yang meniru golden master (`lucide-react` dihapus seiring fase M2–M5).
+- **Alasan:** Kontrak "sama persis" (invariant #11) menuntut bentuk glyph identik; glyph MUI khas dan menjadi bagian dari identitas visual golden master. Ini meng-override pilihan `lucide-react` pada `frontend/GUIDE.md` bagian 2 (wajib dicatat).
+- **Dampak database/API/UI:** Tidak ada dampak database/API. UI: `frontend/package.json` + lockfile bertambah; semua komponen presentasi yang dipetakan mengganti import ikon; setiap ikon yang menyampaikan aksi/status tetap wajib punya accessible name (aturan GUIDE berlaku).
+- **Asumsi:** Penambahan ukuran bundle akibat MUI icons dapat diterima MVP; ikon golden master yang tidak punya padanan MUI di `frontend/` dicatat, bukan diganti diam-diam.
+
+### D2 — Bell notification di header beranda
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Hapus bell notification dari golden master (`DashboardHeader.tsx`); tombol aksi bulat putih kanan diisi aksi navigasi Profil. Bell tidak tampil di kedua proyek.
+- **Alasan:** PRD meniadakan fitur notifikasi (frontend GUIDE bagian 1); bell tanpa fungsi adalah dead element yang dilarang DESIGN_BRIEF. Menghapus dari golden master menjamin parity karena kedua proyek mengikuti golden master.
+- **Dampak database/API/UI:** Tidak ada dampak backend. UI: `DashboardHeader.tsx` mengganti `NotificationsNoneRoundedIcon` dengan ikon aksi profil; invariant #4 (satu tombol aksi bulat putih `w-8 h-8` di kanan) tetap terjaga.
+- **Asumsi:** Aksi header kanan cukup satu tombol (menuju Profil), bukan dua tombol.
+
+### D3 — Search bar di beranda: filter fungsional
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Pertahankan search bar pill di beranda sebagai filter yang **benar-benar berfungsi**: menyaring item Feature Grid dan baris jadwal terdekat yang sudah dimuat. Golden master (fase M1) mengisi perilaku filter mock; `frontend/` memfilter data nyata sisi client (item yang sudah ada di halaman), bukan menambah endpoint.
+- **Alasan:** Menghindari dead element (DESIGN_BRIEF melarang UI tanpa tindakan). Ini meng-override larangan "Search di Beranda" pada DESIGN_BRIEF 2.3 karena kebutuhan filter kini nyata (grid fitur multi-role + jadwal terdekat).
+- **Dampak database/API/UI:** Tidak ada endpoint baru; tidak ada request server untuk fitur ini. UI menambah state `search` lokal di beranda; placeholder golden master "Cari Fitur" menjadi fungsional di M1.
+- **Asumsi:** Scope filter terbatas pada konten beranda (grid fitur + jadwal terdekat), bukan pencarian global lintas-route; bila produk ingin search global, itu keputusan baru (dicatat, bukan ditebak).
+
+### D4 — Font: Plus Jakarta Sans di kedua proyek
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Plus Jakarta Sans dipakai di **kedua** proyek. `frontend/` sudah memakainya (`--font-sans` di `src/index.css`); golden master menambahkan font (link `index.html` + `--font-sans` di `src/index.css`) pada fase M1.
+- **Alasan:** DESIGN_BRIEF (3.2) menjadikan Plus Jakarta Sans font wajib; parity typography (invariant #12) butuh keluarga font yang sama di kedua proyek.
+- **Dampak database/API/UI:** Tidak ada dampak backend. UI golden master: `index.html` menambah `<link>` font + theme font-family; ukuran tetap memakai skala Tailwind `text-xs`…`text-6xl`.
+- **Asumsi:** Sumber font Google Fonts CDN dapat diterima; fallback `ui-sans-serif/system-ui` dipakai saat offline (sama di kedua proyek). Keputusan self-host font bila diperlukan adalah keputusan terpisah.
+
+### D5 — Banner: carousel golden master menang
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Golden master menang: banner memakai carousel dengan tombol panah prev/next (`AdSlider`), direplikasi sebagai `BannerCarousel` di `frontend/`. Pilihan "satu banner aktif + indikator" di DESIGN_BRIEF 2.3 di-override.
+- **Alasan:** Kontrak "sumber keputusan visual = golden master" (PLAN bagian 1) dan PRD memperbolehkan beberapa banner aktif (DECISIONS #5) — carousel memberi akses ke semua banner aktif. Panah di golden master sudah ber-`aria-label` dan `disabled` state.
+- **Dampak database/API/UI:** Tidak ada perubahan backend; kontrak banner tetap (`title`, `imageUrl`/`content`, `is_active`, periode tampil). UI `frontend/` menampilkan daftar banner aktif dalam carousel.
+- **Asumsi:** Tanpa autoplay pada MVP (PRD tidak meminta; menghormati `prefers-reduced-motion`); indikator posisi opsional bila produk minta (keputusan baru, bukan ditebak).
+
+### D6 — All-caps tombol CTA primary
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Golden master menang: label tombol CTA primary ditulis uppercase (mis. `MASUK`) di kedua proyek. Aturan sentence case pada DESIGN_BRIEF (2.3, 3.2) di-override khusus untuk label tombol aksi; teks selain tombol tetap sentence case.
+- **Alasan:** Parity visual persis (kontrak bagian 3); golden master adalah sumber keputusan visual. Perubahan hanya pada label tombol, bukan seluruh copy.
+- **Dampak database/API/UI:** Tidak ada. UI: tombol primary di kedua proyek memakai label uppercase (mis. `MASUK` dan pola serupa untuk CTA sejenis); istilah status PRD (`Hadir`, `Terlambat`, `Tidak Hadir`) tetap capitalisasi normal.
+- **Asumsi:** Keterbacaan (legibility) semua-caps diterima untuk label aksi pendek; penerapan uppercase secara literal di string (parity) — bila dipakai CSS `uppercase`, string aksesibel/DOM tetap normal. Kontras white-on-`blue-500` untuk tombol divalidasi saat token diaplikasikan (lihat risiko di bawah).
+
+### D7 — App shell desktop Guru/Admin
+
+**Status: DECIDED untuk MVP.**
+
+- **Pilihan final:** Desktop Guru/Admin di `frontend/` mempertahankan sidebar `lg:` yang sudah ada, diwarnai ulang dengan palet/token golden master (keluarga `blue-500`). Golden master belum memiliki referensi sidebar; parity penuh desktop ditangguhkan hanya untuk area yang belum ada referensinya. Mobile selalu mengikuti pola golden master (latar `bg-blue-500` + lembaran putih + bottom nav).
+- **Alasan:** MVP fokus mobile-first; membuat referensi sidebar baru di golden master memperluas scope M0. Sesuai opsi (a) PLAN bagian 11.
+- **Dampak database/API/UI:** Tidak ada. UI: `AppShell` desktop memakai token baru; struktur sidebar yang ada tidak berubah (bukan menyalin JSX golden master).
+- **Asumsi:** Bila produk menuntut sidebar yang sama persis, dilakukan sebagai fase lanjutan dengan alur kerja PLAN bagian 2 (buat referensi di golden master dulu, lalu rontok).
+
+### D8 — Branding "LIMAN" → "Kak Lia"
+
+**Status: DECIDED.**
+
+- **Pilihan final:** Ganti branding golden master dari "LIMAN" menjadi "Kak Lia": `src/features/login/Login.tsx` (`appName`), `index.html` (`title` + `lang="id"`), `package.json` `name`, dan judul `doc/Struktur_Folder.md`. `frontend/` (produksi) tetap memakai nama "Kak Lia".
+- **Alasan:** Konsistensi nama produk; golden master adalah kanvas desain aplikasi Kak Lia, bukan produk berbeda.
+- **Dampak database/API/UI:** Tidak ada dampak backend/API. UI dan judul dokumen berubah; nama package berubah (prototype, bukan breaking).
+- **Asumsi:** Nama tampilan ditulis "Kak Lia" (bukan all-caps dan bukan "KAK LIA"); perubahan branding tidak mengubah route/path.
+
+### Penjabaran token & override DESIGN_BRIEF
+
+Pemetaan nilai token (palet `blue-500` golden master menggantikan `school-blue-*`, radius Tailwind default, `border-black/10`) dan tanda `[OVERRIDE → golden master]` pada item Visual Direction ditulis langsung di `docs/DESIGN_BRIEF.md` (bagian 2 dan 3, disinkronkan pada fase M0) dan diterapkan di `frontend/src/index.css` pada fase M2.
+
+### Risiko yang dicatat
+
+- **Kontras white-on-`blue-500` (`#3B82F6`)** untuk tombol primary (`text-lg font-semibold`) berada di sekitar 3.7:1 — memenuhi 3:1 untuk teks besar, belum tentu 4.5:1 untuk teks normal. Validasi ulang terhadap kriteria aksesibilitas DESIGN_BRIEF 10.1 dilakukan saat token diterapkan (M2); bila gagal AA, keputusan perbaikan dicatat di DECISIONS (tidak mengubah golden master diam-diam).
+- **TERLAMBAT** belum punya warna referensi di golden master (StatusAbsen hanya hadir/belum); nilai warna warning dipakai dari token lama dan dimutakhirkan saat layar rekap/jadwal tersedia.
+- Parity desktop sejak awal tidak penuh untuk sidebar Guru/Admin (D7) — verifikasi "sama persis" (PLAN bagian 10) menoleransi beda sidebar vs pola sheet pada viewport desktop.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.
