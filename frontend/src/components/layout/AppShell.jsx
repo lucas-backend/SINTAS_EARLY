@@ -7,42 +7,41 @@ import {
   MenuItem,
   MenuItems,
 } from '@headlessui/react'
-import {
-  CalendarDays,
-  ChartNoAxesColumn,
-  ChevronDown,
-  ClipboardList,
-  History,
-  Home,
-  LogOut,
-  Megaphone,
-  Menu as MenuIcon,
-  Network,
-  QrCode,
-  School,
-  User,
-  Users,
-  X,
-} from 'lucide-react'
+import BarChartRounded from '@mui/icons-material/BarChartRounded'
+import CalendarMonthRounded from '@mui/icons-material/CalendarMonthRounded'
+import CampaignRounded from '@mui/icons-material/CampaignRounded'
+import CloseRounded from '@mui/icons-material/CloseRounded'
+import ExpandMoreRounded from '@mui/icons-material/ExpandMoreRounded'
+import GroupOutlined from '@mui/icons-material/GroupOutlined'
+import HistoryRounded from '@mui/icons-material/HistoryRounded'
+import HomeOutlined from '@mui/icons-material/HomeOutlined'
+import HubOutlined from '@mui/icons-material/HubOutlined'
+import ListAltRounded from '@mui/icons-material/ListAltRounded'
+import LogoutRounded from '@mui/icons-material/LogoutRounded'
+import MenuIcon from '@mui/icons-material/Menu'
+import PersonOutlineRounded from '@mui/icons-material/PersonOutlineRounded'
+import QrCode2Rounded from '@mui/icons-material/QrCode2Rounded'
+import SchoolRounded from '@mui/icons-material/SchoolRounded'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuthLogout } from '../../hooks/useAuth'
 import { ROLES, roleLabel, roleNav, roleSegment } from '../../lib/permissions'
 import { useSessionStore } from '../../stores/sessionStore'
 import { PageLoader } from '../feedback/PageLoader'
+import BottomNav from './BottomNav'
 
 const NAV_ICONS = {
-  home: Home,
-  user: User,
-  users: Users,
-  calendar: CalendarDays,
-  history: History,
-  clipboard: ClipboardList,
-  qr: QrCode,
-  megaphone: Megaphone,
-  school: School,
-  network: Network,
-  chart: ChartNoAxesColumn,
+  home: HomeOutlined,
+  user: PersonOutlineRounded,
+  users: GroupOutlined,
+  calendar: CalendarMonthRounded,
+  history: HistoryRounded,
+  clipboard: ListAltRounded,
+  qr: QrCode2Rounded,
+  megaphone: CampaignRounded,
+  school: SchoolRounded,
+  network: HubOutlined,
+  chart: BarChartRounded,
 }
 
 function initials(name = '') {
@@ -102,7 +101,7 @@ function ProfileMenu({ user, onLogout }) {
             {roleLabel(user?.role)}
           </span>
         </span>
-        <ChevronDown className="hidden h-4 w-4 sm:block" aria-hidden="true" />
+        <ExpandMoreRounded className="hidden h-4 w-4 sm:block" aria-hidden="true" />
       </MenuButton>
       <MenuItems
         transition
@@ -117,7 +116,7 @@ function ProfileMenu({ user, onLogout }) {
                 focus ? 'bg-surface-50' : ''
               }`}
             >
-              <User className="h-4 w-4 text-ink-500" aria-hidden="true" />
+              <PersonOutlineRounded className="h-4 w-4 text-ink-500" aria-hidden="true" />
               Profil
             </NavLink>
           )}
@@ -132,7 +131,7 @@ function ProfileMenu({ user, onLogout }) {
                 focus ? 'bg-surface-50' : ''
               }`}
             >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <LogoutRounded className="h-4 w-4" aria-hidden="true" />
               Keluar
             </button>
           )}
@@ -162,8 +161,16 @@ export function AppShell() {
     }
   }
 
+  const navItems = roleNav(user.role)
+  const mobileMenus = navItems.map((item) => ({
+    name: item.label,
+    link: item.to,
+    end: item.end,
+    icon: NAV_ICONS[item.icon],
+  }))
+
   return (
-    <div className="min-h-screen bg-surface-50">
+    <div className="min-h-dvh bg-blue-500 lg:bg-surface-50">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-radius-sm focus:bg-school-blue-900 focus:px-4 focus:py-2 focus:text-white"
@@ -172,12 +179,12 @@ export function AppShell() {
       </a>
 
       {isStaff ? (
-        <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col bg-school-blue-900 text-white lg:flex">
+        <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col bg-blue-500 text-white lg:flex">
           <div className="flex h-16 items-center px-5">
             <span className="text-label-md font-semibold text-white">Kak Lia</span>
           </div>
           <nav aria-label="Navigasi utama" className="flex-1 overflow-y-auto px-3 pb-4">
-            <NavList items={roleNav(user.role)} />
+            <NavList items={navItems} />
           </nav>
           <div className="border-t border-white/10 px-3 py-3">
             <div className="flex items-center gap-2 px-2">
@@ -196,7 +203,7 @@ export function AppShell() {
       ) : null}
 
       <div className={isStaff ? 'lg:pl-60' : ''}>
-        <header className="sticky top-0 z-30 h-16 bg-school-blue-900 text-white shadow-1">
+        <header className="sticky top-0 z-30 h-16 bg-blue-500 text-white lg:shadow-none">
           <div className="mx-auto flex h-full max-w-7xl items-center gap-2 px-4">
             <button
               type="button"
@@ -209,7 +216,7 @@ export function AppShell() {
             <span className="text-label-md font-semibold text-white">Kak Lia</span>
             {!isStaff ? (
               <nav aria-label="Navigasi utama" className="ml-4 hidden lg:block">
-                <NavList items={roleNav(user.role)} orientation="horizontal" />
+                <NavList items={navItems} orientation="horizontal" />
               </nav>
             ) : null}
             <div className="flex-1" />
@@ -217,30 +224,42 @@ export function AppShell() {
           </div>
         </header>
 
-        <main id="main" tabIndex={-1} className="mx-auto w-full max-w-7xl px-4 py-6 focus:outline-none lg:px-6">
-          <Outlet />
-        </main>
+        {/* Lembaran putih (mobile) / konten normal (desktop) */}
+        <div className="mx-auto w-full max-w-md bg-white rounded-t-[60px] pb-36 lg:max-w-none lg:rounded-none lg:bg-transparent lg:pb-0">
+          <main
+            id="main"
+            tabIndex={-1}
+            className="mx-auto w-full max-w-7xl px-4 py-6 focus:outline-none lg:px-6"
+          >
+            <Outlet />
+          </main>
+        </div>
+      </div>
+
+      {/* Bottom nav mobile */}
+      <div className="lg:hidden">
+        <BottomNav menus={mobileMenus} />
       </div>
 
       <Dialog open={navOpen} onClose={() => setNavOpen(false)} className="relative z-50 lg:hidden">
         <DialogBackdrop className="fixed inset-0 bg-ink-900/50" />
         <div className="fixed inset-0 flex">
-          <DialogPanel className="relative ml-auto flex h-full w-64 flex-col bg-school-blue-900 text-white shadow-2">
+          <DialogPanel className="relative ml-auto flex h-full w-64 flex-col bg-blue-500 text-white shadow-2">
             <div className="flex h-16 items-center justify-between px-4">
-<span className={`text-label-md font-semibold text-white ${isStaff ? 'lg:hidden' : ''}`}>
-              Kak Lia
-            </span>
+              <span className={`text-label-md font-semibold text-white ${isStaff ? 'lg:hidden' : ''}`}>
+                Kak Lia
+              </span>
               <button
                 type="button"
                 onClick={() => setNavOpen(false)}
                 aria-label="Tutup menu navigasi"
                 className="rounded-radius-sm p-2 hover:bg-white/10 focus-visible:outline-white"
               >
-                <X className="h-5 w-5" aria-hidden="true" />
+                <CloseRounded className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
             <nav aria-label="Navigasi utama" className="flex-1 overflow-y-auto px-3 pb-4">
-              <NavList items={roleNav(user.role)} onNavigate={() => setNavOpen(false)} />
+              <NavList items={navItems} onNavigate={() => setNavOpen(false)} />
             </nav>
             <div className="border-t border-white/10 px-3 py-3">
               <div className="flex items-center gap-2 px-2">
@@ -259,7 +278,7 @@ export function AppShell() {
                 onClick={handleLogout}
                 className="mt-3 flex w-full items-center gap-2 rounded-radius-md px-3 py-2 text-label-md text-school-blue-050 hover:bg-white/10 hover:text-white focus-visible:outline-white"
               >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
+                <LogoutRounded className="h-4 w-4" aria-hidden="true" />
                 Keluar
               </button>
             </div>

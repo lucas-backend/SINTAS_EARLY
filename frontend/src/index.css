@@ -3,24 +3,39 @@
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
-  /* Color tokens (docs/DESIGN_BRIEF.md) */
+  /* Color tokens — palet golden master (docs/DESIGN_BRIEF.md §3, PLAN_MERGE_UI §7).
+     Alias semantic: nama token lama dipertahankan selama komponen masih memakainya,
+     nilainya dipetakan ke golden master. Prefix lama dihapus pada fase M5. */
   --color-ink-500: #687b8f;
   --color-ink-700: #3e5064;
   --color-ink-900: #132238;
 
-  --color-school-blue-050: #eaf4fb;
-  --color-school-blue-700: #0f6b9a;
-  --color-school-blue-900: #123b5d;
+  /* Aliases ke palet golden master */
+  --color-school-blue-050: #dbeafe; /* = blue-100 */
+  --color-school-blue-700: #3b82f6; /* = blue-500 */
+  --color-school-blue-900: #3b82f6; /* = blue-500 (app bar/sidebar) */
 
-  --color-coral-600: #c94f35;
+  --color-coral-600: #fb923c; /* = orange-400 */
 
-  --color-success-700: #147d3f;
-  --color-warning-700: #9a5b00;
-  --color-danger-700: #b42318;
+  --color-success-700: #16a34a; /* = green-600 */
+
+  --color-warning-700: #9a5b00; /* dipakai sampai golden master punya referensi TERLAMBAT */
+  --color-danger-700: #b42318; /* error/destructive */
 
   --color-surface-0: #ffffff;
   --color-surface-50: #f6f8fa;
   --color-line-200: #d7e0e8;
+
+  /* Token golden master (kontrak visual PLAN §3) */
+  --color-blue-500: #3b82f6;
+  --color-blue-400: #60a5fa;
+  --color-blue-100: #dbeafe;
+  --color-orange-400: #fb923c;
+  --color-orange-300: #fdba74;
+  --color-slate-700: #334155;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-red-500: #ef4444;
 
   /* Typography (docs/DESIGN_BRIEF.md) */
   --text-display-sm: 1.75rem;
@@ -56,9 +71,9 @@
   --text-data--line-height: 1.25rem;
   --text-data--font-weight: 600;
 
-  /* Radius (docs/DESIGN_BRIEF.md) */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
+  /* Radius — skala Tailwind golden master (sm 8px, md 12px, lg 16px, pill 9999px) */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-pill: 9999px;
 

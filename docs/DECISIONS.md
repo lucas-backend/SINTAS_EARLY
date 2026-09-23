@@ -283,6 +283,34 @@ Fase M1 memangkas `frontend_new/` menjadi prototype fokus absen. D1–D8 (§15) 
 
 Layar baru `Scan`, `ScanResult`, `Riwayat`, `Profil`, `BuatAbsen`, `SesiQr`, `RekapKelas` memakai `Header` (biru) + `WhiteSheet` (`bg-white w-full max-w-md mx-auto -mt-6 rounded-t-[60px] pt-13 pb-8`) + `XPadding`, sesuai instruksi M1 dan invariant #2. Semua data mock. `ScanResult` menyediakan preview variasi `Hadir`/`Terlambat`/`Sudah absen` sebagai referensi desain; di produksi (`frontend/`) status selalu datang dari server. Ikon navigasi/aksi dari `@mui/icons-material` (D1).
 
+## 17. Keputusan fase M2 — Token, primitif, dan AppShell (PLAN_MERGE_UI)
+
+**Status: DECIDED — fase M2 `PLAN_MERGE_UI.md`.**
+
+Fase M2 menerapkan token palet golden master di `frontend/src/index.css`, menambah primitif presentasi (`ContentShell`, `BlueHeader`, `PrimaryButton`, `StatusDot`, `PillSearch`, `FeatureGrid`, `BottomNav`, `BannerCarousel`), dan mengubah AppShell: mobile memakai pola header biru + lembaran putih `rounded-t-[60px]` + bottom nav; desktop mempertahankan sidebar `lg:` (D7) dengan palet baru. Tidak ada perubahan logic, route, hook, service, store, skema, atau perilaku scan/auth. Ikon primitif memakai `@mui/icons-material` (eksekusi D1; dependency ditambahkan di `frontend/package.json`).
+
+### M2-1 — Bottom nav produksi = `roleNav(role)`, bukan menu mock golden master
+
+- **Pilihan final:** `BottomNav` pada AppShell `frontend/` memakai item dari `roleNav(user.role)` di `frontend/src/lib/permissions.js` (label + link produksi yang sudah ada), diterjemahkan ke ikon MUI. Menu golden master `siswaMenus`/`guruMenus`/`adminMenus` hanya menjadi referensi visual — rute mock berbeda (`/scan`, `/riwayat` vs `/app/student/scan`, dst.).
+- **Alasan:** Larangan fase ("jangan mengubah route/behavior") lebih kuat daripada parity label; mengganti label/nav produksi akan memutus akses halaman guru/admin dan test yang mengeceknya.
+- **Dampak:** Khusus role `ADMIN`, bottom nav menampilkan 7 item (`adminMenus` golden master hanya 2 karena layar referensi admin belum ada — M1-4); parity grafis bottom nav untuk admin ditangguhkan, drawer hamburger tetap menjadi akses kedua. Item non-`end` memakai prefix match agar halaman nested tetap menyala (e.g. `/app/student/schedule` aktif saat di beranda jadwal).
+- **Asumsi:** 7 item masih muat pada viewport ≥320px; bila tidak, kepadatan bottom nav admin menjadi open question (bukan keputusan diam-diam).
+
+### M2-2 — Primitif mirror golden master + perbaikan aksesibilitas nama tombol
+
+- **Pilihan final:** `ContentShell` (setara `XPadding`), `BlueHeader` (setara `Header`), `PrimaryButton` (setara `Button`), `PillSearch` (setara `SearchBar`, keputusan D3 setuju), `StatusDot` (setara `StatusAbsen`), `FeatureGrid`, `BottomNav`, `BannerCarousel` (setara `AdSlider`) menyalin kelas/struktur golden master pada kontrak visual bagian 3.
+- **Dampak:** `BlueHeader` menambah `aria-label="Kembali"` pada tombol back icon-only (golden master belum punya accessible name; aturan GUIDE aksesibilitas menang atas parity literal). Lokasi sesuai peta PLAN bagian 8.
+
+### M2-3 — BannerCarousel mendukung fallback teks
+
+- **Pilihan final:** `BannerCarousel` menerima `items` (kontrak banner produksi: `title`, `imageUrl` ATAU `content`, periode opsional). Bila `imageUrl` kosong merender kartu teks (title + content) di atas latar `blue-100`, sesuai state `Banner` = `image, text fallback` pada DESIGN_BRIEF §7 (golden master `AdSlider` selalu memakai `<img>`, mock `imageLink`).
+- **Alasan:** Kontrak API banner memperbolehkan `content` tanpa `imageUrl`; parity visual `<img>` tidak bisa dijadikan satu-satunya jalur.
+
+### M2-4 — Alias token di `frontend/src/index.css`
+
+- **Pilihan final:** Nama token lama yang masih dipakai komponen di-*map* ke nilai golden master (PLAN bagian 7, opsi alias semantic): `school-blue-050 → #DBEAFE` (`blue-100`), `school-blue-700 → #3B82F6` (`blue-500`), `school-blue-900 → #3B82F6` (app bar/sidebar kini `blue-500`), `coral-600 → #FB923C` (`orange-400`), `success-700 → #16A34A` (`green-600`). Token baru ditambah: `blue-500/400/100`, `orange-400/300`, `slate-700`, `green-500/600`, `red-500`. Radius lama dipetakan ke skala Tailwind golden master: `radius-sm=8px`, `radius-md=12px`, `radius-lg=16px`, `radius-pill=9999px`.
+- **Dampak:** `line-200`, `danger-700`, `warning-700`, `surface-50`, `ink-*`, `shadow-1/2` dipertahankan nilainya (golden master belum punya referensi pengganti). Resiko kontras white-on-`blue-500` tetap tercatat (DECISIONS §15 Risiko).
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.
