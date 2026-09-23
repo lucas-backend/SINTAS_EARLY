@@ -243,6 +243,46 @@ Pemetaan nilai token (palet `blue-500` golden master menggantikan `school-blue-*
 - **TERLAMBAT** belum punya warna referensi di golden master (StatusAbsen hanya hadir/belum); nilai warna warning dipakai dari token lama dan dimutakhirkan saat layar rekap/jadwal tersedia.
 - Parity desktop sejak awal tidak penuh untuk sidebar Guru/Admin (D7) — verifikasi "sama persis" (PLAN bagian 10) menoleransi beda sidebar vs pola sheet pada viewport desktop.
 
+## 16. Keputusan fase M1 golden master (PLAN_MERGE_UI)
+
+**Status: DECIDED — fase M1 `PLAN_MERGE_UI.md`.**
+
+Fase M1 memangkas `frontend_new/` menjadi prototype fokus absen. D1–D8 (§15) tetap berlaku dan menjadi acuan. Keputusan di bawah melengkapi implementasi M1 tanpa menambah fitur di luar absensi (PRD) dan tanpa menyentuh business logic `frontend/`.
+
+### M1-1 — Route golden master dan tidak ada route mati
+
+- **Pilihan final:** Route final `frontend_new/`: `/login`, `/dashboard`, `/jadwal` (menggantikan `/jadwal-siswa` karena yang tersisa hanya pelajaran sebagai konteks absen), `/scan`, `/scan/result`, `/riwayat`, `/profil`, `/guru/buat-absen`, `/guru/sesi/:id`, `/guru/rekap`, dan `*` (404). Setiap link FeatureGrid/BottomNav/aksi halaman wajib menunjuk ke route yang ada.
+- **Alasan:** Tabel 5.1 PLAN menyebut `/jadwal`; pendefinisian ulang menghilangkan tab ujian/tryout dari scope. Interlock "tidak ada route mati" adalah checkpoint M1.
+- **Dampak:** Presentasi dan mock data saja; tidak ada dampak API/database. Data mock jadwal dan grid mengikuti route baru.
+
+### M1-2 — Tavb Ujian/Tryout dihapus; Jadwal = konteks absen
+
+- **Pilihan final:** `sectionUjian/*`, `sectionTryout/*`, `JadwalTabs.tsx`, dan entri tab pada `jadwalData.ts` dihapus. Layar Jadwal menampilkan date strip + section `Hari ini`/`Besok` + kartu pelajaran berstatus PRD (`Bisa absen`, `Belum dibuka`, `Selesai`) dengan tombol `Absen sekarang` hanya pada status `Bisa absen` (menuju `/scan`).
+- **Alasan:** PLAN 5.1 & 5.2 — jadwal pelajaran menjadi konteks absen, bukan penyelenggara ujian/tryout.
+- **Dampak:** Kartu jadwal menambah badge status dan aksi scan; warna status memakai keluarga palet golden master (green/orange/slate) dengan kontras teks yang dijaga.
+
+### M1-3 — BottomNav absensi diaktifkan, per role, active dari route
+
+- **Pilihan final:** `siswaMenus`: Beranda, Absen (`/scan`), Riwayat (`/riwayat`), Profil (`/profil`). `guruMenus`: Beranda, Buat Absen (`/guru/buat-absen`), Rekap (`/guru/rekap`), Profil. `adminMenus`: Beranda, Profil. State aktif dihitung dari `location.pathname` (bukan `isActive` statis); tombol menavigasi via react-router.
+- **Alasan:** PLAN 5.2 (menu absensi Beranda/Absen/Riwayat/Profil) + prinsip D12 (tidak menampilkan item ke halaman yang belum ada).
+- **Dampak:** Hanya `frontend_new/`; `menuType` menambah `link`. Item `isActive` statis diganti derivasi route.
+
+### M1-4 — Admin belum memiliki layar referensi di M1
+
+- **Pilihan final:** Khusus golden master M1, `adminFeatures` pada grid dikosongkan dan tidak ada route admin baru. Kebutuhan layar referensi admin (banner, pengguna, kelas/plotting, laporan) diputuskan pada fase guru/admin lanjutan (lihat PLAN M4).
+- **Alasan:** PLAN 5.1 hanya mewajibkan layar siswa + minimal guru; menampilkan item grid admin ke halaman yang belum ada melanggar larangan dead element (DESIGN_BRIEF) dan "jangan menebak".
+- **Dampak:** Dashboard admin prototype menampilkan grid kosong ("Tidak ada Fitur") hingga keputusan produk untuk item admin dicatat.
+
+### M1-5 — Konten banner mock netral sekolah
+
+- **Pilihan final:** Aset banner mock `AdSlider/adData.tsx` diganti dari konten lama "Promo SanEdu" (mereka legacy LIMAN) menjadi banner sekolah netral ("Open House & Expo Kak Lia", "Pendaftaran Ekstrakurikuler") dengan gambar lokal SVG di `public/` (rasio 16:7, offline-safe). Kontrak visual carousel (panah prev/next) dipertahankan.
+- **Alasan:** Menghapus sisa branding lama dan memenuhi banner sekolah (PRD FR-02) sebagai elemen visual murni; menghindari dead element pada img (`src="#"`).
+- **Dampak:** Hanya mock data/aset; favicon `public/favicon.svg` (logo LIMAN ungu) **tidak diubah** karena D8 tidak mencantumkannya — dicatat sebagai residual/open item untuk konfirmasi produk.
+
+### M1-6 — Layar referensi 5.3 memakai pola sheet putih
+
+Layar baru `Scan`, `ScanResult`, `Riwayat`, `Profil`, `BuatAbsen`, `SesiQr`, `RekapKelas` memakai `Header` (biru) + `WhiteSheet` (`bg-white w-full max-w-md mx-auto -mt-6 rounded-t-[60px] pt-13 pb-8`) + `XPadding`, sesuai instruksi M1 dan invariant #2. Semua data mock. `ScanResult` menyediakan preview variasi `Hadir`/`Terlambat`/`Sudah absen` sebagai referensi desain; di produksi (`frontend/`) status selalu datang dari server. Ikon navigasi/aksi dari `@mui/icons-material` (D1).
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.
