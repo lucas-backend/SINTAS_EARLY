@@ -399,6 +399,50 @@ Fase M4 menyelaraskan lapisan presentasi `frontend/` untuk halaman guru (`pages/
 - Parity piksel desktop guru/admin tidak penuh karena D7 (sidebar produksi tanpa referensi golden master) dan tidak adanya layar referensi admin (M4-1); verifikasi "sama persis" menoleransi beda ini.
 - Migrasi ikon `lucide-react` → `@mui/icons-material` (D1) diperluas ke seluruh permukaan guru/admin dan komponen feedback bersama (`EmptyState`, `ErrorState`, `ConfirmDialog`, `DialogShell`, `Pagination`); sisa penggunaan `lucide-react` dipangkas bertahap hingga M5.
 
+## 20. Keputusan fase M5 — Visual regression & release readiness (PLAN_MERGE_UI)
+
+**Status: DECIDED — fase M5 `PLAN_MERGE_UI.md`.**
+
+Fase M5 memvalidasi parity `frontend/` terhadap golden master `frontend_new/` pada viewport 320/390/768/1440 dengan data nyata (backend dev + user seed), lalu menutup sisa pekerjaan presentasi. Tidak ada perubahan logic bisnis: route, guard, auth, status absen, timezone, idempotensi scan, invalidate query, dan export tidak disentuh. Validasi: `frontend_new/` lint+build hijau; `frontend/` lint+build hijau (1 warning pre-existing React Compiler di `UserFormDialog.jsx`) dan 88 test hijau.
+
+### M5-1 — D1 tuntas: `lucide-react` dihapus dari produksi
+
+- **Pilihan final:** Seluruh sisa ikon `lucide-react` di `frontend/` dimigrasikan ke `@mui/icons-material`/`@mui/material` sesuai D1: spinner overlay scan (`Loader2` → `CircularProgress`), tombol tutup dialog riwayat (`X` → `CloseRounded`), dan `ActiveBanner.jsx` (dead code, tak direferensikan) dihapus. Dependency `lucide-react` dikeluarkan dari `frontend/package.json` dan lockfile.
+- **Alasan:** D1 mengunci MUI Material icons di kedua proyek untuk parity glyph; M4 mencatat pemangkasan sisa lucide hingga M5.
+- **Dampak:** Presentasi saja. `npm install` di `frontend/` memperbarui lockfile; tidak ada perubahan API/DB.
+
+### M5-2 — Bottom nav 320px: dapat di-scroll, tidak terpotong
+
+- **Pilihan final:** Kontainer `BottomNav` (produksi dan golden master) diberi wrapper flex `w-max min-w-full` di dalam kontainer `overflow-x-auto` dengan item `shrink-0`. Untuk ≤4 item tampilan identik (tetap `justify-around`); untuk 7 item admin di viewport 320px, item terakhir dapat diakses dengan scroll horizontal alih-alih terpotong.
+- **Alasan:** Menutup open question M2-1: 7 item × 48px melampaui lebar 320px dan sebelumnya terpotong tanpa cara mengakses item terakhir. Drawer hamburger tetap menjadi akses kedua.
+- **Dampak:** Perubahan kelas presentasi pada `frontend/src/components/layout/BottomNav.jsx` dan `frontend_new/.../BottomNav/BottomNav.tsx`; markup test AppShell (berbasis peran/nama) tetap hijau. Scrollbar disembunyikan (`[scrollbar-width:none]`, `[&::-webkit-scrollbar]:hidden`) agar tampilan tetap bersih.
+
+### M5-3 — Sinkronisasi aksesibilitas & referensi golden master
+
+- **Pilihan final:** Golden master diselaraskan agar menghasilkan referensi yang benar dan setara produksi: tombol back `Header` diberi `type="button"` + `aria-label="Kembali"`; titik `StatusAbsen` diberi `aria-hidden="true"`; `NotFound` diberi link `Kembali ke beranda` (larangan layar buntu DESIGN_BRIEF §1.2, sejalan M3-3); input login golden master memakai placeholder `Username` + `type="text"` (kontrak login backend memakai username, bukan email).
+- **Alasan:** Atribut aksesibilitas bukan keputusan fitur; menaruhnya di golden master menjaga parity DOM dan referensi. Tidak ada fitur baru di luar PRD.
+- **Dampak:** `frontend_new/` saja untuk sinkronisasi ini (produksi sudah lebih dulu memilikinya).
+
+### M5-4 — Divergensi yang diterima (residual, bukan bug)
+
+- **Login:** produksi menambah link `Lupa password?` (wajib PRD) yang tidak dimiliki golden master; ini menggeser posisi vertikal form sehingga diff piksel ≠ 0 meski bahasa visual identik. Label tombol tetap `MASUK` (D6).
+- **Beranda:** produksi mempertahankan `AppShell` (bar biru + lembar putih + bottom nav) dan konten kaya (ringkasan absensi, jadwal terdekat, akses cepat) sesuai M3-4; header beranda golden master (avatar + `Hi, Welcome!`) belum dipindah ke AppShell — parity piksel area header beranda ditangguhkan.
+- **Jadwal/Scan/Riwayat:** produksi memakai komposisi di dalam `AppShell` (bukan header biru mandiri golden master) dan tabel desktop pada `sm:`; struktur memang berbeda sementara bahasa visual (warna/radius/spacing/ikon/pill status) sama.
+- **Guru/Admin & desktop:** sidebar `lg:` (D7) dan halaman admin tanpa referensi golden master (M4-1) tetap ditangguhkan.
+- **Alasan:** Perubahan pada AppShell/halaman ini akan menyentuh test shell dan membutuhkan keputusan produk baru; sesuai guardrail "jangan menebak", divergensi dicatat sebagai residual risk, bukan diperbaiki diam-diam.
+
+### M5-5 — Metode verifikasi parity
+
+- **Pilihan final:** Parity diverifikasi dengan menjalankan kedua dev server dan mengambil screenshot headless (Chrome CDP) pada viewport 320/390/768/1440 untuk login, beranda, jadwal, scan, hasil, riwayat, profil, 404, serta halaman guru/admin. Karena `frontend/` butuh auth, screenshot diambil dengan cookie sesi hasil login ke backend dev (user seed); golden master memakai mock data tanpa auth.
+- **Catatan threshold:** Diff piksel default 0 hanya realistis untuk layar statis yang tidak punya perbedaan konten/keputusan. Layar dinamis (beranda/jadwal/riwayat) dan layar yang memang didefer (M5-4) diperiksa secara struktural (blok, warna, radius, spacing, typography, bentuk ikon), bukan piksel mentah. Hasil per layar dicatat di `docs/PARITY_REPORT.md`.
+- **Dampak:** Tidak ada perubahan produk; menambah dokumen laporan parity sebagai bukti fase M5.
+
+### Risiko M5 yang dicatat
+
+- Bundle produksi masih memuat `@mui/material` (CircularProgress) di jalur scan; ukuran bundle 865 kB (gzip 263 kB) dan warning chunk >500 kB tetap ada (rekomendasi code-splitting di luar scope fase).
+- Parity desktop guru/admin tidak penuh (D7 + M4-1) dan header beranda siswa belum mengikuti golden master penuh (M3-4); ini dicatat sebagai residual, bukan cacat M5.
+- Verifikasi visual otomatis (image diff ber-threshold) belum menjadi bagian test suite; laporan parity berbasis screenshot manual/headless yang diregenerasi saat fase lanjutan.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

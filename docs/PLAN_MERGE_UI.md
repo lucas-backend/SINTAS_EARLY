@@ -187,6 +187,8 @@ App shell: **mobile** memakai pola golden master (header biru `bg-blue-500` + sh
 
 ### Fase M5 — Visual regression & release readiness
 
+> **Status:** selesai (keputusan §20 `docs/DECISIONS.md`, laporan `docs/PARITY_REPORT.md`). Parity diaudit lintas viewport 320/390/768/1440 dengan screenshot headless (Chrome CDP) pada data nyata (backend dev + user seed) dan mock golden master. `frontend_new/` lint+build hijau; `frontend/` lint+build hijau (1 warning pre-existing) dan 88 test hijau. D1 tuntas (`lucide-react` dihapus), bottom nav 320px diperbaiki (M2-1 ditutup), dan kebijakan ikon/golden master ditulis di `frontend/GUIDE.md`.
+
 - Validasi "sama persis" (bagian 10) lintas viewport 320/390/768/1440.
 - Perbarui `frontend/GUIDE.md`: daftar primitif baru, kebijakan ikon (D1), dan aturan "perubahan visual harus lewat golden master".
 - **Checkpoint:** tidak ada layar golden master yang terlewat; semua test/lint/build lulus; residual risk tercatat.

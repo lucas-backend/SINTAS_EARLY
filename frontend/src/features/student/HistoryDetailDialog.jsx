@@ -4,7 +4,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/react'
-import { X } from 'lucide-react'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { StatusBadge } from '../../components/common/StatusBadge'
 import {
   attendanceStatusLabel,
@@ -42,7 +42,7 @@ export function HistoryDetailDialog({ item, onClose }) {
               aria-label="Tutup detail"
               className="rounded-radius-sm p-2 text-ink-700 hover:bg-surface-50 focus-visible:outline-school-blue-700"
             >
-              <X className="h-5 w-5" aria-hidden="true" />
+              <CloseRoundedIcon className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
 

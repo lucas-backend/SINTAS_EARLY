@@ -20,7 +20,12 @@ export default function Header({ title, backLink }: Props) {
       <XPadding>
         <div className="relative flex justify-center items-center">
           {/* Back Button */}
-          <button className="absolute left-0" onClick={handleBack}>
+          <button
+            type="button"
+            aria-label="Kembali"
+            className="absolute left-0"
+            onClick={handleBack}
+          >
             <ArrowBackRoundedIcon className="w-6! h-6!" />
           </button>
 

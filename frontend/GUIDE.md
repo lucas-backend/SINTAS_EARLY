@@ -22,7 +22,7 @@ Gunakan JavaScript dengan ESLint yang sudah tersedia. Semua dependency dipasang 
 | UI                   | React 19 + React DOM                              | Komponen UI dan rendering SPA.                                                                                                             |
 | Styling              | Tailwind CSS 4                                    | Utility styling dan design tokens. Hindari inline style kecuali nilai benar-benar dinamis.                                                 |
 | Component primitives | `@headlessui/react`                               | Dialog, menu, listbox, dan komponen aksesibel tanpa memaksakan visual design.                                                              |
-| Icons                | `lucide-react`                                    | Ikon konsisten untuk aksi; sertakan label/tooltip yang jelas untuk ikon tanpa teks.                                                        |
+| Icons                | `@mui/icons-material`                             | Ikon aksi/status. Menggantikan `lucide-react` sesuai keputusan D1 (parity glyph dengan golden master `frontend_new/`). Sertakan label/tooltip yang jelas untuk ikon tanpa teks. |
 | Routing              | `react-router-dom`                                | Route publik, route terautentikasi, role guard, nested layout, dan redirect pasca-login.                                                   |
 | Server state / HTTP  | `@tanstack/react-query` + `axios`                 | Fetch, cache, loading/error state, invalidation, dan request interceptor. Jangan menyimpan response server di global state secara manual.  |
 | Client state         | `zustand`                                         | State ringan seperti session user yang sudah disanitasi, UI state, dan state scanner. Jangan gunakan untuk menggantikan React Query cache. |
@@ -34,7 +34,36 @@ Gunakan JavaScript dengan ESLint yang sudah tersedia. Semua dependency dipasang 
 | Testing              | Vitest + React Testing Library + MSW              | Unit/component test dan mock REST API tanpa bergantung pada server eksternal.                                                              |
 | E2E                  | Playwright                                        | Alur kritis login, role guard, scan result, pembuatan sesi, dan download export.                                                           |
 
-Jangan menambahkan Redux, Axios interceptor yang menyimpan token ke `localStorage`, library QR dinamis, atau library Excel di frontend tanpa keputusan arsitektur baru.
+Jangan menambahkan Redux, Axios interceptor yang menyimpan token ke `localStorage`, library QR dinamis, atau library Excel di frontend tanpa keputusan arsitektur baru. Jangan menambahkan kembali `lucide-react`; seluruh ikon memakai `@mui/icons-material` (D1).
+
+## 2.1 Golden master dan kepemilikan visual
+
+`frontend_new/` adalah **golden master**: prototype mock-up yang menjadi sumber keputusan visual (warna, radius, spacing, typography, bentuk ikon, posisi blok). `frontend/` adalah aplikasi produksi yang **meniru** golden master; lapisan presentasi tidak boleh menyimpang sendiri.
+
+Aturan alur kerja (wajib):
+
+1. **Setiap perubahan visual dimulai di `frontend_new/`** (golden master) lebih dulu, disetujui, baru dirontokkan ke `frontend/` dengan memetakan ke data/servis nyata.
+2. `frontend/` boleh berubah langsung hanya untuk **bug/behavior**, aksesibilitas, atau hal yang memang tidak punya referensi golden master (mis. sidebar desktop D7, tabel guru/admin M4-1, bottom nav admin 7 item).
+3. Jangan mengubah logic bisnis lewat pekerjaan visual: route, role guard, auth, status absen, timezone, idempotensi scan, invalidate query, dan export tetap milik `frontend/` dan tidak disentuh oleh parity.
+4. Bila atribut visual bentrok dengan PRD/DESIGN_BRIEF, keputusan dikunci lebih dulu di `docs/DECISIONS.md` (contoh D1–D8), jangan menebak.
+5. Kontrak visual yang wajib identik ada di `docs/PLAN_MERGE_UI.md` bagian 3; verifikasi parity lintas viewport 320/390/768/1440.
+
+### Primitif presentasi bersama
+
+Primitif di bawah adalah cermin dari komponen golden master; pakai ini, jangan menulis ulang kelas ad hoc:
+
+| Golden master (`frontend_new/`) | Produksi (`frontend/`) |
+| --- | --- |
+| `components/XPadding` | `components/layout/ContentShell.jsx` |
+| `components/Header` | `components/layout/BlueHeader.jsx` |
+| `components/Button` | `components/common/PrimaryButton.jsx` |
+| `features/dashboard/components/SearchBar` | `components/common/PillSearch.jsx` |
+| `features/dashboard/components/StatusAbsen` | `components/common/StatusDot.jsx` |
+| `features/dashboard/components/FeatureGrid` | `components/common/FeatureGrid.jsx` |
+| `features/dashboard/components/BottomNav` | `components/layout/BottomNav.jsx` |
+| `components/AdSlider` | `features/banners/BannerCarousel.jsx` |
+
+Token warna/radius/typography di `src/index.css` memakai alias semantik ke palet golden master (`docs/PLAN_MERGE_UI.md` bagian 7); jangan menulis hex acak di komponen.
 
 ## 3. Recommended Structure
 

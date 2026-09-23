@@ -1,5 +1,5 @@
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
-import { Loader2 } from 'lucide-react'
+import CircularProgress from '@mui/material/CircularProgress'
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Skeleton } from '../../components/common/Skeleton'
@@ -137,13 +137,13 @@ export default function StudentScanPage() {
           />
           {showStarting ? (
             <Overlay>
-              <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+              <CircularProgress size={24} color="inherit" aria-hidden="true" />
               <p className="text-sm font-semibold">Menyalakan kamera…</p>
             </Overlay>
           ) : null}
           {busy ? (
             <Overlay>
-              <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+              <CircularProgress size={24} color="inherit" aria-hidden="true" />
               <p className="text-sm font-semibold">Memproses absensi…</p>
             </Overlay>
           ) : null}

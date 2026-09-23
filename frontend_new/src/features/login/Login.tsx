@@ -27,8 +27,8 @@ export default function Login() {
         >
           <span className="font-semibold text-2xl">Masuk</span>
           <input
-            type="email"
-            placeholder="Email"
+            type="text"
+            placeholder="Username"
             className="text-black bg-white w-full px-4 py-2 focus:outline-none rounded-lg"
           />
           <input
