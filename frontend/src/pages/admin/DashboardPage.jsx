@@ -1,4 +1,8 @@
-import { BarChart3, GraduationCap, Network, School, Users } from 'lucide-react'
+import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded'
+import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded'
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined'
+import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
+import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded'
 import { Link } from 'react-router-dom'
 import { Skeleton } from '../../components/common/Skeleton'
 import { getErrorMessage, isNetworkError } from '../../lib/errorMapping'
@@ -9,23 +13,23 @@ import { useAdminUsers } from '../../features/admin/hooks/useAdminUsers'
 import { useTeacherSessions } from '../../features/teacher/hooks/useTeacherSessions'
 
 const QUICK_LINKS = [
-  { to: '/app/admin/banners', label: 'Banner sekolah', description: 'Atur banner yang tampil di beranda.', icon: GraduationCap },
-  { to: '/app/admin/users', label: 'Pengguna', description: 'Kelola akun dan reset password.', icon: Users },
-  { to: '/app/admin/academic', label: 'Akademik', description: 'Jenjang, kelas, dan mata pelajaran.', icon: School },
-  { to: '/app/admin/plotting', label: 'Penempatan', description: 'Siswa pada kelas dan guru.', icon: Network },
-  { to: '/app/admin/reports', label: 'Laporan kehadiran', description: 'Rekap global dan export.', icon: BarChart3 },
+  { to: '/app/admin/banners', label: 'Banner sekolah', description: 'Atur banner yang tampil di beranda.', icon: CampaignRoundedIcon },
+  { to: '/app/admin/users', label: 'Pengguna', description: 'Kelola akun dan reset password.', icon: GroupOutlinedIcon },
+  { to: '/app/admin/academic', label: 'Akademik', description: 'Jenjang, kelas, dan mata pelajaran.', icon: SchoolRoundedIcon },
+  { to: '/app/admin/plotting', label: 'Penempatan', description: 'Siswa pada kelas dan guru.', icon: HubOutlinedIcon },
+  { to: '/app/admin/reports', label: 'Laporan kehadiran', description: 'Rekap global dan export.', icon: BarChartRoundedIcon },
 ]
 
 function SummaryCard({ label, value, loading, error }) {
   return (
-    <div className="rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1">
-      <p className="text-caption uppercase tracking-wide text-ink-500">{label}</p>
+    <div className="rounded-xl border border-black/10 bg-white p-5">
+      <p className="text-xs font-medium text-slate-700">{label}</p>
       {loading ? (
         <Skeleton className="mt-2 h-8 w-16" />
       ) : error ? (
-        <p className="mt-2 text-data text-danger-700">—</p>
+        <p className="mt-2 font-semibold text-danger-700">—</p>
       ) : (
-        <p className="mt-2 text-heading-lg font-bold text-ink-900">{value}</p>
+        <p className="mt-2 text-2xl font-bold text-ink-900">{value}</p>
       )}
     </div>
   )
@@ -51,18 +55,18 @@ export default function AdminDashboardPage() {
   ]
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div>
-        <h1 className="text-heading-lg font-bold text-ink-900">Beranda Admin</h1>
-        <p className="mt-1 text-body-md text-ink-700">Halo {user?.name}, kelola sekolah melalui menu berikut.</p>
+        <h1 className="text-2xl font-bold text-ink-900">Beranda Admin</h1>
+        <p className="mt-1 text-sm text-slate-700">Halo {user?.name}, kelola sekolah melalui menu berikut.</p>
       </div>
 
       {anyNetworkError ? (
         <div
           role="alert"
-          className="rounded-radius-md border border-line-200 bg-surface-0 px-4 py-3 text-body-md text-ink-900"
+          className="rounded-lg border border-black/10 bg-white px-4 py-3 text-sm text-ink-900"
         >
-          <span className="text-danger-700">Tidak dapat memuat sebagian ringkasan.</span> {getErrorMessage(usersQuery.error ?? classesQuery.error)}
+          <span className="font-semibold text-danger-700">Tidak dapat memuat sebagian ringkasan.</span> {getErrorMessage(usersQuery.error ?? classesQuery.error)}
         </div>
       ) : null}
 
@@ -79,7 +83,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div>
-        <h2 className="text-heading-sm font-bold text-ink-900">Kelola</h2>
+        <h2 className="text-lg font-bold text-ink-900">Kelola</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {QUICK_LINKS.map((entry) => {
             const Icon = entry.icon
@@ -87,18 +91,16 @@ export default function AdminDashboardPage() {
               <Link
                 key={entry.to}
                 to={entry.to}
-                className="group rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1 transition hover:border-school-blue-700 hover:shadow-2 focus-visible:outline-school-blue-700"
+                className="group flex items-center gap-3 rounded-xl border border-black/10 bg-white p-5 transition hover:border-blue-500 focus-visible:outline-blue-500"
               >
-                <span className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-radius-pill bg-school-blue-050">
-                    <Icon className="h-5 w-5 text-school-blue-900" aria-hidden="true" />
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                  <Icon className="h-5! w-5!" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-ink-900 group-hover:text-blue-500">
+                    {entry.label}
                   </span>
-                  <span>
-                    <span className="block text-label-md font-semibold text-ink-900 group-hover:text-school-blue-900">
-                      {entry.label}
-                    </span>
-                    <span className="block text-caption text-ink-700">{entry.description}</span>
-                  </span>
+                  <span className="block text-xs text-slate-700">{entry.description}</span>
                 </span>
               </Link>
             )

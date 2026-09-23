@@ -1,4 +1,5 @@
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import { Loader2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Skeleton } from '../../components/common/Skeleton'
@@ -26,7 +27,7 @@ const STAGE = Object.freeze({
 
 function Overlay({ children }) {
   return (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-ink-900/60 text-white">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-xl bg-ink-900/60 text-white">
       {children}
     </div>
   )
@@ -137,19 +138,19 @@ export default function StudentScanPage() {
           {showStarting ? (
             <Overlay>
               <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
-              <p className="text-label-md">Menyalakan kamera…</p>
+              <p className="text-sm font-semibold">Menyalakan kamera…</p>
             </Overlay>
           ) : null}
           {busy ? (
             <Overlay>
               <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
-              <p className="text-label-md">Memproses absensi…</p>
+              <p className="text-sm font-semibold">Memproses absensi…</p>
             </Overlay>
           ) : null}
         </div>
 
         {camera === CAMERA_STATUS.READY ? (
-          <p className="text-center text-body-md text-ink-700">
+          <p className="text-center text-sm text-slate-700">
             Arahkan kamera ke QR Code yang ditampilkan guru. Scan otomatis
             berhenti saat kode terdeteksi.
           </p>
@@ -167,7 +168,7 @@ export default function StudentScanPage() {
             type="button"
             onClick={handleOpenManual}
             disabled={busy}
-            className="inline-flex w-full items-center justify-center rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2.5 text-label-md font-semibold text-school-blue-700 hover:bg-surface-50 disabled:opacity-60"
+            className="flex w-full items-center justify-center rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500 disabled:opacity-50"
           >
             Masukkan kode manual
           </button>
@@ -181,11 +182,11 @@ export default function StudentScanPage() {
   } else if (stage === STAGE.MANUAL) {
     body = (
       <div className="mx-auto w-full max-w-md space-y-4">
-        <div className="rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1">
-          <h2 className="text-heading-sm font-bold text-ink-900">
+        <div className="rounded-lg border border-black/10 bg-white p-5">
+          <h2 className="text-xl font-semibold text-ink-900">
             Masukkan kode QR manual
           </h2>
-          <p className="mt-1 text-body-md text-ink-700">
+          <p className="mt-1 text-sm text-slate-700">
             Salin kode QR dari guru lalu tempel di kolom berikut. Kode dikirim ke
             server; status dan keterlambatan ditentukan server.
           </p>
@@ -199,9 +200,9 @@ export default function StudentScanPage() {
           <button
             type="button"
             onClick={handleBackToPrecheck}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-radius-sm px-2 py-1 text-label-md font-semibold text-school-blue-700 focus-visible:outline-school-blue-700"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-500"
           >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <ArrowBackRoundedIcon className="h-4! w-4!" />
             Kembali
           </button>
         </div>
@@ -220,7 +221,7 @@ export default function StudentScanPage() {
     if (hasSessionFilter && (today.isPending && !today.data)) {
       body = (
         <div className="mx-auto max-w-md">
-          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full rounded-lg" />
         </div>
       )
     } else if (
@@ -232,7 +233,7 @@ export default function StudentScanPage() {
         <SectionState
           query={today}
           online={online}
-          skeleton={<Skeleton className="h-64 w-full" />}
+          skeleton={<Skeleton className="h-64 w-full rounded-lg" />}
           errorTitle="Jadwal tidak dapat dimuat."
           empty={null}
         />
@@ -250,24 +251,24 @@ export default function StudentScanPage() {
   }
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-md space-y-4">
       <div>
         <Link
           to="/app/student/schedule"
-          className="inline-flex items-center gap-1.5 rounded-radius-sm text-label-md font-semibold text-school-blue-700 focus-visible:outline-school-blue-700"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-500"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowBackRoundedIcon className="h-4! w-4!" />
           Kembali ke jadwal
         </Link>
-        <h1 className="mt-3 text-heading-lg font-bold text-ink-900">
+        <h1 className="mt-3 text-2xl font-semibold text-ink-900">
           {stage === STAGE.RESULT ? 'Hasil scan' : 'Scan QR absensi'}
         </h1>
         {sessionItem ? (
-          <p className="mt-1 text-body-md text-ink-700">
+          <p className="mt-1 text-sm text-slate-700">
             {sessionItem.subjectName} • {sessionItem.className}
           </p>
         ) : (
-          <p className="mt-1 text-body-md text-ink-700">
+          <p className="mt-1 text-sm text-slate-700">
             Arahkan kamera ke QR Code yang ditampilkan guru untuk mencatat
             kehadiran.
           </p>

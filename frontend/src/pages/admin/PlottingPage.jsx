@@ -18,6 +18,9 @@ const TABS = [
 ]
 const LIMIT = 20
 
+const selectClass =
+  'mt-1 w-full rounded-lg border border-black/10 bg-white px-4 py-2 text-black focus:outline-none'
+
 export default function AdminPlottingPage() {
   const online = useIsOnline()
   const [tab, setTab] = useState('memberships')
@@ -37,10 +40,10 @@ export default function AdminPlottingPage() {
   const activeQuery = tab === 'memberships' ? membershipsQuery : assignmentsQuery
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div>
-        <h1 className="text-heading-lg font-bold text-ink-900">Penempatan</h1>
-        <p className="mt-1 text-body-md text-ink-700">Lihat siswa pada kelas dan penugasan guru (hanya baca).</p>
+        <h1 className="text-2xl font-bold text-ink-900">Penempatan</h1>
+        <p className="mt-1 text-sm text-slate-700">Lihat siswa pada kelas dan penugasan guru (hanya baca).</p>
       </div>
 
       <div role="tablist" aria-label="Penempatan" className="flex flex-wrap gap-2">
@@ -54,10 +57,10 @@ export default function AdminPlottingPage() {
               setTab(entry.key)
               setPage(1)
             }}
-            className={`rounded-radius-pill px-4 py-2 text-label-md focus-visible:outline-school-blue-700 ${
+            className={`rounded-full px-4 py-2 text-sm font-semibold ${
               tab === entry.key
-                ? 'bg-school-blue-900 text-surface-0'
-                : 'border border-line-200 bg-surface-0 text-ink-700 hover:bg-surface-50'
+                ? 'bg-blue-500 text-white'
+                : 'border border-black/10 bg-white text-slate-700 hover:bg-blue-100/50'
             }`}
           >
             {entry.label}
@@ -65,10 +68,10 @@ export default function AdminPlottingPage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-black/10 bg-white p-4">
         {tab === 'memberships' ? (
           <div className="min-w-60">
-            <label htmlFor="membership-class" className="block text-label-md text-ink-700">
+            <label htmlFor="membership-class" className="block text-sm font-medium text-slate-700">
               Kelas
             </label>
             <select
@@ -78,7 +81,7 @@ export default function AdminPlottingPage() {
                 setClassId(event.target.value)
                 setPage(1)
               }}
-              className="mt-1 w-full rounded-radius-sm border border-line-200 bg-surface-0 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+              className={selectClass}
             >
               <option value="">Semua kelas</option>
               {classes.map((entry) => (
@@ -90,7 +93,7 @@ export default function AdminPlottingPage() {
           </div>
         ) : (
           <div className="min-w-60">
-            <label htmlFor="assignment-teacher" className="block text-label-md text-ink-700">
+            <label htmlFor="assignment-teacher" className="block text-sm font-medium text-slate-700">
               Guru
             </label>
             <select
@@ -100,7 +103,7 @@ export default function AdminPlottingPage() {
                 setTeacherId(event.target.value)
                 setPage(1)
               }}
-              className="mt-1 w-full rounded-radius-sm border border-line-200 bg-surface-0 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+              className={selectClass}
             >
               <option value="">Semua guru</option>
               {teachers.map((entry) => (

@@ -1,4 +1,6 @@
-import { Megaphone, Plus, Search } from 'lucide-react'
+import AddRoundedIcon from '@mui/icons-material/AddRounded'
+import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import { useState } from 'react'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
@@ -11,6 +13,9 @@ import { useDeleteBanner, useManagedBanners } from '../../features/admin/hooks/u
 import { BannerDesktopTable, BannerMobileList } from '../../features/admin/views/BannerViews'
 
 const BASE = { page: 1, limit: 20 }
+
+const inputClass =
+  'mt-1 w-full rounded-lg border border-black/10 bg-white px-4 py-2 text-black focus:outline-none'
 
 export default function AdminBannersPage() {
   const online = useIsOnline()
@@ -37,11 +42,11 @@ export default function AdminBannersPage() {
   }
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-heading-lg font-bold text-ink-900">Banner sekolah</h1>
-          <p className="mt-1 text-body-md text-ink-700">
+          <h1 className="text-2xl font-bold text-ink-900">Banner sekolah</h1>
+          <p className="mt-1 text-sm text-slate-700">
             Banner yang tampil di beranda seluruh pengguna sesuai periode dan statusnya.
           </p>
         </div>
@@ -51,19 +56,19 @@ export default function AdminBannersPage() {
             setEditing(null)
             setFormOpen(true)
           }}
-          className="inline-flex items-center gap-2 rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white"
         >
-          <Plus className="h-4 w-4" aria-hidden="true" />
+          <AddRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           Banner baru
         </button>
       </div>
 
       <form
         onSubmit={applyDraft}
-        className="flex flex-wrap items-end gap-3 rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1"
+        className="flex flex-wrap items-end gap-3 rounded-xl border border-black/10 bg-white p-4"
       >
         <div className="min-w-52 flex-1">
-          <label htmlFor="banner-search" className="block text-label-md text-ink-700">
+          <label htmlFor="banner-search" className="block text-sm font-medium text-slate-700">
             Cari judul
           </label>
           <input
@@ -72,11 +77,11 @@ export default function AdminBannersPage() {
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder="Contoh: ujian tengah semester"
-            className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClass}
           />
         </div>
         <div className="min-w-40">
-          <label htmlFor="banner-status" className="block text-label-md text-ink-700">
+          <label htmlFor="banner-status" className="block text-sm font-medium text-slate-700">
             Status
           </label>
           <select
@@ -85,7 +90,7 @@ export default function AdminBannersPage() {
             onChange={(event) =>
               setApplied((current) => ({ ...current, isActive: event.target.value, page: 1 }))
             }
-            className="mt-1 w-full rounded-radius-sm border border-line-200 bg-surface-0 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClass}
           >
             <option value="">Semua status</option>
             <option value="true">Aktif</option>
@@ -94,9 +99,9 @@ export default function AdminBannersPage() {
         </div>
         <button
           type="submit"
-          className="inline-flex items-center gap-1.5 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white hover:bg-school-blue-900"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
         >
-          <Search className="h-4 w-4" aria-hidden="true" />
+          <SearchRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           Terapkan
         </button>
       </form>
@@ -116,9 +121,9 @@ export default function AdminBannersPage() {
                   setEditing(null)
                   setFormOpen(true)
                 }}
-                className="mt-1 inline-flex items-center gap-1.5 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white"
+                className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
               >
-                <Megaphone className="h-4 w-4" aria-hidden="true" />
+                <CampaignRoundedIcon className="h-4! w-4!" aria-hidden="true" />
                 Banner baru
               </button>
             }

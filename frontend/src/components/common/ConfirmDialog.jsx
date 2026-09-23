@@ -1,9 +1,9 @@
-import { AlertTriangle } from 'lucide-react'
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 
 const CONFIRM_CLASSES = {
-  danger: 'bg-danger-700 hover:bg-danger-900',
-  neutral: 'bg-school-blue-700 hover:bg-school-blue-900',
+  danger: 'bg-red-500 hover:bg-red-600',
+  neutral: 'bg-blue-500 hover:bg-blue-600',
 }
 
 // Konfirmasi tindakan destruktif/permanen; focus dikembalikan ke tombol asal
@@ -21,19 +21,19 @@ export function ConfirmDialog({
 }) {
   return (
     <Dialog open={open} onClose={() => (busy ? null : onClose())} className="relative z-50">
-      <DialogBackdrop className="fixed inset-0 bg-ink-900/50" />
+      <DialogBackdrop className="fixed inset-0 bg-black/50" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-md rounded-radius-md bg-surface-0 p-6 shadow-2">
+        <DialogPanel className="w-full max-w-md rounded-2xl bg-white p-6">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-pill bg-danger-700/10">
-              <AlertTriangle className="h-5 w-5 text-danger-700" aria-hidden="true" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10">
+              <WarningAmberRoundedIcon className="h-5! w-5! text-red-500" aria-hidden="true" />
             </span>
             <div>
-              <DialogTitle className="text-heading-sm font-bold text-ink-900">
+              <DialogTitle className="text-base font-bold text-ink-900">
                 {title}
               </DialogTitle>
               {message ? (
-                <p className="mt-1 text-body-md text-ink-700">{message}</p>
+                <p className="mt-1 text-sm text-slate-700">{message}</p>
               ) : null}
             </div>
           </div>
@@ -42,7 +42,7 @@ export function ConfirmDialog({
               type="button"
               onClick={onClose}
               disabled={busy}
-              className="rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:opacity-60"
+              className="rounded-lg border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50 disabled:opacity-60"
             >
               {cancelLabel}
             </button>
@@ -50,7 +50,7 @@ export function ConfirmDialog({
               type="button"
               onClick={onConfirm}
               disabled={busy}
-              className={`inline-flex items-center gap-1.5 rounded-radius-md px-4 py-2 text-label-md text-white disabled:opacity-60 ${CONFIRM_CLASSES[tone] ?? CONFIRM_CLASSES.danger}`}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 ${CONFIRM_CLASSES[tone] ?? CONFIRM_CLASSES.danger}`}
             >
               {busy ? 'Memproses…' : confirmLabel}
             </button>

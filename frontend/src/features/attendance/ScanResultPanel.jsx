@@ -1,10 +1,7 @@
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  Info,
-  Repeat2,
-} from 'lucide-react'
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
+import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded'
+import InfoRoundedIcon from '@mui/icons-material/InfoRounded'
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 import { Link } from 'react-router-dom'
 import {
   attendanceStatusLabel,
@@ -14,26 +11,34 @@ import { formatSchoolDate, formatSchoolDateTime } from '../../lib/dateTime'
 import { StatusBadge } from '../../components/common/StatusBadge'
 import { scanErrorPanel } from './scanFlow'
 
+const TONE_ICONS = {
+  success: CheckCircleRoundedIcon,
+  warning: WarningAmberRoundedIcon,
+  danger: ErrorRoundedIcon,
+  info: InfoRoundedIcon,
+  neutral: CheckCircleRoundedIcon,
+}
+
+const TONE_ICON_CLASSES = {
+  success: 'text-green-600',
+  warning: 'text-orange-600',
+  danger: 'text-red-500',
+  info: 'text-blue-500',
+  neutral: 'text-slate-700',
+}
+
 function DetailRow({ label, value }) {
   return value ? (
-    <div className="flex items-start justify-between gap-4 text-body-md">
-      <span className="text-ink-500">{label}</span>
-      <span className="text-right text-data text-ink-900">{value}</span>
+    <div className="flex items-start justify-between gap-4 text-sm">
+      <span className="text-slate-700">{label}</span>
+      <span className="text-right font-semibold text-ink-900">{value}</span>
     </div>
   ) : null
 }
 
-const TONE_ICONS = {
-  success: CheckCircle2,
-  warning: Clock,
-  danger: AlertTriangle,
-  info: Info,
-  neutral: CheckCircle2,
-}
-
 // Satu template hasil scan untuk Hadir, Terlambat, duplicate, dan gagal
-// (docs/DESIGN_BRIEF.md section 4.2 S4). Semua nilai berasal dari response
-// server — client tidak menghitung status.
+// (docs/DESIGN_BRIEF.md section 4.2 S4), mengikuti layout golden master
+// `features/scan/ScanResult.tsx`. Semua nilai berasal dari response server.
 export function ScanResultPanel({
   result,
   sessionItem,
@@ -51,92 +56,86 @@ export function ScanResultPanel({
       <div
         role="region"
         aria-label="Hasil pemindaian absensi"
-        className="mx-auto w-full max-w-md rounded-radius-md border border-line-200 bg-surface-0 p-6 shadow-1"
+        className="mx-auto w-full max-w-md space-y-4"
       >
-        <div className="flex flex-col items-center text-center">
-          <CheckCircle2
-            className="h-10 w-10 text-success-700"
-            aria-hidden="true"
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-black/10 bg-white p-6 text-center">
+          <CheckCircleRoundedIcon
+            className={`h-16! w-16! ${TONE_ICON_CLASSES[tone]}`}
           />
-          <h2 className="mt-3 text-heading-md font-bold text-ink-900">
+          <h2 className="text-2xl font-bold text-ink-900">
             {isDuplicate
               ? 'Absensi sudah tercatat'
               : data.status === 'TERLAMBAT'
                 ? 'Absensi terlambat'
                 : 'Absensi tercatat'}
           </h2>
-          <div className="mt-2">
-            <StatusBadge status={data.status} label={label} tone={tone} />
-          </div>
+          <StatusBadge status={data.status} label={label} tone={tone} />
           {isDuplicate ? (
-            <p className="mt-2 flex items-center gap-1.5 text-body-md text-ink-700">
-              <Repeat2 className="h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" />
+            <p className="text-sm text-slate-700">
               Absensi untuk sesi ini sudah tercatat pada pukul{' '}
               {formatSchoolDateTime(data.scannedAt)}.
             </p>
-          ) : null}
-          <p className="mt-1 text-caption text-ink-700">
+          ) : (
+            <p className="text-sm text-slate-700">
+              Absen tercatat pada waktu scan Anda.
+            </p>
+          )}
+          <p className="text-xs text-slate-500">
             Waktu scan: {formatSchoolDateTime(data.scannedAt)}
           </p>
+          {data.status === 'TERLAMBAT' && data.lateMinutes > 0 ? (
+            <p className="text-sm font-semibold text-orange-700">
+              Terlambat {data.lateMinutes} menit
+            </p>
+          ) : null}
         </div>
 
-        <dl className="mt-5 space-y-2 border-t border-line-200 pt-4">
+        <div className="flex flex-col gap-2 rounded-lg border border-black/10 bg-white p-4 text-sm">
           <DetailRow label="Mata pelajaran" value={sessionItem?.subjectName} />
           <DetailRow label="Kelas" value={sessionItem?.className} />
           <DetailRow
             label="Tanggal sesi"
             value={sessionItem ? formatSchoolDate(sessionItem.sessionDate) : null}
           />
-          {data.status === 'TERLAMBAT' && data.lateMinutes > 0 ? (
-            <DetailRow label="Keterlambatan" value={`Terlambat ${data.lateMinutes} menit`} />
-          ) : null}
-        </dl>
-
-        <div className="mt-6 flex flex-col gap-2">
-          <Link
-            to="/app/student/history"
-            className="inline-flex w-full items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900"
-          >
-            Lihat riwayat
-          </Link>
-          <Link
-            to="/app/student"
-            className="inline-flex w-full items-center justify-center rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2.5 text-label-md font-semibold text-school-blue-700 hover:bg-surface-50"
-          >
-            Kembali ke beranda
-          </Link>
         </div>
+
+        <Link
+          to="/app/student/history"
+          className="flex w-full items-center justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white uppercase"
+        >
+          Lihat riwayat
+        </Link>
+        <Link
+          to="/app/student"
+          className="flex w-full items-center justify-center rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500"
+        >
+          Kembali ke beranda
+        </Link>
       </div>
     )
   }
 
   const config = scanErrorPanel(result.error, sessionItem)
-  const Icon = TONE_ICONS[config.tone] ?? AlertTriangle
-  const toneClass = {
-    danger: 'text-danger-700',
-    warning: 'text-warning-700',
-    info: 'text-school-blue-700',
-    neutral: 'text-ink-700',
-  }[config.tone]
+  const Icon = TONE_ICONS[config.tone] ?? ErrorRoundedIcon
 
   return (
     <div
       role="alert"
-      className="mx-auto w-full max-w-md rounded-radius-md border border-line-200 bg-surface-0 p-6 text-center shadow-1"
+      className="mx-auto w-full max-w-md space-y-4"
     >
-      <Icon className={`mx-auto h-10 w-10 ${toneClass}`} aria-hidden="true" />
-      <h2 className="mt-3 text-heading-md font-bold text-ink-900">
-        {config.title}
-      </h2>
-      <p className="mt-1 text-body-md text-ink-700">{config.message}</p>
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-black/10 bg-white p-6 text-center">
+        <Icon className={`h-16! w-16! ${TONE_ICON_CLASSES[config.tone]}`} />
+        <h2 className="text-2xl font-bold text-ink-900">{config.title}</h2>
+        <p className="text-sm text-slate-700">{config.message}</p>
+      </div>
 
-      <div className="mt-6 flex flex-col gap-2">
+      <div className="flex flex-col gap-2">
         {config.retry ? (
           <button
             type="button"
             onClick={onRetry}
             disabled={isPending}
-            className="inline-flex w-full items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900 disabled:opacity-60"
+            className="flex w-full items-center justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white uppercase disabled:opacity-50"
           >
             {isPending ? 'Memproses…' : 'Coba lagi'}
           </button>
@@ -146,7 +145,7 @@ export function ScanResultPanel({
             type="button"
             onClick={onManual}
             disabled={isPending}
-            className="inline-flex w-full items-center justify-center rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2.5 text-label-md font-semibold text-school-blue-700 hover:bg-surface-50 disabled:opacity-60"
+            className="flex w-full items-center justify-center rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500 disabled:opacity-50"
           >
             Masukkan kode manual
           </button>
@@ -154,7 +153,7 @@ export function ScanResultPanel({
         {config.home ? (
           <Link
             to="/app/student"
-            className="inline-flex w-full items-center justify-center rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2.5 text-label-md font-semibold text-school-blue-700 hover:bg-surface-50"
+            className="flex w-full items-center justify-center rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500"
           >
             Kembali ke beranda
           </Link>

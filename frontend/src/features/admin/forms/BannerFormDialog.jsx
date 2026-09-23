@@ -58,13 +58,13 @@ export function BannerFormDialog({ open, banner, onClose }) {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {rootError ? (
-          <p role="alert" className="rounded-radius-sm bg-danger-700 px-3 py-2 text-body-md text-white">
+          <p role="alert" className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white">
             {rootError}
           </p>
         ) : null}
 
         <div>
-          <label htmlFor="banner-title" className="block text-label-md text-ink-700">
+          <label htmlFor="banner-title" className="block text-sm font-medium text-slate-700">
             Judul
           </label>
           <input
@@ -78,7 +78,7 @@ export function BannerFormDialog({ open, banner, onClose }) {
         </div>
 
         <div>
-          <label htmlFor="banner-image" className="block text-label-md text-ink-700">
+          <label htmlFor="banner-image" className="block text-sm font-medium text-slate-700">
             URL gambar
           </label>
           <input
@@ -94,7 +94,7 @@ export function BannerFormDialog({ open, banner, onClose }) {
         </div>
 
         <div>
-          <label htmlFor="banner-content" className="block text-label-md text-ink-700">
+          <label htmlFor="banner-content" className="block text-sm font-medium text-slate-700">
             Konten
           </label>
           <textarea
@@ -110,7 +110,7 @@ export function BannerFormDialog({ open, banner, onClose }) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="banner-start" className="block text-label-md text-ink-700">
+            <label htmlFor="banner-start" className="block text-sm font-medium text-slate-700">
               Mulai tampil
             </label>
             <input
@@ -121,7 +121,7 @@ export function BannerFormDialog({ open, banner, onClose }) {
             />
           </div>
           <div>
-            <label htmlFor="banner-end" className="block text-label-md text-ink-700">
+            <label htmlFor="banner-end" className="block text-sm font-medium text-slate-700">
               Selesai tampil
             </label>
             <input
@@ -146,14 +146,14 @@ export function BannerFormDialog({ open, banner, onClose }) {
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:opacity-60"
+            className="rounded-lg border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50 disabled:opacity-60"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white hover:bg-school-blue-900 disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             {submitting ? 'Menyimpan…' : isEdit ? 'Simpan perubahan' : 'Buat banner'}
           </button>

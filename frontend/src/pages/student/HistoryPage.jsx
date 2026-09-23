@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { RotateCcw, Search } from 'lucide-react'
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { EmptyState } from '../../components/feedback/EmptyState'
@@ -22,11 +23,14 @@ const DEFAULT_FILTERS = {
   status: '',
 }
 
+const inputClassName =
+  'mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-ink-900 focus:outline-none'
+
 function HistorySkeleton() {
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {[0, 1, 2, 3, 4].map((value) => (
-        <Skeleton key={value} className="h-20 w-full" />
+        <Skeleton key={value} className="h-20 w-full rounded-lg" />
       ))}
     </div>
   )
@@ -34,7 +38,7 @@ function HistorySkeleton() {
 
 function FieldError({ id, message }) {
   return message ? (
-    <p id={id} className="mt-1 text-body-md text-danger-700">{message}</p>
+    <p id={id} className="mt-1 text-sm text-red-500">{message}</p>
   ) : null
 }
 
@@ -85,27 +89,27 @@ export default function StudentHistoryPage() {
   }
 
   return (
-    <section className="mx-auto max-w-4xl space-y-6">
+    <section className="mx-auto w-full max-w-3xl space-y-6">
       <div>
-        <h1 className="text-heading-lg font-bold text-ink-900">Riwayat absensi</h1>
-        <p className="mt-1 text-body-md text-ink-700">
+        <h1 className="text-2xl font-semibold text-ink-900">Riwayat absensi</h1>
+        <p className="mt-1 text-sm text-slate-700">
           Riwayat kehadiran Anda diurutkan dari tanggal sesi terbaru.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit(onApply)}
-        className="rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1"
+        className="rounded-lg border border-black/10 bg-white p-4"
       >
         <div className="grid gap-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
           <div>
-            <label htmlFor="history-from" className="block text-label-md text-ink-700">
+            <label htmlFor="history-from" className="block text-sm font-medium text-slate-700">
               Dari tanggal
             </label>
             <input
               id="history-from"
               type="date"
-              className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+              className={inputClassName}
               aria-invalid={errors.from ? true : undefined}
               aria-describedby={errors.from ? 'history-from-error' : undefined}
               {...register('from')}
@@ -113,13 +117,13 @@ export default function StudentHistoryPage() {
             <FieldError id="history-from-error" message={errors.from?.message} />
           </div>
           <div>
-            <label htmlFor="history-to" className="block text-label-md text-ink-700">
+            <label htmlFor="history-to" className="block text-sm font-medium text-slate-700">
               Sampai tanggal
             </label>
             <input
               id="history-to"
               type="date"
-              className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+              className={inputClassName}
               aria-invalid={errors.to ? true : undefined}
               aria-describedby={errors.to ? 'history-to-error' : undefined}
               {...register('to')}
@@ -127,14 +131,10 @@ export default function StudentHistoryPage() {
             <FieldError id="history-to-error" message={errors.to?.message} />
           </div>
           <div>
-            <label htmlFor="history-status" className="block text-label-md text-ink-700">
+            <label htmlFor="history-status" className="block text-sm font-medium text-slate-700">
               Status
             </label>
-            <select
-              id="history-status"
-              className="mt-1 w-full rounded-radius-sm border border-line-200 bg-surface-0 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
-              {...register('status')}
-            >
+            <select id="history-status" className={inputClassName} {...register('status')}>
               {HISTORY_STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -146,24 +146,24 @@ export default function StudentHistoryPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white uppercase disabled:opacity-50"
             >
-              <Search className="h-4 w-4" aria-hidden="true" />
+              <SearchRoundedIcon className="h-4! w-4!" />
               Terapkan
             </button>
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center gap-1.5 rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2 text-label-md text-ink-700 hover:bg-surface-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-500"
             >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              <RefreshRoundedIcon className="h-4! w-4!" />
               Reset
             </button>
           </div>
         </div>
       </form>
 
-      <p className="text-body-md text-ink-700" aria-live="polite">
+      <p className="text-sm text-slate-700" aria-live="polite">
         {history.isPending
           ? 'Memuat riwayat…'
           : total > 0
@@ -183,7 +183,7 @@ export default function StudentHistoryPage() {
               <button
                 type="button"
                 onClick={onReset}
-                className="mt-1 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white"
+                className="mt-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white uppercase"
               >
                 Ubah filter
               </button>
@@ -204,18 +204,18 @@ export default function StudentHistoryPage() {
             type="button"
             onClick={() => changePage(page - 1)}
             disabled={page <= 1}
-            className="rounded-radius-md border border-line-200 bg-surface-0 px-3 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-500 disabled:opacity-50"
           >
             Sebelumnya
           </button>
-          <span className="text-body-md text-ink-700">
+          <span className="text-sm text-slate-700">
             Halaman {page} dari {totalPages || 1}
           </span>
           <button
             type="button"
             onClick={() => changePage(page + 1)}
             disabled={page >= totalPages}
-            className="rounded-radius-md border border-line-200 bg-surface-0 px-3 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-500 disabled:opacity-50"
           >
             Berikutnya
           </button>

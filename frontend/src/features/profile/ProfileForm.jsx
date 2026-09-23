@@ -5,13 +5,16 @@ import { useUpdateProfile } from '../../hooks/useAuth'
 import { getErrorMessage, getFieldErrors } from '../../lib/errorMapping'
 import { profileSchema, toProfilePayload } from '../../schemas/profile'
 
+const inputClassName =
+  'mt-1 w-full rounded-lg border border-black/10 bg-white px-4 py-2 text-sm text-ink-900 focus:outline-none'
+
 function dateToInputValue(value) {
   if (!value) return ''
   return String(value).slice(0, 10)
 }
 
 function FieldError({ id, message }) {
-  return message ? <p id={id} className="mt-1 text-body-md text-danger-700">{message}</p> : null
+  return message ? <p id={id} className="mt-1 text-sm text-red-500">{message}</p> : null
 }
 
 export function ProfileForm({ user }) {
@@ -56,25 +59,25 @@ export function ProfileForm({ user }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       {saved ? (
-        <p role="status" className="rounded-radius-sm bg-success-700 px-3 py-2 text-body-md text-white">
+        <p role="status" className="rounded-lg bg-green-600 px-3 py-2 text-sm text-white">
           Profil berhasil disimpan.
         </p>
       ) : null}
       {errors.root?.server ? (
-        <p role="alert" className="rounded-radius-sm bg-danger-700 px-3 py-2 text-body-md text-white">
+        <p role="alert" className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white">
           {errors.root.server.message}
         </p>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="name" className="block text-label-md text-ink-700">
+          <label htmlFor="name" className="block text-sm font-medium text-slate-700">
             Nama
           </label>
           <input
             id="name"
             type="text"
             autoComplete="name"
-            className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClassName}
             aria-invalid={errors.name ? true : undefined}
             aria-describedby={errors.name ? 'name-error' : undefined}
             {...register('name')}
@@ -82,14 +85,14 @@ export function ProfileForm({ user }) {
           <FieldError id="name-error" message={errors.name?.message} />
         </div>
         <div>
-          <label htmlFor="email" className="block text-label-md text-ink-700">
+          <label htmlFor="email" className="block text-sm font-medium text-slate-700">
             Email
           </label>
           <input
             id="email"
             type="email"
             autoComplete="email"
-            className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClassName}
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'email-error' : undefined}
             {...register('email')}
@@ -97,14 +100,14 @@ export function ProfileForm({ user }) {
           <FieldError id="email-error" message={errors.email?.message} />
         </div>
         <div>
-          <label htmlFor="phone" className="block text-label-md text-ink-700">
+          <label htmlFor="phone" className="block text-sm font-medium text-slate-700">
             Nomor HP
           </label>
           <input
             id="phone"
             type="tel"
             autoComplete="tel"
-            className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClassName}
             aria-invalid={errors.phone ? true : undefined}
             aria-describedby={errors.phone ? 'phone-error' : undefined}
             {...register('phone')}
@@ -112,14 +115,14 @@ export function ProfileForm({ user }) {
           <FieldError id="phone-error" message={errors.phone?.message} />
         </div>
         <div>
-          <label htmlFor="birthDate" className="block text-label-md text-ink-700">
+          <label htmlFor="birthDate" className="block text-sm font-medium text-slate-700">
             Tanggal lahir
           </label>
           <input
             id="birthDate"
             type="date"
             autoComplete="bday"
-            className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClassName}
             aria-invalid={errors.birthDate ? true : undefined}
             aria-describedby={errors.birthDate ? 'birthDate-error' : undefined}
             {...register('birthDate')}
@@ -127,11 +130,11 @@ export function ProfileForm({ user }) {
           <FieldError id="birthDate-error" message={errors.birthDate?.message} />
         </div>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white disabled:opacity-60"
+          className="rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white uppercase disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Menyimpan…' : 'Simpan perubahan'}
         </button>
@@ -139,7 +142,7 @@ export function ProfileForm({ user }) {
           type="button"
           onClick={() => reset()}
           disabled={isSubmitting}
-          className="rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2.5 text-label-md text-ink-700 hover:bg-surface-50 disabled:opacity-60"
+          className="rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500 disabled:opacity-50"
         >
           Batalkan
         </button>

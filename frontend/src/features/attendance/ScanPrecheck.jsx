@@ -1,4 +1,6 @@
-import { BookOpen, CalendarDays, Clock, GraduationCap, QrCode } from 'lucide-react'
+import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
+import PrimaryButton from '../../components/common/PrimaryButton'
 import { StatusBadge } from '../../components/common/StatusBadge'
 import {
   windowStatusLabel,
@@ -6,98 +8,110 @@ import {
 } from '../../lib/attendanceStatus'
 import { formatSchoolDate, formatSchoolTime } from '../../lib/dateTime'
 
-function DetailRow({ icon: Icon, label, value }) {
+function DetailRow({ label, value }) {
   return (
-    <div className="flex items-start gap-2 text-body-md text-ink-700">
-      {Icon ? <Icon className="mt-0.5 h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" /> : null}
-      <span>
-        <span className="block text-caption text-ink-500">{label}</span>
-        <span className="block text-data text-ink-900">{value}</span>
-      </span>
+    <div className="flex justify-between gap-3 text-sm">
+      <span className="text-slate-700">{label}</span>
+      <span className="text-right font-semibold text-ink-900">{value}</span>
     </div>
   )
 }
 
 // Pre-check sebelum kamera diminta (docs/DESIGN_BRIEF.md 4.2): detail sesi,
-// jendela absensi, dan CTA memulai scan. Status window tetap dari server.
+// jendela absensi, dan CTA memulai scan. Layout mengikuti golden master
+// `features/scan/Scan.tsx`; status window tetap dari server.
 export function ScanPrecheck({ sessionItem, missed = false, onBegin, onManual }) {
   return (
     <div className="mx-auto w-full max-w-md space-y-4">
       {sessionItem ? (
-        <div className="rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="truncate text-heading-sm font-bold text-ink-900">
-                {sessionItem.subjectName}
-              </h2>
-              <p className="mt-0.5 text-caption text-ink-700">{sessionItem.className}</p>
-            </div>
+        <div className="flex flex-col gap-2 rounded-lg border border-black/10 bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="truncate text-xl font-semibold text-ink-900">
+              {sessionItem.subjectName}
+            </h2>
             <StatusBadge
               status={sessionItem.windowStatus}
               label={windowStatusLabel(sessionItem.windowStatus)}
               tone={windowStatusTone(sessionItem.windowStatus)}
             />
           </div>
-          <dl className="mt-4 space-y-3">
-            <DetailRow icon={BookOpen} label="Mata pelajaran" value={sessionItem.subjectName} />
-            <DetailRow icon={GraduationCap} label="Guru" value={sessionItem.teacherName} />
-            <DetailRow icon={CalendarDays} label="Tanggal" value={formatSchoolDate(sessionItem.sessionDate)} />
+          <p className="text-sm text-slate-700">
+            <span className="font-semibold text-ink-900">
+              {sessionItem.className}
+            </span>
+          </p>
+          <span className="flex items-center gap-1 text-sm text-slate-700">
+            <ScheduleRoundedIcon className="h-4! w-4!" />
+            {formatSchoolDate(sessionItem.sessionDate)} ·{' '}
+            {formatSchoolTime(sessionItem.startAt)}–
+            {formatSchoolTime(sessionItem.endAt)}
+          </span>
+
+          <div className="mt-2 flex flex-col gap-2 border-t border-black/10 pt-3">
+            <DetailRow label="Mata pelajaran" value={sessionItem.subjectName} />
+            <DetailRow label="Guru" value={sessionItem.teacherName} />
             <DetailRow
-              icon={Clock}
               label="Jendela absensi"
               value={`${formatSchoolTime(sessionItem.startAt)}–${formatSchoolTime(sessionItem.endAt)}`}
             />
-          </dl>
-          <p className="mt-4 rounded-radius-sm bg-school-blue-050 p-3 text-body-md text-ink-900">
-            Dibuka 15 menit sebelum jam mulai hingga jam selesai. Status kehadiran
-            dan keterlambatan dihitung server saat pemindaian.
-          </p>
+          </div>
+
           {sessionItem.windowStatus === 'BELUM_DIBUKA' ? (
-            <p className="mt-3 text-body-md text-ink-700">
+            <p className="text-sm text-slate-700">
               Sesi belum dibuka. Scan dapat dilakukan setelah pukul{' '}
               {formatSchoolTime(sessionItem.startAt)}.
             </p>
           ) : null}
           {sessionItem.windowStatus === 'SELESAI' ? (
-            <p className="mt-3 text-body-md text-ink-700">
+            <p className="text-sm text-slate-700">
               Sesi sudah selesai. Scan telat tidak mencatat kehadiran.
             </p>
           ) : null}
         </div>
       ) : (
-        <div className="rounded-radius-md border border-line-200 bg-surface-0 p-5 text-center shadow-1">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-black/10 bg-white p-6 text-center">
           {missed ? (
-            <p className="mb-3 rounded-radius-sm bg-surface-50 p-3 text-body-md text-ink-700">
-              Sesi ini tidak ada pada jadwal hari ini. Anda tetap dapat memindai;
-              status ditentukan server.
+            <p className="w-full rounded-lg bg-black/5 p-3 text-sm text-slate-700">
+              Sesi ini tidak ada pada jadwal hari ini. Anda tetap dapat
+              memindai; status ditentukan server.
             </p>
           ) : null}
-          <QrCode className="mx-auto h-10 w-10 text-school-blue-700" aria-hidden="true" />
-          <h2 className="mt-3 text-heading-sm font-bold text-ink-900">
+          <div className="rounded-lg bg-black/5 p-3">
+            <QrCode2RoundedIcon className="h-24! w-24! text-slate-800" />
+          </div>
+          <h2 className="text-xl font-semibold text-ink-900">
             Arahkan kamera ke QR Code
           </h2>
-          <p className="mt-1 text-body-md text-ink-700">
+          <p className="text-sm text-slate-700">
             Temukan QR Code yang ditampilkan guru, lalu arahkan kamera ke kode
             tersebut.
-          </p>
-          <p className="mt-3 rounded-radius-sm bg-school-blue-050 p-3 text-body-md text-ink-900">
-            Scan hanya aktif mulai 15 menit sebelum jam mulai hingga jam selesai.
-            Status dan keterlambatan dihitung server.
           </p>
         </div>
       )}
 
-      <button
+      <p className="text-center text-sm text-slate-700">
+        Scan hanya aktif dari 15 menit sebelum mulai sampai jam selesai. Status
+        dan keterlambatan dihitung server.
+      </p>
+
+      <PrimaryButton
         type="button"
         onClick={onBegin}
-        className="inline-flex w-full items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-3 text-label-md text-white hover:bg-school-blue-900"
+        className="uppercase"
       >
         Mulai memindai
-      </button>
+      </PrimaryButton>
+
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-black/10" />
+        <span className="text-xs text-slate-700">atau kode manual</span>
+        <span className="h-px flex-1 bg-black/10" />
+      </div>
+
       <button
         type="button"
         onClick={onManual}
-        className="inline-flex w-full items-center justify-center rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2.5 text-label-md font-semibold text-school-blue-700 hover:bg-surface-50"
+        className="flex w-full items-center justify-center rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500"
       >
         Masukkan kode manual
       </button>

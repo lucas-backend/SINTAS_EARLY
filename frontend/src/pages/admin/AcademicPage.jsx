@@ -40,10 +40,10 @@ export default function AdminAcademicPage() {
   }
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div>
-        <h1 className="text-heading-lg font-bold text-ink-900">Akademik</h1>
-        <p className="mt-1 text-body-md text-ink-700">Kelola jenjang, kelas, dan mata pelajaran.</p>
+        <h1 className="text-2xl font-bold text-ink-900">Akademik</h1>
+        <p className="mt-1 text-sm text-slate-700">Kelola jenjang, kelas, dan mata pelajaran.</p>
       </div>
 
       <div role="tablist" aria-label="Data akademik" className="flex flex-wrap gap-2">
@@ -57,10 +57,10 @@ export default function AdminAcademicPage() {
               setTab(entry.key)
               setPage(1)
             }}
-            className={`rounded-radius-pill px-4 py-2 text-label-md focus-visible:outline-school-blue-700 ${
+            className={`rounded-full px-4 py-2 text-sm font-semibold ${
               tab === entry.key
-                ? 'bg-school-blue-900 text-surface-0'
-                : 'border border-line-200 bg-surface-0 text-ink-700 hover:bg-surface-50'
+                ? 'bg-blue-500 text-white'
+                : 'border border-black/10 bg-white text-slate-700 hover:bg-blue-100/50'
             }`}
           >
             {entry.label}

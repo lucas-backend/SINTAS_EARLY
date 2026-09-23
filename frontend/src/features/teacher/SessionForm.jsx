@@ -1,10 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { BookOpen, CalendarDays, Clock, GraduationCap } from 'lucide-react'
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded'
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
+import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded'
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded'
 import { useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { getErrorMessage, getFieldErrors } from '../../lib/errorMapping'
 import { SCHOOL_TIMEZONE, todaySchoolDate } from '../../lib/dateTime'
 import { sessionFormSchema, toSessionPayload } from '../../schemas/session'
+import PrimaryButton from '../../components/common/PrimaryButton'
 import { useCreateSession } from './hooks/useCreateSession'
 
 const SERVER_FIELD_MAP = {
@@ -15,7 +19,7 @@ const SERVER_FIELD_MAP = {
 
 function FieldError({ id, message }) {
   return message ? (
-    <p id={id} className="mt-1 text-body-md text-danger-700">
+    <p id={id} className="mt-1 text-sm text-danger-700">
       {message}
     </p>
   ) : null
@@ -23,18 +27,20 @@ function FieldError({ id, message }) {
 
 function DetailRow({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-start gap-2 text-body-md text-ink-700">
-      {Icon ? <Icon className="mt-0.5 h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" /> : null}
+    <div className="flex items-start gap-2 text-sm text-slate-700">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+        <Icon className="h-5! w-5!" aria-hidden="true" />
+      </span>
       <span>
-        <span className="block text-caption text-ink-500">{label}</span>
-        <span className="block text-data text-ink-900">{value}</span>
+        <span className="block text-xs text-slate-700">{label}</span>
+        <span className="block font-semibold text-ink-900">{value}</span>
       </span>
     </div>
   )
 }
 
 const inputClass =
-  'mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700'
+  'mt-1 w-full rounded-lg border border-black/10 bg-white px-4 py-2 text-black focus:outline-none'
 
 export function SessionForm({
   assignments,
@@ -86,15 +92,15 @@ export function SessionForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       {rootError ? (
-        <p role="alert" className="rounded-radius-sm bg-danger-700 px-3 py-2 text-body-md text-white">
+        <p role="alert" className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white">
           {rootError}
         </p>
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="space-y-4 rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1">
+        <div className="space-y-4 rounded-xl border border-black/10 bg-white p-5">
           <div>
-            <label htmlFor="session-assignment" className="block text-label-md text-ink-700">
+            <label htmlFor="session-assignment" className="block text-sm font-medium text-slate-700">
               Mata pelajaran dan kelas
             </label>
             <select
@@ -115,7 +121,7 @@ export function SessionForm({
           </div>
 
           <div>
-            <label htmlFor="session-date" className="block text-label-md text-ink-700">
+            <label htmlFor="session-date" className="block text-sm font-medium text-slate-700">
               Tanggal sesi
             </label>
             <input
@@ -131,7 +137,7 @@ export function SessionForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="session-start" className="block text-label-md text-ink-700">
+              <label htmlFor="session-start" className="block text-sm font-medium text-slate-700">
                 Jam mulai
               </label>
               <input
@@ -145,7 +151,7 @@ export function SessionForm({
               <FieldError id="session-start-error" message={errors.start?.message} />
             </div>
             <div>
-              <label htmlFor="session-end" className="block text-label-md text-ink-700">
+              <label htmlFor="session-end" className="block text-sm font-medium text-slate-700">
                 Jam selesai
               </label>
               <input
@@ -160,39 +166,35 @@ export function SessionForm({
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting || assignments.length === 0}
-            className="inline-flex items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900 disabled:opacity-60"
-          >
+          <PrimaryButton type="submit" disabled={isSubmitting || assignments.length === 0}>
             {isSubmitting ? 'Membuat sesi…' : 'Buat sesi'}
-          </button>
+          </PrimaryButton>
         </div>
 
         <aside
           aria-label="Detail penugasan terpilih"
-          className="space-y-4 rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1"
+          className="space-y-4 rounded-xl border border-black/10 bg-white p-5"
         >
-          <h2 className="text-heading-sm font-bold text-ink-900">Detail sesi</h2>
+          <h2 className="text-base font-bold text-ink-900">Detail sesi</h2>
           {selected ? (
             <div className="space-y-4">
-              <DetailRow icon={BookOpen} label="Mata pelajaran" value={selected.subject?.name ?? '—'} />
+              <DetailRow icon={MenuBookRoundedIcon} label="Mata pelajaran" value={selected.subject?.name ?? '—'} />
               <DetailRow
-                icon={CalendarDays}
+                icon={SchoolRoundedIcon}
                 label="Kelas"
                 value={[selected.class?.name, selected.class?.educationLevel?.name]
                   .filter(Boolean)
                   .join(' • ') || '—'}
               />
-              <DetailRow icon={GraduationCap} label="Guru" value={teacherName ?? '—'} />
-              <DetailRow icon={Clock} label="Timezone" value={SCHOOL_TIMEZONE} />
+              <DetailRow icon={PersonOutlineRoundedIcon} label="Guru" value={teacherName ?? '—'} />
+              <DetailRow icon={ScheduleRoundedIcon} label="Timezone" value={SCHOOL_TIMEZONE} />
             </div>
           ) : (
-            <p className="text-body-md text-ink-700">
+            <p className="text-sm text-slate-700">
               Pilih penugasan untuk melihat detail mata pelajaran dan kelas.
             </p>
           )}
-          <p className="rounded-radius-sm bg-school-blue-050 p-3 text-body-md text-ink-900">
+          <p className="rounded-lg bg-blue-100 p-3 text-sm text-slate-700">
             Jendela absensi dibuka 15 menit sebelum jam mulai dan berakhir pada jam
             selesai. Status kehadiran ditentukan server saat siswa memindai.
           </p>

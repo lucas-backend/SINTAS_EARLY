@@ -1,4 +1,6 @@
-import { CalendarPlus, ClipboardList, QrCode } from 'lucide-react'
+import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded'
+import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded'
+import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
 import { Link } from 'react-router-dom'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
@@ -18,13 +20,13 @@ const ASSIGNMENT_PREVIEW_LIMIT = 4
 
 function SummaryCard({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-center gap-3 rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1">
-      <span className="flex h-10 w-10 items-center justify-center rounded-radius-md bg-school-blue-050 text-school-blue-900">
-        <Icon className="h-5 w-5" aria-hidden="true" />
+    <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-white p-4">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+        <Icon className="h-5! w-5!" aria-hidden="true" />
       </span>
       <span>
-        <span className="block text-caption text-ink-500">{label}</span>
-        <span className="block text-heading-md font-bold text-ink-900">{value}</span>
+        <span className="block text-xs text-slate-700">{label}</span>
+        <span className="block text-xl font-bold text-ink-900">{value}</span>
       </span>
     </div>
   )
@@ -41,33 +43,33 @@ export default function TeacherDashboardPage() {
   const recentSessions = sessions.slice(0, RECENT_SESSION_LIMIT)
 
   return (
-    <section className="space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-heading-lg font-bold text-ink-900">
+          <h1 className="text-2xl font-bold text-ink-900">
             Beranda Guru
           </h1>
-          <p className="mt-1 text-body-md text-ink-700">
+          <p className="mt-1 text-sm text-slate-700">
             Kelola sesi absensi dan pantau kehadiran kelas yang Anda ajar.
           </p>
         </div>
         <Link
           to="/app/teacher/sessions/new"
-          className="inline-flex items-center gap-2 rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white"
         >
-          <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+          <EventAvailableRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           Buat sesi
         </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <SummaryCard
-          icon={ClipboardList}
+          icon={ListAltRoundedIcon}
           label="Penugasan aktif"
           value={assignmentsQuery.isPending ? '…' : assignments.length}
         />
         <SummaryCard
-          icon={QrCode}
+          icon={QrCode2RoundedIcon}
           label="Sesi dibuat"
           value={sessionsQuery.isPending ? '…' : sessions.length}
         />
@@ -76,10 +78,10 @@ export default function TeacherDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="teacher-assignments-heading" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <h2 id="teacher-assignments-heading" className="text-heading-md font-bold text-ink-900">
+            <h2 id="teacher-assignments-heading" className="text-lg font-bold text-ink-900">
               Penugasan saya
             </h2>
-            <Link to="/app/teacher/assignments" className="text-label-md font-semibold text-school-blue-700">
+            <Link to="/app/teacher/assignments" className="text-sm font-semibold text-blue-500">
               Lihat semua
             </Link>
           </div>
@@ -114,10 +116,10 @@ export default function TeacherDashboardPage() {
 
         <section aria-labelledby="teacher-sessions-heading" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <h2 id="teacher-sessions-heading" className="text-heading-md font-bold text-ink-900">
+            <h2 id="teacher-sessions-heading" className="text-lg font-bold text-ink-900">
               Sesi terbaru
             </h2>
-            <Link to="/app/teacher/sessions" className="text-label-md font-semibold text-school-blue-700">
+            <Link to="/app/teacher/sessions" className="text-sm font-semibold text-blue-500">
               Lihat semua
             </Link>
           </div>
@@ -132,7 +134,7 @@ export default function TeacherDashboardPage() {
                 action={
                   <Link
                     to="/app/teacher/sessions/new"
-                    className="mt-1 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white"
+                    className="mt-1 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
                   >
                     Buat sesi
                   </Link>

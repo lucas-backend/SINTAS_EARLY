@@ -1,5 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, Download, RotateCcw, Search } from 'lucide-react'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams } from 'react-router-dom'
@@ -26,12 +29,12 @@ const DEFAULT_FILTERS = {
 
 function FieldError({ id, message }) {
   return message ? (
-    <p id={id} className="mt-1 text-body-md text-danger-700">{message}</p>
+    <p id={id} className="mt-1 text-sm text-danger-700">{message}</p>
   ) : null
 }
 
 const inputClass =
-  'mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700'
+  'mt-1 w-full rounded-lg border border-black/10 bg-white px-4 py-2 text-black focus:outline-none'
 
 export default function TeacherClassAttendancePage() {
   const online = useIsOnline()
@@ -95,19 +98,19 @@ export default function TeacherClassAttendancePage() {
   }
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div>
         <Link
           to="/app/teacher/sessions"
-          className="inline-flex items-center gap-1.5 rounded-radius-sm text-label-md font-semibold text-school-blue-700 focus-visible:outline-school-blue-700"
+          className="inline-flex items-center gap-1.5 rounded-lg text-sm font-semibold text-blue-500"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowBackRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           Kembali ke daftar sesi
         </Link>
-        <h1 className="mt-3 text-heading-lg font-bold text-ink-900">
+        <h1 className="mt-3 text-2xl font-bold text-ink-900">
           Detail kehadiran kelas
         </h1>
-        <p className="mt-1 text-body-md text-ink-700">
+        <p className="mt-1 text-sm text-slate-700">
           Kehadiran dihitung server per pertemuan, termasuk status tidak hadir
           untuk sesi yang sudah berakhir.
         </p>
@@ -115,11 +118,11 @@ export default function TeacherClassAttendancePage() {
 
       <form
         onSubmit={handleSubmit(onApply)}
-        className="rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1"
+        className="rounded-xl border border-black/10 bg-white p-4"
       >
         <div className="grid gap-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
           <div>
-            <label htmlFor="attendance-from" className="block text-label-md text-ink-700">
+            <label htmlFor="attendance-from" className="block text-sm font-medium text-slate-700">
               Dari tanggal
             </label>
             <input
@@ -133,7 +136,7 @@ export default function TeacherClassAttendancePage() {
             <FieldError id="attendance-from-error" message={errors.from?.message} />
           </div>
           <div>
-            <label htmlFor="attendance-to" className="block text-label-md text-ink-700">
+            <label htmlFor="attendance-to" className="block text-sm font-medium text-slate-700">
               Sampai tanggal
             </label>
             <input
@@ -147,7 +150,7 @@ export default function TeacherClassAttendancePage() {
             <FieldError id="attendance-to-error" message={errors.to?.message} />
           </div>
           <div>
-            <label htmlFor="attendance-status" className="block text-label-md text-ink-700">
+            <label htmlFor="attendance-status" className="block text-sm font-medium text-slate-700">
               Status
             </label>
             <select id="attendance-status" className={inputClass} {...register('status')}>
@@ -162,17 +165,17 @@ export default function TeacherClassAttendancePage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
-              <Search className="h-4 w-4" aria-hidden="true" />
+              <SearchRoundedIcon className="h-4! w-4!" aria-hidden="true" />
               Terapkan
             </button>
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center gap-1.5 rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2 text-label-md text-ink-700 hover:bg-surface-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50"
             >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              <RefreshRoundedIcon className="h-4! w-4!" aria-hidden="true" />
               Reset
             </button>
           </div>
@@ -180,7 +183,7 @@ export default function TeacherClassAttendancePage() {
       </form>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-body-md text-ink-700" aria-live="polite">
+        <p className="text-sm text-slate-700" aria-live="polite">
           {attendance.isPending
             ? 'Memuat kehadiran…'
             : total > 0
@@ -191,9 +194,9 @@ export default function TeacherClassAttendancePage() {
           type="button"
           onClick={onExport}
           disabled={exportReport.isPending}
-          className="inline-flex items-center gap-1.5 rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2 text-label-md font-semibold text-school-blue-700 hover:bg-surface-50 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-blue-500 hover:bg-blue-100/50 disabled:opacity-60"
         >
-          <Download className="h-4 w-4" aria-hidden="true" />
+          <DownloadRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           {exportReport.isPending ? 'Menyiapkan…' : 'Export XLSX'}
         </button>
       </div>
@@ -203,8 +206,8 @@ export default function TeacherClassAttendancePage() {
           role={exportMessage.tone === 'error' ? 'alert' : 'status'}
           className={
             exportMessage.tone === 'error'
-              ? 'rounded-radius-sm bg-danger-700 px-3 py-2 text-body-md text-white'
-              : 'rounded-radius-sm bg-success-700/10 px-3 py-2 text-body-md text-success-700'
+              ? 'rounded-lg bg-red-500 px-3 py-2 text-sm text-white'
+              : 'rounded-lg bg-green-500/10 px-3 py-2 text-sm font-semibold text-green-600'
           }
         >
           {exportMessage.text}
@@ -223,7 +226,7 @@ export default function TeacherClassAttendancePage() {
               <button
                 type="button"
                 onClick={onReset}
-                className="mt-1 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white"
+                className="mt-1 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
               >
                 Ubah filter
               </button>
@@ -250,18 +253,18 @@ export default function TeacherClassAttendancePage() {
             type="button"
             onClick={() => setApplied((current) => ({ ...current, page: page - 1 }))}
             disabled={page <= 1}
-            className="rounded-radius-md border border-line-200 bg-surface-0 px-3 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Sebelumnya
           </button>
-          <span className="text-body-md text-ink-700">
+          <span className="text-sm text-slate-700">
             Halaman {page} dari {totalPages || 1}
           </span>
           <button
             type="button"
             onClick={() => setApplied((current) => ({ ...current, page: page + 1 }))}
             disabled={page >= totalPages}
-            className="rounded-radius-md border border-line-200 bg-surface-0 px-3 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Berikutnya
           </button>

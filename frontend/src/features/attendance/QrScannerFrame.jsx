@@ -117,7 +117,7 @@ export const QrScannerFrame = forwardRef(function QrScannerFrame(
   }, [])
 
   return (
-    <div className="relative aspect-square w-full overflow-hidden rounded-radius-md bg-ink-900">
+    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-900">
       <video
         ref={videoRef}
         playsInline
@@ -127,7 +127,7 @@ export const QrScannerFrame = forwardRef(function QrScannerFrame(
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-[10%] rounded-radius-md border-2 border-white/80 shadow-[0_0_0_100vmax_rgba(19,34,56,0.35)]"
+        className="pointer-events-none absolute inset-[10%] rounded-xl border-2 border-white/80 shadow-[0_0_0_100vmax_rgba(19,34,56,0.35)]"
       />
     </div>
   )

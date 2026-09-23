@@ -6,13 +6,13 @@ function Actions({ session }) {
     <div className="flex flex-wrap gap-2">
       <Link
         to={`/app/teacher/sessions/${session.id}/qr`}
-        className="rounded-radius-sm px-2 py-1 text-label-md font-semibold text-school-blue-700 hover:bg-school-blue-050 focus-visible:outline-school-blue-700"
+        className="rounded-lg px-2 py-1 text-sm font-semibold text-blue-500 hover:bg-blue-100/50"
       >
         Lihat QR
       </Link>
       <Link
         to={`/app/teacher/classes/${session.classId}/attendance`}
-        className="rounded-radius-sm px-2 py-1 text-label-md font-semibold text-school-blue-700 hover:bg-school-blue-050 focus-visible:outline-school-blue-700"
+        className="rounded-lg px-2 py-1 text-sm font-semibold text-blue-500 hover:bg-blue-100/50"
       >
         Kehadiran
       </Link>
@@ -26,16 +26,16 @@ export function SessionMobileList({ items }) {
       {items.map((session) => (
         <li
           key={session.id}
-          className="rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1"
+          className="rounded-xl border border-black/10 bg-white p-4"
         >
-          <p className="text-data text-ink-900">
+          <p className="text-sm font-semibold text-ink-900">
             {formatSchoolDate(session.sessionDate)}
           </p>
-          <p className="mt-1 text-body-md text-ink-700">
+          <p className="mt-1 text-sm text-slate-700">
             {formatSchoolTime(session.startAt)}–{formatSchoolTime(session.endAt)}
           </p>
           <p className="mt-1 font-semibold text-ink-900">{session.subjectName ?? '—'}</p>
-          <p className="text-caption text-ink-700">{session.className ?? ''}</p>
+          <p className="text-xs text-slate-700">{session.className ?? ''}</p>
           <div className="mt-3">
             <Actions session={session} />
           </div>
@@ -47,35 +47,35 @@ export function SessionMobileList({ items }) {
 
 export function SessionDesktopTable({ items }) {
   return (
-    <div className="hidden overflow-x-auto rounded-radius-md border border-line-200 bg-surface-0 shadow-1 sm:block">
-      <table className="w-full text-left text-body-md">
+    <div className="hidden overflow-x-auto rounded-lg border border-black/10 bg-white sm:block">
+      <table className="w-full text-left text-sm">
         <caption className="sr-only">Daftar sesi absensi yang Anda buat</caption>
-        <thead className="bg-surface-50 text-caption uppercase tracking-wide text-ink-500">
+        <thead className="border-b border-black/10 text-slate-700">
           <tr>
-            <th scope="col" className="px-4 py-3 font-semibold">Tanggal sesi</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Waktu</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Mata pelajaran / Kelas</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Aksi</th>
+            <th scope="col" className="p-3 font-semibold">Tanggal sesi</th>
+            <th scope="col" className="p-3 font-semibold">Waktu</th>
+            <th scope="col" className="p-3 font-semibold">Mata pelajaran / Kelas</th>
+            <th scope="col" className="p-3 font-semibold">Aksi</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-line-200">
+        <tbody>
           {items.map((session) => (
-            <tr key={session.id} className="hover:bg-surface-50">
-              <td className="px-4 py-3 text-data text-ink-900">
+            <tr key={session.id} className="border-b border-black/5 last:border-b-0">
+              <td className="p-3 text-ink-900">
                 {formatSchoolDate(session.sessionDate)}
               </td>
-              <td className="px-4 py-3 text-ink-700">
+              <td className="p-3 text-slate-700">
                 {formatSchoolTime(session.startAt)}–{formatSchoolTime(session.endAt)}
               </td>
-              <td className="px-4 py-3">
+              <td className="p-3">
                 <span className="block font-semibold text-ink-900">
                   {session.subjectName ?? '—'}
                 </span>
-                <span className="block text-caption text-ink-700">
+                <span className="block text-xs text-slate-700">
                   {session.className ?? ''}
                 </span>
               </td>
-              <td className="px-4 py-3">
+              <td className="p-3">
                 <Actions session={session} />
               </td>
             </tr>

@@ -4,6 +4,7 @@ import ChevronRightSharpIcon from '@mui/icons-material/ChevronRightSharp'
 
 export default function BannerCarousel({ items = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [broken, setBroken] = useState(false)
 
   // State untuk mencegah spam klik
   const [isClickable, setIsClickable] = useState(true)
@@ -13,6 +14,7 @@ export default function BannerCarousel({ items = [] }) {
   const handleSlideChange = (direction) => {
     if (!isClickable) return
     setIsClickable(false)
+    setBroken(false)
 
     if (direction === 'next') {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % items.length)
@@ -26,11 +28,13 @@ export default function BannerCarousel({ items = [] }) {
   }
 
   const currentItem = items[currentIndex]
+  const showImage = Boolean(currentItem.imageUrl) && !broken
 
-  const bannerElement = currentItem.imageUrl ? (
+  const bannerElement = showImage ? (
     <img
       src={currentItem.imageUrl}
       alt={currentItem.title || currentItem.name}
+      onError={() => setBroken(true)}
       className="rounded-xl w-full h-38 object-cover select-none"
       draggable={false}
     />

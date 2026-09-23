@@ -1,18 +1,22 @@
 import { Link } from 'react-router-dom'
+import ContentShell from '../components/layout/ContentShell'
 
+// Layout mengikuti golden master `pages/NotFound.tsx`: layar biru penuh dengan
+// teks putih terpusat + 404. Link jalan keluar ditambahkan agar tidak menjadi
+// layar buntu (DESIGN_BRIEF §1.2 principle 2).
 export default function NotFoundPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-surface-50 px-4 text-center">
-      <h1 className="text-heading-lg text-ink-900">Halaman tidak ditemukan</h1>
-      <p className="text-body-md text-ink-700">
-        Alamat yang Anda buka tidak tersedia atau telah dipindahkan.
-      </p>
-      <Link
-        to="/app"
-        className="mt-2 rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white"
-      >
-        Kembali ke beranda
-      </Link>
+    <main className="min-h-dvh bg-blue-500">
+      <ContentShell className="flex min-h-dvh flex-col items-center justify-center gap-1 text-center text-white">
+        <h1 className="text-2xl font-bold">Halaman tidak ditemukan</h1>
+        <p className="text-4xl font-bold">404</p>
+        <Link
+          to="/app"
+          className="mt-6 rounded-lg bg-white/15 px-4 py-2 text-sm font-semibold text-white"
+        >
+          Kembali ke beranda
+        </Link>
+      </ContentShell>
     </main>
   )
 }

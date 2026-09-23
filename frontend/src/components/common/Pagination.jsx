@@ -7,7 +7,7 @@ export function Pagination({ page, totalPages, total, label = 'Daftar', onChange
       aria-label={`Navigasi halaman ${label}`}
       className="flex flex-wrap items-center justify-between gap-3"
     >
-      <p className="text-body-md text-ink-700" aria-live="polite">
+      <p className="text-sm text-slate-700" aria-live="polite">
         {total} entri.
       </p>
       <div className="flex items-center gap-3">
@@ -15,18 +15,18 @@ export function Pagination({ page, totalPages, total, label = 'Daftar', onChange
           type="button"
           onClick={() => onChange(page - 1)}
           disabled={page <= 1}
-          className="rounded-radius-md border border-line-200 bg-surface-0 px-3 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Sebelumnya
         </button>
-        <span className="text-body-md text-ink-700">
+        <span className="text-sm text-slate-700">
           Halaman {page} dari {max}
         </span>
         <button
           type="button"
           onClick={() => onChange(page + 1)}
           disabled={page >= max}
-          className="rounded-radius-md border border-line-200 bg-surface-0 px-3 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Berikutnya
         </button>

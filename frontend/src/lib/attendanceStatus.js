@@ -35,8 +35,10 @@ export const ATTENDANCE_STATUS_TONES = Object.freeze({
   TIDAK_HADIR: 'danger',
 })
 
+// Tone mengikuti golden master JadwalCard: Bisa absen hijau, Belum dibuka
+// oranye, Selesai slate (PLAN_MERGE_UI §3 invariant #6/#7). Hanya tampilan.
 export const WINDOW_STATUS_TONES = Object.freeze({
-  BELUM_DIBUKA: 'info',
+  BELUM_DIBUKA: 'warning',
   BISA_ABSEN: 'success',
   SELESAI: 'neutral',
 })

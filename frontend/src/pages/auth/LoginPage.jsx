@@ -1,13 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded'
 import { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import PrimaryButton from '../../components/common/PrimaryButton'
+import ContentShell from '../../components/layout/ContentShell'
 import { useAuthLogin } from '../../hooks/useAuth'
 import { getErrorMessage, getFieldErrors } from '../../lib/errorMapping'
 import { roleHome } from '../../lib/permissions'
 import { loginSchema } from '../../schemas/auth'
 import { useSessionStore } from '../../stores/sessionStore'
 
+const inputClassName =
+  'text-black bg-white w-full px-4 py-2 focus:outline-none rounded-lg'
+
+// Layout mengikuti golden master `features/login/Login.tsx` (PLAN_MERGE_UI §3):
+// layar biru penuh, ikon + judul aplikasi, form input putih, CTA orange
+// uppercase. Hanya presentasi — alur login tetap lewat React Query/service.
 export default function LoginPage() {
   const location = useLocation()
   const [passwordReset] = useState(() => Boolean(location.state?.passwordReset))
@@ -43,77 +52,98 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-50 px-4 py-8">
-      <div className="w-full max-w-md rounded-radius-md border border-line-200 bg-surface-0 p-6 shadow-1">
-        <h1 className="text-heading-lg font-bold text-ink-900">Masuk</h1>
-        {sessionExpired ? (
-          <p role="status" className="mt-3 rounded-radius-sm bg-school-blue-050 p-3 text-sm text-school-blue-900">
-            Sesi Anda berakhir. Silakan masuk kembali.
-          </p>
-        ) : null}
-        {passwordReset ? (
-          <p role="status" className="mt-3 rounded-radius-sm bg-success-700 px-3 py-2 text-sm text-white">
-            Password berhasil diubah. Silakan masuk kembali.
-          </p>
-        ) : null}
-        {errors.root?.server ? (
-          <p role="alert" className="mt-3 rounded-radius-sm bg-danger-700 px-3 py-2 text-sm text-white">
-            {errors.root.server.message}
-          </p>
-        ) : null}
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-4" noValidate>
-          <div>
-            <label htmlFor="username" className="block text-label-md text-ink-700">
-              Username
-            </label>
+    <main className="min-h-dvh bg-blue-500 text-white flex items-center pb-32">
+      <ContentShell>
+        <div className="text-center">
+          <MenuBookRoundedIcon className="w-16! h-16!" />
+          <p className="text-6xl font-bold">Kak Lia</p>
+        </div>
+
+        <form
+          className="mt-12 flex flex-col items-center gap-4"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+        >
+          <h1 className="text-2xl font-semibold">Masuk</h1>
+
+          {sessionExpired ? (
+            <p
+              role="status"
+              className="w-full rounded-lg bg-white/15 px-3 py-2 text-sm"
+            >
+              Sesi Anda berakhir. Silakan masuk kembali.
+            </p>
+          ) : null}
+          {passwordReset ? (
+            <p
+              role="status"
+              className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm"
+            >
+              Password berhasil diubah. Silakan masuk kembali.
+            </p>
+          ) : null}
+          {errors.root?.server ? (
+            <p
+              role="alert"
+              className="w-full rounded-lg bg-red-500 px-3 py-2 text-sm"
+            >
+              {errors.root.server.message}
+            </p>
+          ) : null}
+
+          <div className="w-full">
             <input
               id="username"
               type="text"
               autoComplete="username"
-              className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+              aria-label="Username"
+              placeholder="Username"
+              className={inputClassName}
               aria-invalid={errors.username ? true : undefined}
               aria-describedby={errors.username ? 'username-error' : undefined}
               {...register('username')}
             />
             {errors.username ? (
-              <p id="username-error" className="mt-1 text-sm text-danger-700">
+              <p id="username-error" className="mt-1 text-left text-sm text-white">
                 {errors.username.message}
               </p>
             ) : null}
           </div>
-          <div>
-            <label htmlFor="password" className="block text-label-md text-ink-700">
-              Password
-            </label>
+
+          <div className="w-full">
             <input
               id="password"
               type="password"
               autoComplete="current-password"
-              className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+              aria-label="Password"
+              placeholder="Password"
+              className={inputClassName}
               aria-invalid={errors.password ? true : undefined}
               aria-describedby={errors.password ? 'password-error' : undefined}
               {...register('password')}
             />
             {errors.password ? (
-              <p id="password-error" className="mt-1 text-sm text-danger-700">
+              <p id="password-error" className="mt-1 text-left text-sm text-white">
                 {errors.password.message}
               </p>
             ) : null}
           </div>
-          <button
+
+          <PrimaryButton
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white disabled:opacity-60"
+            className="bg-orange-400 uppercase"
           >
-            {isSubmitting ? 'Masuk…' : 'Masuk'}
-          </button>
+            {isSubmitting ? 'Memproses…' : 'Masuk'}
+          </PrimaryButton>
         </form>
-        <p className="mt-4 text-sm text-ink-700">
-          <Link to="/forgot-password" className="font-semibold text-school-blue-700">
+
+        <p className="mt-6 text-center text-sm">
+          <Link to="/forgot-password" className="font-semibold text-white underline">
             Lupa password?
           </Link>
         </p>
-      </div>
+      </ContentShell>
     </main>
   )
 }

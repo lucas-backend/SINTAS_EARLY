@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import PrimaryButton from '../../components/common/PrimaryButton'
 import { manualScanSchema } from '../../schemas/scan'
 
 const inputClass =
-  'mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700'
+  'mt-1 w-full rounded-lg border border-black/10 bg-white px-4 py-2 text-ink-900 focus:outline-none'
 
-// Manual fallback bila kamera tidak tersedia/ditolak (docs/PROMPT_GUIDE.md F3).
+// Fallback manual bila kamera tidak tersedia/ditolak (docs/PROMPT_GUIDE.md F3).
 // Payload dikirim sama persis ke POST /attendance-scans; status ditentukan
 // server, bukan validasi client.
 export function ManualScanForm({ initialPayload = '', isPending, onSubmit }) {
@@ -28,7 +29,7 @@ export function ManualScanForm({ initialPayload = '', isPending, onSubmit }) {
       noValidate
     >
       <div>
-        <label htmlFor="manual-qr-payload" className="block text-label-md text-ink-700">
+        <label htmlFor="manual-qr-payload" className="block text-sm font-medium text-slate-700">
           Kode QR
         </label>
         <input
@@ -45,18 +46,18 @@ export function ManualScanForm({ initialPayload = '', isPending, onSubmit }) {
           {...register('qrPayload')}
         />
         {errors.qrPayload ? (
-          <p id="manual-qr-payload-error" className="mt-1 text-body-md text-danger-700">
+          <p id="manual-qr-payload-error" className="mt-1 text-sm text-red-500">
             {errors.qrPayload.message}
           </p>
         ) : null}
       </div>
-      <button
+      <PrimaryButton
         type="submit"
         disabled={isPending}
-        className="inline-flex w-full items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900 disabled:opacity-60 sm:w-auto"
+        className="uppercase"
       >
         {isPending ? 'Memproses…' : 'Kirim absensi'}
-      </button>
+      </PrimaryButton>
     </form>
   )
 }

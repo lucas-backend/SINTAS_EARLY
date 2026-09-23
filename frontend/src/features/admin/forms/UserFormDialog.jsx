@@ -56,14 +56,14 @@ export function UserFormDialog({ open, onClose }) {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {rootError ? (
-          <p role="alert" className="rounded-radius-sm bg-danger-700 px-3 py-2 text-body-md text-white">
+          <p role="alert" className="rounded-lg bg-red-500 px-3 py-2 text-sm text-white">
             {rootError}
           </p>
         ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="user-role" className="block text-label-md text-ink-700">
+            <label htmlFor="user-role" className="block text-sm font-medium text-slate-700">
               Peran
             </label>
             <select
@@ -77,7 +77,7 @@ export function UserFormDialog({ open, onClose }) {
             </select>
           </div>
           <div>
-            <label htmlFor="user-username" className="block text-label-md text-ink-700">
+            <label htmlFor="user-username" className="block text-sm font-medium text-slate-700">
               Username
             </label>
             <input
@@ -92,7 +92,7 @@ export function UserFormDialog({ open, onClose }) {
         </div>
 
         <div>
-          <label htmlFor="user-name" className="block text-label-md text-ink-700">
+          <label htmlFor="user-name" className="block text-sm font-medium text-slate-700">
             Nama lengkap
           </label>
           <input
@@ -107,7 +107,7 @@ export function UserFormDialog({ open, onClose }) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="user-password" className="block text-label-md text-ink-700">
+            <label htmlFor="user-password" className="block text-sm font-medium text-slate-700">
               Password awal
             </label>
             <input
@@ -121,7 +121,7 @@ export function UserFormDialog({ open, onClose }) {
             <FieldError id="user-password-error" message={errors.password?.message} />
           </div>
           <div>
-            <label htmlFor="user-email" className="block text-label-md text-ink-700">
+            <label htmlFor="user-email" className="block text-sm font-medium text-slate-700">
               Email
             </label>
             <input
@@ -138,7 +138,7 @@ export function UserFormDialog({ open, onClose }) {
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
-            <label htmlFor="user-phone" className="block text-label-md text-ink-700">
+            <label htmlFor="user-phone" className="block text-sm font-medium text-slate-700">
               Telepon
             </label>
             <input
@@ -148,7 +148,7 @@ export function UserFormDialog({ open, onClose }) {
             />
           </div>
           <div>
-            <label htmlFor="user-birth" className="block text-label-md text-ink-700">
+            <label htmlFor="user-birth" className="block text-sm font-medium text-slate-700">
               Tanggal lahir
             </label>
             <input
@@ -159,7 +159,7 @@ export function UserFormDialog({ open, onClose }) {
             />
           </div>
           <div>
-            <label htmlFor="user-student-number" className="block text-label-md text-ink-700">
+            <label htmlFor="user-student-number" className="block text-sm font-medium text-slate-700">
               NISN (siswa)
             </label>
             <input
@@ -172,7 +172,7 @@ export function UserFormDialog({ open, onClose }) {
 
         {role === 'STUDENT' && (
           <div>
-            <label htmlFor="user-education-level" className="block text-label-md text-ink-700">
+            <label htmlFor="user-education-level" className="block text-sm font-medium text-slate-700">
               Jenjang (siswa)
             </label>
             <select
@@ -198,14 +198,14 @@ export function UserFormDialog({ open, onClose }) {
             type="button"
             onClick={onClose}
             disabled={createUser.isPending}
-            className="rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2 text-label-md text-ink-700 hover:bg-surface-50 disabled:opacity-60"
+            className="rounded-lg border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50 disabled:opacity-60"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={createUser.isPending}
-            className="inline-flex items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white hover:bg-school-blue-900 disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             {createUser.isPending ? 'Membuat…' : 'Buat pengguna'}
           </button>

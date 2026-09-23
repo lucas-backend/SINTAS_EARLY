@@ -1,4 +1,5 @@
-import { Download, FileSearch } from 'lucide-react'
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
+import ManageSearchRoundedIcon from '@mui/icons-material/ManageSearchRounded'
 import { useState } from 'react'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
@@ -15,6 +16,9 @@ import { ReportDesktopTable, ReportMobileList } from '../../features/admin/views
 const BASE_FILTERS = { from: '', to: '', status: '', classId: '' }
 const LIMIT = 20
 const EMPTY_FILTERS = { from: undefined, to: undefined, status: undefined, classId: undefined }
+
+const inputClass =
+  'mt-1 w-full rounded-lg border border-black/10 bg-white px-4 py-2 text-black focus:outline-none'
 
 export default function AdminReportsPage() {
   const online = useIsOnline()
@@ -58,11 +62,11 @@ export default function AdminReportsPage() {
   const fromError = fieldErrors.from?.[0]
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-heading-lg font-bold text-ink-900">Laporan kehadiran</h1>
-          <p className="mt-1 text-body-md text-ink-700">
+          <h1 className="text-2xl font-bold text-ink-900">Laporan kehadiran</h1>
+          <p className="mt-1 text-sm text-slate-700">
             Rekap seluruh sesi di sekolah. Filter opsional untuk mempersempit cakupan.
           </p>
         </div>
@@ -70,20 +74,20 @@ export default function AdminReportsPage() {
           type="button"
           onClick={handleExport}
           disabled={exportReport.isPending}
-          className="inline-flex items-center gap-2 rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-blue-500 hover:bg-blue-100/50 disabled:opacity-60"
         >
-          <Download className="h-4 w-4" aria-hidden="true" />
+          <DownloadRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           {exportReport.isPending ? 'Mengekspor…' : 'Export XLSX'}
         </button>
       </div>
 
       <form
         onSubmit={applyFilters}
-        className="flex flex-wrap items-end gap-3 rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1"
+        className="flex flex-wrap items-end gap-3 rounded-xl border border-black/10 bg-white p-4"
         noValidate
       >
         <div className="min-w-56">
-          <label htmlFor="report-from" className="block text-label-md text-ink-700">
+          <label htmlFor="report-from" className="block text-sm font-medium text-slate-700">
             Dari tanggal
           </label>
           <input
@@ -93,16 +97,16 @@ export default function AdminReportsPage() {
             onChange={(event) => setDraft((current) => ({ ...current, from: event.target.value }))}
             aria-invalid={fromError ? true : undefined}
             aria-describedby={fromError ? 'report-from-error' : undefined}
-            className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClass}
           />
           {fromError ? (
-            <p id="report-from-error" className="mt-1 text-caption text-danger-700">
+            <p id="report-from-error" className="mt-1 text-xs text-danger-700">
               {fromError}
             </p>
           ) : null}
         </div>
         <div className="min-w-56">
-          <label htmlFor="report-to" className="block text-label-md text-ink-700">
+          <label htmlFor="report-to" className="block text-sm font-medium text-slate-700">
             Sampai tanggal
           </label>
           <input
@@ -110,18 +114,18 @@ export default function AdminReportsPage() {
             type="date"
             value={draft.to}
             onChange={(event) => setDraft((current) => ({ ...current, to: event.target.value }))}
-            className="mt-1 w-full rounded-radius-sm border border-line-200 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClass}
           />
         </div>
         <div className="min-w-40">
-          <label htmlFor="report-class" className="block text-label-md text-ink-700">
+          <label htmlFor="report-class" className="block text-sm font-medium text-slate-700">
             Kelas
           </label>
           <select
             id="report-class"
             value={draft.classId}
             onChange={(event) => setDraft((current) => ({ ...current, classId: event.target.value }))}
-            className="mt-1 w-full rounded-radius-sm border border-line-200 bg-surface-0 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClass}
           >
             <option value="">Semua kelas</option>
             {classes.map((entry) => (
@@ -132,14 +136,14 @@ export default function AdminReportsPage() {
           </select>
         </div>
         <div className="min-w-40">
-          <label htmlFor="report-status" className="block text-label-md text-ink-700">
+          <label htmlFor="report-status" className="block text-sm font-medium text-slate-700">
             Status
           </label>
           <select
             id="report-status"
             value={draft.status}
             onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value }))}
-            className="mt-1 w-full rounded-radius-sm border border-line-200 bg-surface-0 px-3 py-2 text-body-md text-ink-900 focus:outline-2 focus:outline-offset-2 focus:outline-school-blue-700"
+            className={inputClass}
           >
             <option value="">Semua status</option>
             <option value="HADIR">Hadir</option>
@@ -149,9 +153,9 @@ export default function AdminReportsPage() {
         </div>
         <button
           type="submit"
-          className="inline-flex items-center gap-1.5 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white hover:bg-school-blue-900"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
         >
-          <FileSearch className="h-4 w-4" aria-hidden="true" />
+          <ManageSearchRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           Terapkan
         </button>
         {isFiltered ? (
@@ -163,7 +167,7 @@ export default function AdminReportsPage() {
               setFieldErrors({})
               setPage(1)
             }}
-            className="rounded-radius-md px-3 py-2 text-label-md text-ink-700 hover:bg-surface-50"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-100/50"
           >
             Reset filter
           </button>
@@ -205,7 +209,7 @@ export default function AdminReportsPage() {
         />
 
         {exportReport.isError ? (
-          <p role="alert" className="text-body-md text-danger-700">
+          <p role="alert" className="text-sm text-danger-700">
             {getErrorMessage(exportReport.error)}
           </p>
         ) : null}

@@ -23,10 +23,10 @@ export default function TeacherCreateSessionPage() {
     : undefined
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div>
-        <h1 className="text-heading-lg font-bold text-ink-900">Buat sesi absensi</h1>
-        <p className="mt-1 text-body-md text-ink-700">
+        <h1 className="text-2xl font-bold text-ink-900">Buat sesi absensi</h1>
+        <p className="mt-1 text-sm text-slate-700">
           Pilih penugasan dan waktu sesi. QR Code dibuat server setelah sesi
           tersimpan.
         </p>

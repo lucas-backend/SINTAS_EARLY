@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import CircularProgress from '@mui/material/CircularProgress'
 
 export function PageLoader({ label = 'Memuat…' }) {
   return (
@@ -8,11 +8,8 @@ export function PageLoader({ label = 'Memuat…' }) {
       className="flex min-h-screen items-center justify-center"
     >
       <div className="flex flex-col items-center gap-3">
-        <Loader2
-          className="h-8 w-8 animate-spin text-school-blue-700 motion-reduce:animate-none"
-          aria-hidden="true"
-        />
-        <p className="text-sm text-ink-700">{label}</p>
+        <CircularProgress size={32} aria-hidden="true" />
+        <p className="text-sm text-slate-700">{label}</p>
       </div>
     </div>
   )

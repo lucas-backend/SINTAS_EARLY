@@ -1,19 +1,35 @@
-import { ArrowRight, CalendarDays, ClipboardList, User } from 'lucide-react'
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded'
+import QrCodeScannerRoundedIcon from '@mui/icons-material/QrCodeScannerRounded'
+import PermIdentityRoundedIcon from '@mui/icons-material/PermIdentityRounded'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
 import { Skeleton } from '../../components/common/Skeleton'
+import FeatureGrid from '../../components/common/FeatureGrid'
+import PillSearch from '../../components/common/PillSearch'
 import { useIsOnline } from '../../hooks/useIsOnline'
 import { formatSchoolDateLong, todaySchoolDate } from '../../lib/dateTime'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useActiveBanners } from '../../features/banners/hooks/useActiveBanners'
-import { ActiveBanner } from '../../features/banners/ActiveBanner'
+import BannerCarousel from '../../features/banners/BannerCarousel'
 import {
   ScheduleCard,
   ScheduleCardSkeleton,
 } from '../../features/attendance/ScheduleCard'
 import { useTodaySchedule } from '../../features/attendance/hooks/useTodaySchedule'
 import { AttendanceSummary } from '../../features/student/AttendanceSummary'
+
+// Fitur beranda siswa mengikuti golden master FeatureGrid (PLAN_MERGE_UI §5.2)
+// dengan route produksi, bukan route mock.
+const STUDENT_FEATURES = [
+  { name: 'Absen', link: '/app/student/scan', icon: QrCodeScannerRoundedIcon },
+  { name: 'Jadwal', link: '/app/student/schedule', icon: CalendarMonthRoundedIcon },
+  { name: 'Riwayat', link: '/app/student/history', icon: HistoryRoundedIcon },
+  { name: 'Profil', link: '/app/student/profile', icon: PersonOutlineRoundedIcon },
+]
 
 function firstName(name = '') {
   return name.trim().split(/\s+/)[0] || 'Siswa'
@@ -28,17 +44,13 @@ function BannerSection() {
     <SectionState
       query={banners}
       online={online}
-      skeleton={<Skeleton className="h-32 w-full md:h-40" />}
+      skeleton={<Skeleton className="h-32 w-full" />}
       errorTitle="Banner tidak dapat dimuat."
       empty={null}
     >
       {items.length > 0 ? (
-        <div className="flex snap-x gap-4 overflow-x-auto pb-1 motion-reduce:scroll-auto">
-          {items.map((banner) => (
-            <div key={banner.id} className="min-w-[85%] snap-start sm:min-w-[380px]">
-              <ActiveBanner banner={banner} />
-            </div>
-          ))}
+        <div className="overflow-hidden rounded-xl">
+          <BannerCarousel items={items} />
         </div>
       ) : null}
     </SectionState>
@@ -47,7 +59,7 @@ function BannerSection() {
 
 function ScheduleItems({ items }) {
   return (
-    <ul className="space-y-3">
+    <ul className="flex flex-col gap-3">
       {items.map((item) => (
         <li key={item.id}>
           <ScheduleCard item={item} />
@@ -62,27 +74,27 @@ function TodaySummary({ query, online }) {
     <SectionState
       query={query}
       online={online}
-      skeleton={
-        <div className="rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1">
-          <Skeleton className="h-5 w-40" />
-          <Skeleton className="mt-3 h-8 w-48" />
-          <Skeleton className="mt-2 h-4 w-64" />
-        </div>
-      }
+      skeleton={<Skeleton className="h-32 w-full rounded-lg" />}
     >
       <AttendanceSummary items={query.data ?? []} />
     </SectionState>
   )
 }
 
-function ScheduleSection({ query, online }) {
-  const items = query.data ?? []
+function ScheduleSection({ query, online, search = '' }) {
+  const raw = query.data ?? []
+  const normalized = search.trim().toLowerCase()
+  const items = normalized
+    ? raw.filter((item) =>
+        (item.subjectName ?? '').toLowerCase().includes(normalized),
+      )
+    : raw
 
   return (
     <SectionState
       query={query}
       online={online}
-      isEmpty={items.length === 0}
+      isEmpty={raw.length === 0}
       empty={
         <EmptyState
           title="Belum ada jadwal hari ini"
@@ -90,7 +102,7 @@ function ScheduleSection({ query, online }) {
           action={
             <Link
               to="/app/student/schedule"
-              className="mt-1 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white"
+              className="mt-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
             >
               Lihat jadwal
             </Link>
@@ -98,7 +110,7 @@ function ScheduleSection({ query, online }) {
         />
       }
       skeleton={
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {[0, 1, 2].map((value) => (
             <ScheduleCardSkeleton key={value} />
           ))}
@@ -106,7 +118,13 @@ function ScheduleSection({ query, online }) {
       }
       errorTitle="Jadwal tidak dapat dimuat."
     >
-      <ScheduleItems items={items.slice(0, 3)} />
+      {items.length > 0 ? (
+        <ScheduleItems items={items.slice(0, 3)} />
+      ) : (
+        <p className="rounded-lg border border-black/10 bg-white p-4 text-sm text-slate-700">
+          Tidak ada jadwal yang cocok dengan pencarian.
+        </p>
+      )}
     </SectionState>
   )
 }
@@ -115,82 +133,94 @@ export default function StudentDashboardPage() {
   const online = useIsOnline()
   const user = useSessionStore((state) => state.user)
   const today = useTodaySchedule()
+  const [search, setSearch] = useState('')
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
-      <div>
-        <h1 className="text-display-sm font-bold text-ink-900">
-          Halo, {firstName(user?.name)}
-        </h1>
-        <p className="mt-1 flex items-center gap-1.5 text-body-md text-ink-700">
-          <CalendarDays className="h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" />
-          {formatSchoolDateLong(todaySchoolDate())}
-        </p>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-[3fr_2fr]">
-        <div className="space-y-6">
-          <section aria-label="Ringkasan absensi hari ini">
-            <TodaySummary query={today} online={online} />
-          </section>
-
-          <section aria-label="Jadwal terdekat" className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-heading-md font-bold text-ink-900">
-                Jadwal terdekat
-              </h2>
-              <Link
-                to="/app/student/schedule"
-                className="inline-flex items-center gap-1 rounded-radius-sm px-2 py-1 text-label-md font-semibold text-school-blue-700 focus-visible:outline-school-blue-700"
-              >
-                Lihat jadwal
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
-            <ScheduleSection query={today} online={online} />
-          </section>
+    <section className="mx-auto w-full max-w-2xl space-y-5">
+      <header className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100">
+            <PermIdentityRoundedIcon className="h-9! w-9! text-blue-500" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold text-ink-900">
+              Halo, {firstName(user?.name)}
+            </h1>
+            <p className="truncate text-sm text-slate-700">
+              {formatSchoolDateLong(todaySchoolDate())}
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <section aria-label="Banner sekolah" className="space-y-3">
-            <h2 className="text-heading-sm font-bold text-ink-900">
-              Pengumuman sekolah
-            </h2>
-            <BannerSection />
-          </section>
+        <Link
+          to="/app/student/profile"
+          aria-label="Buka profil"
+          title="Profil"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100"
+        >
+          <PersonOutlineRoundedIcon className="h-6! w-6! text-blue-500" />
+        </Link>
+      </header>
 
-          <nav aria-label="Akses cepat" className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
-            <Link
-              to="/app/student/history"
-              className="flex items-center gap-3 rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1 hover:bg-surface-50"
-            >
-              <ClipboardList className="h-5 w-5 shrink-0 text-school-blue-700" aria-hidden="true" />
-              <span>
-                <span className="block text-label-md font-semibold text-ink-900">
-                  Riwayat absensi
-                </span>
-                <span className="block text-caption text-ink-700">
-                  Lihat catatan kehadiran pribadi.
-                </span>
-              </span>
-            </Link>
-            <Link
-              to="/app/student/profile"
-              className="flex items-center gap-3 rounded-radius-md border border-line-200 bg-surface-0 p-4 shadow-1 hover:bg-surface-50"
-            >
-              <User className="h-5 w-5 shrink-0 text-school-blue-700" aria-hidden="true" />
-              <span>
-                <span className="block text-label-md font-semibold text-ink-900">
-                  Profil
-                </span>
-                <span className="block text-caption text-ink-700">
-                  Perbarui data profil Anda.
-                </span>
-              </span>
-            </Link>
-          </nav>
+      <PillSearch
+        value={search}
+        onChange={setSearch}
+        placeholder="Cari fitur atau jadwal"
+      />
+
+      <BannerSection />
+
+      <section aria-label="Ringkasan absensi hari ini">
+        <TodaySummary query={today} online={online} />
+      </section>
+
+      <section aria-label="Jadwal terdekat" className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-ink-900">Jadwal terdekat</h2>
+          <Link
+            to="/app/student/schedule"
+            className="rounded-lg px-2 py-1 text-sm font-semibold text-blue-500"
+          >
+            Lihat jadwal
+          </Link>
         </div>
-      </div>
+        <ScheduleSection query={today} online={online} search={search} />
+      </section>
+
+      <FeatureGrid features={STUDENT_FEATURES} search={search} />
+
+      <nav aria-label="Akses cepat" className="flex flex-col gap-3">
+        <Link
+          to="/app/student/history"
+          className="flex items-center gap-3 rounded-lg border border-black/10 bg-white p-4"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+            <HistoryRoundedIcon className="h-5! w-5! text-blue-500" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-ink-900">
+              Riwayat absensi
+            </span>
+            <span className="block text-xs text-slate-700">
+              Lihat catatan kehadiran pribadi.
+            </span>
+          </span>
+        </Link>
+        <Link
+          to="/app/student/profile"
+          className="flex items-center gap-3 rounded-lg border border-black/10 bg-white p-4"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+            <PersonOutlineRoundedIcon className="h-5! w-5! text-blue-500" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-ink-900">Profil</span>
+            <span className="block text-xs text-slate-700">
+              Perbarui data profil Anda.
+            </span>
+          </span>
+        </Link>
+      </nav>
     </section>
   )
 }

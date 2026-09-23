@@ -1,6 +1,11 @@
-import { CalendarCheck2, ListTodo } from 'lucide-react'
+import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded'
+import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded'
 import { Link } from 'react-router-dom'
+import StatusDot from '../../components/common/StatusDot'
 
+// Ringkasan absensi hari ini, memakai pola kartu golden master
+// (border-black/10 + rounded-lg) dan StatusDot untuk status "sudah/belum absen"
+// (PLAN_MERGE_UI §3 invariant #6).
 export function AttendanceSummary({ items }) {
   const total = items.length
   const scannedCount = items.filter((item) => item.scanned).length
@@ -10,41 +15,37 @@ export function AttendanceSummary({ items }) {
   )
 
   return (
-    <section
-      aria-label="Ringkasan absensi hari ini"
-      className="rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1"
-    >
-      <h2 className="text-heading-md font-bold text-ink-900">Absensi hari ini</h2>
+    <section className="rounded-lg border border-black/10 bg-white p-5">
+      <h2 className="text-lg font-bold text-ink-900">Absensi hari ini</h2>
+
       {total === 0 ? (
-        <div className="mt-3 flex items-start gap-2">
-          <CalendarCheck2 className="mt-0.5 h-5 w-5 shrink-0 text-ink-500" aria-hidden="true" />
+        <div className="mt-3 flex items-start gap-3">
+          <EventAvailableRoundedIcon className="mt-0.5 h-5! w-5! shrink-0 text-slate-500" />
           <div>
-            <p className="text-label-md text-ink-900">Belum ada sesi hari ini</p>
-            <p className="mt-0.5 text-body-md text-ink-700">
+            <p className="text-sm font-semibold text-ink-900">
+              Belum ada sesi hari ini
+            </p>
+            <p className="mt-0.5 text-sm text-slate-700">
               Jadwal akan muncul 15 menit sebelum jam mulai.
             </p>
           </div>
         </div>
       ) : (
-        <div className="mt-3">
-          <p className="text-display-sm font-bold text-school-blue-900">
+        <div className="mt-1">
+          <StatusDot isPresent={scannedCount > 0} />
+          <p className="text-3xl font-bold text-blue-500">
             {scannedCount} dari {total} sesi
           </p>
-          <p className="mt-1 flex items-center gap-1.5 text-body-md text-ink-700">
-            <ListTodo className="h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" />
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-700">
+            <ListAltRoundedIcon className="h-4! w-4! shrink-0 text-slate-500" />
             {remaining > 0
               ? `Belum mengikuti ${remaining} sesi hari ini.`
               : 'Semua absensi hari ini tercatat.'}
           </p>
           {openSession ? (
-            <p className="mt-1 text-caption text-success-700">
-              Ada sesi dengan status Bisa absen hari ini.
-            </p>
-          ) : null}
-          {openSession ? (
             <Link
               to={`/app/student/scan?session=${openSession.id}`}
-              className="mt-4 inline-flex w-full items-center justify-center rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900 sm:w-auto"
+              className="mt-4 flex w-full items-center justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white uppercase"
             >
               Mulai absen
             </Link>

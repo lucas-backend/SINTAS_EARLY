@@ -172,11 +172,15 @@ App shell: **mobile** memakai pola golden master (header biru `bg-blue-500` + sh
 
 ### Fase M3 — Repaint auth & siswa
 
+> **Status:** selesai (keputusan §18 `docs/DECISIONS.md`). lint/build/test `frontend/` hijau (88 test). Verifikasi screenshot lintas viewport masih manual (lihat open item §18 M3-4).
+
 - `LoginPage`, `ForgotPasswordPage`, `NotFoundPage`: layout = golden master.
 - Beranda siswa (`pages/student/DashboardPage.jsx` + `features/attendance/*`), Jadwal (`SchedulePage`), Scan (`ScanPage` + `QrScannerFrame` + `ScanResultPanel` + `ManualScanForm`), Riwayat (`HistoryPage` + `HistoryViews`), Profil.
 - **Checkpoint:** side-by-side dengan golden master (lihat bagian 10) per layar; semua state loading/empty/error/duplicate masih berfungsi.
 
 ### Fase M4 — Repaint workspace guru & admin
+
+> **Status:** selesai (keputusan §19 `docs/DECISIONS.md`). Semua halaman guru/admin di `frontend/` direstyling memakai token/primitive golden master; tabel tetap `<table>` + `Pagination`; export XLSX tidak berubah. Referensi admin tidak ditambah ke golden master (M4-1).
 
 - Pastikan golden master punya referensi guru/admin (5.1). Terapkan ke `pages/teacher/*`, `pages/admin/*`, tabel (restyle tapi tetap `table` + `Pagination`), form buat sesi, `QrDisplay`, rekap, export.
 - **Checkpoint:** lint/build + test role access + scan path tetap hijau.

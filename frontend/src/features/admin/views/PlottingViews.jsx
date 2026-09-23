@@ -12,32 +12,32 @@ function MembershipStatus({ isActive }) {
 
 export function MembershipsTable({ items }) {
   return (
-    <div className="overflow-x-auto rounded-radius-md border border-line-200 bg-surface-0 shadow-1">
-      <table className="w-full text-left text-body-md">
+    <div className="overflow-x-auto rounded-lg border border-black/10 bg-white">
+      <table className="w-full text-left text-sm">
         <caption className="sr-only">Penempatan siswa</caption>
-        <thead className="bg-surface-50 text-caption uppercase tracking-wide text-ink-500">
+        <thead className="border-b border-black/10 text-slate-700">
           <tr>
-            <th scope="col" className="px-4 py-3 font-semibold">Kelas</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Siswa</th>
-            <th scope="col" className="px-4 py-3 font-semibold">NISN</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Sejak</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Status</th>
+            <th scope="col" className="p-3 font-semibold">Kelas</th>
+            <th scope="col" className="p-3 font-semibold">Siswa</th>
+            <th scope="col" className="p-3 font-semibold">NISN</th>
+            <th scope="col" className="p-3 font-semibold">Sejak</th>
+            <th scope="col" className="p-3 font-semibold">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-line-200">
+        <tbody>
           {items.map((membership) => (
-            <tr key={membership.id} className="hover:bg-surface-50">
-              <td className="px-4 py-3 font-semibold text-ink-900">
+            <tr key={membership.id} className="border-b border-black/5 last:border-b-0">
+              <td className="p-3 font-semibold text-ink-900">
                 {membership.class?.name ?? '—'}
               </td>
-              <td className="px-4 py-3 text-ink-900">{membership.student?.name ?? '—'}</td>
-              <td className="px-4 py-3 text-ink-700">
+              <td className="p-3 text-ink-900">{membership.student?.name ?? '—'}</td>
+              <td className="p-3 text-slate-700">
                 {membership.student?.studentNumber ?? '—'}
               </td>
-              <td className="px-4 py-3 text-ink-700">
+              <td className="p-3 text-slate-700">
                 {formatSchoolDate(membership.createdAt)}
               </td>
-              <td className="px-4 py-3">
+              <td className="p-3">
                 <MembershipStatus isActive={membership.isActive} />
               </td>
             </tr>
@@ -50,34 +50,34 @@ export function MembershipsTable({ items }) {
 
 export function AssignmentsManageTable({ items }) {
   return (
-    <div className="overflow-x-auto rounded-radius-md border border-line-200 bg-surface-0 shadow-1">
-      <table className="w-full text-left text-body-md">
+    <div className="overflow-x-auto rounded-lg border border-black/10 bg-white">
+      <table className="w-full text-left text-sm">
         <caption className="sr-only">Penugasan guru</caption>
-        <thead className="bg-surface-50 text-caption uppercase tracking-wide text-ink-500">
+        <thead className="border-b border-black/10 text-slate-700">
           <tr>
-            <th scope="col" className="px-4 py-3 font-semibold">Kelas</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Mata pelajaran</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Guru</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Sejak</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Status</th>
+            <th scope="col" className="p-3 font-semibold">Kelas</th>
+            <th scope="col" className="p-3 font-semibold">Mata pelajaran</th>
+            <th scope="col" className="p-3 font-semibold">Guru</th>
+            <th scope="col" className="p-3 font-semibold">Sejak</th>
+            <th scope="col" className="p-3 font-semibold">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-line-200">
+        <tbody>
           {items.map((assignment) => (
-            <tr key={assignment.id} className="hover:bg-surface-50">
-              <td className="px-4 py-3 font-semibold text-ink-900">
+            <tr key={assignment.id} className="border-b border-black/5 last:border-b-0">
+              <td className="p-3 font-semibold text-ink-900">
                 {assignment.class?.name ?? '—'}
               </td>
-              <td className="px-4 py-3 text-ink-900">
+              <td className="p-3 text-ink-900">
                 {assignment.subject?.name ?? '—'}
               </td>
-              <td className="px-4 py-3 text-ink-700">
+              <td className="p-3 text-slate-700">
                 {assignment.teacher?.name ?? '—'}
               </td>
-              <td className="px-4 py-3 text-ink-700">
+              <td className="p-3 text-slate-700">
                 {formatSchoolDate(assignment.createdAt)}
               </td>
-              <td className="px-4 py-3">
+              <td className="p-3">
                 <MembershipStatus isActive={assignment.isActive} />
               </td>
             </tr>

@@ -1,20 +1,26 @@
-import { Check, Circle, Clock, Hourglass, X } from 'lucide-react'
+import CancelRounded from '@mui/icons-material/CancelRounded'
+import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded'
+import HourglassEmptyRounded from '@mui/icons-material/HourglassEmptyRounded'
+import RadioButtonUncheckedRounded from '@mui/icons-material/RadioButtonUncheckedRounded'
+import ScheduleRounded from '@mui/icons-material/ScheduleRounded'
 
+// Palet pill golden master (docs/DESIGN_BRIEF.md §3, PLAN_MERGE_UI §3):
+// green Hadir, orange Belum dibuka/Terlambat, red Tidak Hadir, slate netral.
 const TONE_CLASSES = {
-  success: 'bg-success-700/10 text-success-700',
-  warning: 'bg-warning-700/10 text-warning-700',
-  danger: 'bg-danger-700/10 text-danger-700',
-  info: 'bg-school-blue-050 text-school-blue-900',
-  neutral: 'bg-surface-50 text-ink-700',
+  success: 'bg-green-500/10 text-green-600',
+  warning: 'bg-orange-400/10 text-orange-700',
+  danger: 'bg-red-500/10 text-red-500',
+  info: 'bg-blue-100 text-blue-500',
+  neutral: 'bg-black/5 text-slate-700',
 }
 
 const STATUS_ICONS = {
-  HADIR: Check,
-  TERLAMBAT: Clock,
-  TIDAK_HADIR: X,
-  BISA_ABSEN: Circle,
-  BELUM_DIBUKA: Hourglass,
-  SELESAI: Clock,
+  HADIR: CheckCircleRounded,
+  TERLAMBAT: ScheduleRounded,
+  TIDAK_HADIR: CancelRounded,
+  BISA_ABSEN: RadioButtonUncheckedRounded,
+  BELUM_DIBUKA: HourglassEmptyRounded,
+  SELESAI: ScheduleRounded,
 }
 
 // Status selalu ditampilkan dengan teks; warna/ikon hanya penguat

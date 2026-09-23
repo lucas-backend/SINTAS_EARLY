@@ -12,10 +12,10 @@ export default function TeacherAssignmentsPage() {
   const assignments = assignmentsQuery.data ?? []
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div>
-        <h1 className="text-heading-lg font-bold text-ink-900">Penugasan saya</h1>
-        <p className="mt-1 text-body-md text-ink-700">
+        <h1 className="text-2xl font-bold text-ink-900">Penugasan saya</h1>
+        <p className="mt-1 text-sm text-slate-700">
           Daftar kelas dan mata pelajaran aktif yang ditugaskan kepada Anda. Buat
           sesi absensi dari salah satu penugasan.
         </p>

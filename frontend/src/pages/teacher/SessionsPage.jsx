@@ -1,4 +1,4 @@
-import { CalendarPlus } from 'lucide-react'
+import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded'
 import { Link } from 'react-router-dom'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
@@ -13,19 +13,19 @@ export default function TeacherSessionsPage() {
   const sessions = sessionsQuery.data ?? []
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-heading-lg font-bold text-ink-900">Sesi absensi</h1>
-          <p className="mt-1 text-body-md text-ink-700">
+          <h1 className="text-2xl font-bold text-ink-900">Sesi absensi</h1>
+          <p className="mt-1 text-sm text-slate-700">
             Sesi yang Anda buat, diurutkan dari yang terbaru menurut server.
           </p>
         </div>
         <Link
           to="/app/teacher/sessions/new"
-          className="inline-flex items-center gap-2 rounded-radius-md bg-school-blue-700 px-4 py-2.5 text-label-md text-white hover:bg-school-blue-900"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white"
         >
-          <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+          <EventAvailableRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           Buat sesi
         </Link>
       </div>
@@ -41,7 +41,7 @@ export default function TeacherSessionsPage() {
             action={
               <Link
                 to="/app/teacher/sessions/new"
-                className="mt-1 rounded-radius-md bg-school-blue-700 px-4 py-2 text-label-md text-white"
+                className="mt-1 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
               >
                 Buat sesi
               </Link>

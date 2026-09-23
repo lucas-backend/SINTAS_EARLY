@@ -311,6 +311,94 @@ Fase M2 menerapkan token palet golden master di `frontend/src/index.css`, menamb
 - **Pilihan final:** Nama token lama yang masih dipakai komponen di-*map* ke nilai golden master (PLAN bagian 7, opsi alias semantic): `school-blue-050 → #DBEAFE` (`blue-100`), `school-blue-700 → #3B82F6` (`blue-500`), `school-blue-900 → #3B82F6` (app bar/sidebar kini `blue-500`), `coral-600 → #FB923C` (`orange-400`), `success-700 → #16A34A` (`green-600`). Token baru ditambah: `blue-500/400/100`, `orange-400/300`, `slate-700`, `green-500/600`, `red-500`. Radius lama dipetakan ke skala Tailwind golden master: `radius-sm=8px`, `radius-md=12px`, `radius-lg=16px`, `radius-pill=9999px`.
 - **Dampak:** `line-200`, `danger-700`, `warning-700`, `surface-50`, `ink-*`, `shadow-1/2` dipertahankan nilainya (golden master belum punya referensi pengganti). Resiko kontras white-on-`blue-500` tetap tercatat (DECISIONS §15 Risiko).
 
+## 18. Keputusan fase M3 — Repaint auth & siswa (PLAN_MERGE_UI)
+
+**Status: DECIDED — fase M3 `PLAN_MERGE_UI.md`.**
+
+Fase M3 menyelaraskan lapisan presentasi `frontend/` untuk halaman auth (`LoginPage`, `ForgotPasswordPage`, `NotFoundPage`) dan halaman siswa (beranda, jadwal, scan + sub-komponennya, riwayat + `HistoryViews`, profil/`ProfileForm`) dengan golden master `frontend_new/`. Tidak ada perubahan route, hook, service, store, skema, guard, aturan status/timezone, atau idempotensi scan. Semua test (88) tetap hijau.
+
+### M3-1 — Dependency MUI di-`npm install`
+
+- **Pilihan final:** `@mui/icons-material` dan `@mui/material` (sudah ada di `frontend/package.json` sejak M2) benar-benar dipasang; `node_modules` sebelumnya basi sehingga seluruh test suite gagal resolve. Dijalankan `npm install` di `frontend/`.
+- **Dampak:** `frontend/package-lock.json` diperbarui. Bukan perubahan logic.
+
+### M3-2 — Auth memakai layout golden master; label aksesibel via `aria-label`
+
+- **Pilihan final:** Login/NotFound memakai pola golden master (`bg-blue-500` penuh, ikon + judul, lembar putih, CTA `orange-400`). Forgot-password tidak punya referensi golden master, jadi memakai pola login. Input memakai placeholder visual golden master + `aria-label` (bukan label terlihat) agar `getByLabelText` tetap bekerja. Label CTA uppercase diterapkan lewat CSS (`uppercase`) sehingga teks DOM/aksesibel tetap `Masuk`/`Kirim` (keputusan D6: CSS, bukan string literal). Heading `Masuk`/`Pulihkan password` dipertahankan karena diwajibkan test.
+- **Alasan:** Parity layout tanpa memutus alur bisnis login (username+password) dan tanpa memecah kontrak test.
+- **Asumsi:** Menghilangkan label terlihat pada input login (placeholder + `aria-label`) dapat diterima; ini parity literal golden master.
+
+### M3-3 — 404 tetap punya jalan keluar
+
+- **Pilihan final:** Layout golden master (biru penuh, teks putih, "404") dipertahankan, dengan tambahan link `Kembali ke beranda`.
+- **Alasan:** DESIGN_BRIEF §1.2 melarang layar buntu; golden master `NotFound.tsx` tidak punya aksi. Tambahan minimal, tidak mengubah struktur.
+
+### M3-4 — Beranda siswa: konten di dalam AppShell, bukan header beranda golden master
+
+- **Pilihan final:** AppShell (M2) tetap menjadi pemilik bar biru + lembar putih + bottom nav. Beranda siswa menerapkan bahasa visual golden master di lapisan konten: baris sapaan + avatar, `PillSearch` fungsional (D3: memfilter `FeatureGrid` dan jadwal terdekat, tanpa endpoint baru), `BannerCarousel` (D5), ringkasan absensi + `StatusDot`, jadwal terdekat, `FeatureGrid` dengan route produksi, dan akses cepat Riwayat/Profil. Headline golden master `Hi, Welcome!` + directive role diganti heading produksi `Halo, {nama}` (diwajibkan test), tetap `font-bold text-xl`.
+- **Alasan:** Menghindari restrukturisasi AppShell yang akan menyentuh guru/admin dan test shell; scope M3 hanya lapisan presentasi halaman.
+- **Asumsi/open item:** Header beranda golden master (avatar + sapaan di area biru) tidak dipindahkan ke AppShell; parity piksel area header beranda ditangguhkan sampai bila produk memutuskan AppShell siswa memakai pola golden master penuh.
+
+### M3-5 — Tone status & window mengikuti golden master
+
+- **Pilihan final:** `StatusBadge` memakai palet pill golden master: success `bg-green-500/10 text-green-600`, warning `bg-orange-400/10 text-orange-700`, danger `bg-red-500/10 text-red-500`, info `bg-blue-100 text-blue-500`, neutral `bg-black/5 text-slate-700`. `WINDOW_STATUS_TONES.BELUM_DIBUKA` diubah `info → warning` (oranye) agar sama dengan golden master `JadwalCard`; `audit`/`HistoryViews` konsisten.
+- **Alasan:** Invariant #7 dan palet §3; perubahan hanya pemetaan tone presentasi di `lib/attendanceStatus.js`.
+- **Dampak:** Badge pada halaman guru/admin ikut memakai palet baru (M4 akan melengkapi); teks/label tidak berubah. Glyph ikon `StatusBadge` dimigrasikan dari `lucide-react` ke `@mui/icons-material` (eksekusi D1) untuk semua status/window yang dipetakan. `BannerCarousel` mengembalikan fallback teks saat gambar gagal dimuat (state `broken image` DESIGN_BRIEF §7) yang hilang bila hanya memakai `<img>` golden master.
+
+### M3-6 — Kartu jadwal menampilkan waktu mulai + durasi, ikon mapel generik
+
+- **Pilihan final:** `ScheduleCard` mengikuti `JadwalCard` golden master (ikon dalam kotak `bg-blue-100 text-blue-500`, waktu+durasi di kanan, pill status, CTA `Absen sekarang` saat `BISA_ABSEN && !scanned`). Karena data produksi tidak memuat ikon per-mapel, dipakai ikon generik `MenuBookRounded` (bukan menebak pemetaan mapel→ikon). Waktu ditampilkan sebagai jam mulai + `{duration}min` (bukan rentang) agar sama dengan golden master.
+- **Alasan:** Parity bentuk kartu tanpa menambah field/kontrak baru. Pemetaan ikon mapel per-mapel adalah keputusan produk terpisah (open item), bukan ditebak.
+- **Asumsi:** Menampilkan jam mulai saja (endAt tetap tersedia di pre-check scan) dapat diterima; bila produk ingin rentang, itu perubahan golden master dulu.
+
+### M3-7 — Riwayat & profil mempertahankan tabel/filter dan identitas read-only
+
+- **Pilihan final:** `HistoryViews` mobile mengikuti baris golden master; tabel desktop + form filter tanggal/status tetap dipertahankan (DESIGN_BRIEF S5, responsive). Profil menampilkan identitas `username`/`NIM` sebagai `dt/dd` (bukan input berlabel) sesuai PRD "username/NIM tidak dapat diedit"; form data tetap `react-hook-form` + `zod`.
+- **Alasan:** Parity visual tidak boleh menghapus kemampuan produksi (tabel/pagination/filter) atau mengubah aturan non-edit identitas.
+- **Asumsi:** Tidak ada.
+
+## 19. Keputusan fase M4 — Repaint workspace guru & admin (PLAN_MERGE_UI)
+
+**Status: DECIDED — fase M4 `PLAN_MERGE_UI.md`.**
+
+Fase M4 menyelaraskan lapisan presentasi `frontend/` untuk halaman guru (`pages/teacher/*` + `features/teacher/*`) dan admin (`pages/admin/*` + `features/admin/*`) dengan bahasa visual golden master yang sudah dikunci pada M0/M2/M3. Tidak ada perubahan logic: route, hook, service, store, skema, guard, invalidasi query, aturan waktu/status, idempotensi scan, dan alur export XLSX tidak disentuh. Validasi: lint/build/test `frontend/` hijau.
+
+### M4-1 — Admin memakai bahasa visual M2/M3, tidak menambah layar referensi admin baru di golden master
+
+- **Pilihan final:** Halaman admin direstyling memakai primitif M2 (`ContentShell`, `PrimaryButton`, `StatusBadge`, `Pagination`) dan bahasa visual golden master yang sudah diterapkan pada M3 (kartu `rounded-lg border border-black/10 bg-white`, ikon `blue-100`/`blue-500`, label `text-slate-700`), **tanpa** membuat layar referensi admin baru di `frontend_new/`.
+- **Alasan:** M1-4 secara eksplisit menangguhkan referensi admin ke fase lanjutan, dan permintaan fase ini menegaskan workdir `frontend/` dengan "referensi yang sudah ada di golden master". Golden master hanya memiliki referensi guru (Buat Absen, QR Sesi, Rekap Kelas) pada 5.1; membuat mockup admin baru memperluas scope M0/M1 di luar fase ini.
+- **Dampak:** Tidak menyentuh `frontend_new/`. Parity piksel desktop admin tetap ditangguhkan oleh D7 (sidebar) dan tidak adanya referensi admin; parity mobile mengikuti pola M3 (konten di dalam AppShell).
+- **Asumsi/open item:** Bila produk menuntut layar referensi admin, itu dibuat lebih dulu di golden master pada fase lanjutan (alur PLAN bagian 2), bukan ditebak di sini.
+
+### M4-2 — Tabel tetap tabel semantik, direstyle token golden master
+
+- **Pilihan final:** Semua tabel guru/admin tetap `<table>` dengan `<caption class="sr-only">`, `<th scope="col">`, dan `Pagination` yang sudah ada (DESIGN_BRIEF §10.3, PLAN M4). Restyle: wrapper `overflow-x-auto rounded-lg border border-black/10 bg-white` tanpa shadow, header `border-b border-black/10 text-left text-slate-700`, baris `border-b border-black/5 last:border-b-0`, sel `p-3`.
+- **Alasan:** PLAN M4 menuntut tabel tetap aksesibel + paginasi; hanya token visual yang berubah, bukan kemampuan produksi.
+- **Dampak:** Perubahan kelas presentasi pada `SessionViews`, `AttendanceViews`, `UserViews`, `BannerViews`, `AcademicViews`, `PlottingViews`, `ReportViews`; `Pagination` memakai token golden master.
+
+### M4-3 — Form & dialog: label tetap terlihat, gaya input golden master
+
+- **Pilihan final:** Input memakai `rounded-lg border border-black/10 bg-white px-4 py-2`, label `text-sm font-medium text-slate-700`. Label terlihat dipertahankan (berbeda dari login M3 yang memakai placeholder + `aria-label`) agar seluruh `getByLabelText` test form guru/admin tetap bekerja. Dialog admin tetap Headless UI (focus trap) dengan kartu `rounded-2xl bg-white`; ikon dialog dimigrasikan ke `@mui/icons-material` (D1). Teks error field tetap `danger-700` (kontras DESIGN_BRIEF §10.1).
+- **Alasan:** Form produksi guru/admin adalah data-entry panjang; label terlihat adalah aturan GUIDE §7 dan sudah diuji. Golden master tetap acuan gaya, bukan penghapusan label.
+- **Dampak:** `DialogShell`, `ConfirmDialog`, `SessionForm`, `ClassAttendancePage` filter, dan form admin.
+
+### M4-4 — Tombol primary memakai `PrimaryButton`; export XLSX tidak berubah
+
+- **Pilihan final:** CTA utama (mis. "Buat sesi", "Buat sesi absensi", dialog submit) memakai `PrimaryButton` (label uppercase via CSS D6 bila berlaku). Alur export tetap: `GET /reports/attendance/export`, binary response, nama file dari `Content-Disposition`, error `NO_DATA_TO_EXPORT`/`EXPORT_BUSY` dibaca dari body Blob. Hanya tampilan tombol/status export yang mengikuti token golden master.
+- **Alasan:** PLAN M4 menegaskan export tidak berubah; tombol adalah lapisan presentasi.
+- **Dampak:** Tidak ada perubahan service/hook export; `useExportReport` dan `lib/download.js` tetap.
+
+### M4-5 — QR sesi produksi tetap QR nyata; golden master hanya placeholder
+
+- **Pilihan final:** `QrDisplay` tetap merender `QRCodeSVG` dari `qrPayload` yang dikembalikan backend (static QR, frontend tidak membuat/merotasi payload). Kartu pembungkus QR dan metadata sesi mengikuti gaya `SesiQr` golden master (`rounded-xl border border-black/10`, baris metadata `label text-slate-700` / `value font-semibold`).
+- **Alasan:** Golden master memakai ikon `QrCode2Rounded` sebagai placeholder mock; produksi wajib QR yang dapat dipindai (fungsi bisnis, GUIDE §6). Bentuk visual yang disamakan, bukan fungsinya.
+- **Dampak:** `QrDisplay`, `SessionQrPage`, `SessionForm` (panel detail).
+
+### Risiko M4 yang dicatat
+
+- Parity piksel desktop guru/admin tidak penuh karena D7 (sidebar produksi tanpa referensi golden master) dan tidak adanya layar referensi admin (M4-1); verifikasi "sama persis" menoleransi beda ini.
+- Migrasi ikon `lucide-react` → `@mui/icons-material` (D1) diperluas ke seluruh permukaan guru/admin dan komponen feedback bersama (`EmptyState`, `ErrorState`, `ConfirmDialog`, `DialogShell`, `Pagination`); sisa penggunaan `lucide-react` dipangkas bertahap hingga M5.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

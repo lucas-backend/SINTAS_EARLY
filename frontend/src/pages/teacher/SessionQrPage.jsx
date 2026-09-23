@@ -1,4 +1,8 @@
-import { ArrowLeft, CalendarDays, Clock, QrCode } from 'lucide-react'
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded'
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
+import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded'
 import { Link, useParams } from 'react-router-dom'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
@@ -10,11 +14,13 @@ import { formatSchoolDate, formatSchoolTime } from '../../lib/dateTime'
 
 function DetailRow({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-start gap-2 text-body-md text-ink-700">
-      {Icon ? <Icon className="mt-0.5 h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" /> : null}
+    <div className="flex items-start gap-3 text-sm">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+        <Icon className="h-5! w-5!" aria-hidden="true" />
+      </span>
       <span>
-        <span className="block text-caption text-ink-500">{label}</span>
-        <span className="block text-data text-ink-900">{value}</span>
+        <span className="block text-xs text-slate-700">{label}</span>
+        <span className="block font-semibold text-ink-900">{value}</span>
       </span>
     </div>
   )
@@ -28,17 +34,17 @@ export default function TeacherSessionQrPage() {
   const session = qrQuery.data
 
   return (
-    <section className="mx-auto max-w-4xl space-y-6">
+    <section className="mx-auto w-full max-w-4xl space-y-6">
       <div>
         <Link
           to="/app/teacher/sessions"
-          className="inline-flex items-center gap-1.5 rounded-radius-sm text-label-md font-semibold text-school-blue-700 focus-visible:outline-school-blue-700"
+          className="inline-flex items-center gap-1.5 rounded-lg text-sm font-semibold text-blue-500"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowBackRoundedIcon className="h-4! w-4!" aria-hidden="true" />
           Kembali ke daftar sesi
         </Link>
-        <h1 className="mt-3 text-heading-lg font-bold text-ink-900">QR sesi absensi</h1>
-        <p className="mt-1 text-body-md text-ink-700">
+        <h1 className="mt-3 text-2xl font-bold text-ink-900">QR sesi absensi</h1>
+        <p className="mt-1 text-sm text-slate-700">
           Tampilkan QR Code ini di kelas. Siswa memindai untuk mencatat kehadiran
           selama jendela absensi.
         </p>
@@ -67,26 +73,26 @@ export default function TeacherSessionQrPage() {
               payload={session.qrPayload}
               title={`QR ${session.subjectName ?? 'sesi'} ${session.className ?? ''}`.trim()}
             />
-            <div className="space-y-4 rounded-radius-md border border-line-200 bg-surface-0 p-5 shadow-1">
-              <DetailRow icon={QrCode} label="Mata pelajaran" value={session.subjectName ?? '—'} />
-              <DetailRow icon={CalendarDays} label="Kelas" value={session.className ?? '—'} />
+            <div className="space-y-4 rounded-xl border border-black/10 bg-white p-5">
+              <DetailRow icon={MenuBookRoundedIcon} label="Mata pelajaran" value={session.subjectName ?? '—'} />
+              <DetailRow icon={SchoolRoundedIcon} label="Kelas" value={session.className ?? '—'} />
               <DetailRow
-                icon={CalendarDays}
+                icon={CalendarMonthRoundedIcon}
                 label="Tanggal sesi"
                 value={formatSchoolDate(session.sessionDate)}
               />
               <DetailRow
-                icon={Clock}
+                icon={ScheduleRoundedIcon}
                 label="Jendela absensi"
                 value={`${formatSchoolTime(session.startAt)}–${formatSchoolTime(session.endAt)}`}
               />
-              <p className="rounded-radius-sm bg-school-blue-050 p-3 text-body-md text-ink-900">
+              <p className="rounded-lg bg-blue-100 p-3 text-sm text-slate-700">
                 Dibuka 15 menit sebelum jam mulai hingga jam selesai. Status
                 kehadiran dan keterlambatan dihitung server saat pemindaian.
               </p>
               <Link
                 to={`/app/teacher/classes/${session.classId}/attendance`}
-                className="inline-flex items-center justify-center rounded-radius-md border border-line-200 bg-surface-0 px-4 py-2.5 text-label-md font-semibold text-school-blue-700 hover:bg-surface-50"
+                className="inline-flex items-center justify-center rounded-lg border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-blue-500 hover:bg-blue-100/50"
               >
                 Lihat detail kehadiran kelas
               </Link>
