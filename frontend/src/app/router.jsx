@@ -31,9 +31,20 @@ function RoleHome() {
   return <Navigate to={roleHome(user?.role)} replace />
 }
 
+function RootRoute() {
+  const location = useLocation()
+  const status = useSessionStore((state) => state.status)
+  const user = useSessionStore((state) => state.user)
+
+  if (status === 'loading') return <PageLoader />
+  if (user) return <Navigate to={roleHome(user.role)} replace state={{ from: location }} />
+  return <Navigate to="/login" replace state={{ from: location }} />
+}
+
 export function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<RootRoute />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/app" element={<ProtectedRoute />}>

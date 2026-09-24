@@ -40,6 +40,25 @@ describe('routing dan guard', () => {
     ).toBeInTheDocument()
   })
 
+  it('mengarahkan / ke halaman masuk saat belum login', async () => {
+    renderApp(['/'])
+    expect(
+      await screen.findByRole('heading', { name: 'Masuk' }),
+    ).toBeInTheDocument()
+  })
+
+  it('mengarahkan / ke beranda sesuai role saat sudah login', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/me`, () =>
+        HttpResponse.json({ data: { user: studentUser } }),
+      ),
+    )
+    renderApp(['/'])
+    expect(
+      await screen.findByRole('heading', { name: 'Halo, Siswa' }),
+    ).toBeInTheDocument()
+  })
+
   it('menandai sesi berakhir ketika /me mengembalikan 401 setelah login', async () => {
     useSessionStore.setState({
       user: studentUser,
