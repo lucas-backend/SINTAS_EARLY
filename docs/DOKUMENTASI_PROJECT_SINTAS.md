@@ -3,9 +3,9 @@
 > Absensi Sekolah Berbasis QR Code (Siswa / Guru / Admin)
 >
 > Dokumen ini ditulis berdasarkan analisis menyeluruh terhadap seluruh source code
-> yang ada di repository saat ini (`backend/`, `frontend/`, `frontend_new/`,
-> `docs/`). Seluruh fakta di bawah mencerminkan kondisi implementasi yang
-> benar-benar ada, bukan desain target.
+> yang ada di repository saat ini (`backend/`, `frontend/`, `docs/`). Seluruh
+> fakta di bawah mencerminkan kondisi implementasi yang benar-benar ada, bukan
+> desain target.
 
 ---
 
@@ -28,7 +28,6 @@ JavaScript yang berdiri sendiri (independen — tanpa workspaces):
 | --- | --- |
 | `backend/` | REST API Express.js — sumber kebenaran seluruh logika bisnis, waktu, dan otorisasi. |
 | `frontend/` | React SPA produksi — antarmuka pengguna untuk Siswa/Guru/Admin. |
-| `frontend_new/` | Golden master — prototype visual mock-data (React + TypeScript) yang menjadi sumber keputusan desain. |
 | `docs/` | Dokumentasi produk, arsitektur, kontrak API, dan keputusan teknis. |
 
 Prinsip arsitektur yang non-negotiable dari project ini:
@@ -47,8 +46,9 @@ Prinsip arsitektur yang non-negotiable dari project ini:
    `duplicate: true`, bukan membuat record kedua.
 5. **`TIDAK_HADIR` tidak pernah disimpan.** Ia adalah status yang dihitung saat
    riwayat/laporan dibaca apabila waktu server sudah melewati `end_at`.
-6. **Dua frontend dengan dua peran.** Perubahan visual selalu dimulai dari
-   golden master `frontend_new/`, disetujui, baru dirontokkan ke `frontend/`.
+6. **Frontend hanya mempresentasikan data dan interaksi pengguna.** Seluruh
+   keputusan role, waktu, status absensi, dan scope data datang dari API; client
+   tidak membawa aturan bisnis duplikat.
 
 ### 1.2 Daftar Fitur dan Fungsionalitas Utama
 
@@ -72,8 +72,8 @@ dipetakan ke requirement PRD:
   periode tampil + `isActive`).
 - Admin CRUD banner (`GET /manage`, `POST`, `PATCH`, `DELETE`; pagination,
   filter `isActive`/`search`).
-- Frontend menampilkan banner sebagai carousel (`BannerCarousel`/`AdSlider`)
-  dengan panah prev/next, fallback teks bila `imageUrl` kosong.
+- Frontend menampilkan banner sebagai carousel (`BannerCarousel`) dengan panah
+  prev/next, fallback teks bila `imageUrl` kosong.
 
 **Struktur Akademik & Penempatan (FR-04)**
 - Master admin: jenjang (`education-levels`), kelas (`classes`), mata pelajaran
@@ -181,7 +181,7 @@ backend/
     integration/     # 7 file
 ```
 
-### 2.2 Frontend produksi (`frontend/`)
+### 2.2 Frontend (`frontend/`)
 
 | Area | Pilihan |
 | --- | --- |
@@ -194,7 +194,7 @@ backend/
 | Client state | `zustand` v5 (hanya session user sanitized + status/UI state) |
 | Form | `react-hook-form` v7 + `zod` v4 + `@hookform/resolvers` |
 | Komponen aksesibel | `@headlessui/react` v2 (dialog, dll.) |
-| Ikon | `@mui/icons-material` + `@mui/material` (keputusan D1; `lucide-react` dihapus di M5) |
+| Ikon | `@mui/icons-material` + `@mui/material` (ikon MUI Material Design) |
 | QR scan kamera | `qr-scanner` v1 |
 | QR tampil | `qrcode.react` v4 (halaman guru) |
 | Testing | Vitest 5 + React Testing Library + `msw` v2 + jsdom, `@testing-library/jest-dom` |
@@ -214,38 +214,6 @@ Alur auth frontend: axios menyalin cookie `csrf_token` (non-HttpOnly) ke header
 `ApiError { status, code, message, fieldErrors }`; `401` memicu
 `handleUnauthorized()` yang hanya menandai `sessionExpired` bila status sesi
 sebelumnya `authenticated`.
-
-### 2.3 Golden master (`frontend_new/`)
-
-| Area | Pilihan |
-| --- | --- |
-| Bahasa | TypeScript ~6.0 (strict `tsc -b`) |
-| Build | Vite 8 + `@tailwindcss/vite` |
-| UI | React 19, Tailwind 4, `@mui/icons-material` |
-| Routing | `react-router-dom` v7 |
-
-**Route golden master:** `/login`, `/dashboard`, `/jadwal`, `/scan`,
-`/scan/result`, `/riwayat`, `/profil`, `/guru/buat-absen`, `/guru/sesi/:id`,
-`/guru/rekap`, `*` (404). Seluruh data **mock**; prototype ini tidak memanggil
-API sama sekali (0 penggunaan `fetch`/`axios`). Ia adalah kanvas desain visual
-mobile-first: `bg-blue-500` + lembaran putih `rounded-t-[60px]`,
-font Plus Jakarta Sans, ikon MUI, bottom nav `bg-blue-100`, status pill
-hijau/oranye/abu.
-
-### 2.4 Pola desain visual bersama (hasil fase M0–M5)
-
-Primitif produksi adalah cermin golden master:
-
-| Golden master | Produksi |
-| --- | --- |
-| `XPadding` | `ContentShell.jsx` |
-| `Header` | `BlueHeader.jsx` |
-| `Button` | `PrimaryButton.jsx` |
-| `SearchBar` | `PillSearch.jsx` |
-| `StatusAbsen` | `StatusDot.jsx` |
-| `FeatureGrid` | `FeatureGrid.jsx` |
-| `BottomNav` | `BottomNav.jsx` |
-| `AdSlider` | `BannerCarousel.jsx` |
 
 ---
 
@@ -273,7 +241,8 @@ beberapa keputusan dikonfirmasi sejak awal:
   tepat 15 menit setelah jam mulai = **Hadir**; setelah itu = Terlambat.
 
 Dari titik ini disusun `docs/PRD.md` (problem statement, persona, user stories,
-fitur roadmap, constraints teknis, data model sketch, edge cases) serta
+fitur roadmap, constraints teknis, data model sketch, edge cases),
+`docs/DESIGN_BRIEF.md` (arah visual dan design system), serta
 `backend/GUIDE.md` dan `frontend/GUIDE.md` sebagai kontrak teknis dua sisi.
 
 ### 3.2 Fase Backend — B0 sampai B9 (urutan commit `b2`…`b9`)
@@ -332,19 +301,31 @@ dicapai sebelum UI dimulai.
 
 Sebelum frontend, kontrak endpoint dikunci di `docs/API_CONTRACT.md` (927 baris)
 — mencakup konvensi global, auth cookie, CSRF, pagination, error contract,
-dan deskripsi per endpoint. `docs/openapi.yaml` menjadi spesifikasi yang dapat dibaca mesin. Pada saat yang sama, `AGENTS.md` dan `opencode.json` ditambahkan untuk
-menstandarkan cara coding agent bekerja di repository (baca guide dulu, tidak
-menebak requirement, laporkan keputusan yang dikunci).
+dan deskripsi per endpoint. `docs/openapi.yaml` menjadi spesifikasi yang dapat
+dibaca mesin. Pada saat yang sama, `AGENTS.md` dan `opencode.json` ditambahkan
+untuk menstandarkan cara coding agent bekerja di repository (baca guide dulu,
+tidak menebak requirement, laporkan keputusan yang dikunci).
 
 ### 3.4 Fase Frontend — F0 sampai F6 (commit `f0`…`f6`)
 
+Frontend dibangun dari awal sebagai SPA mandiri di atas API yang sudah stabil.
+Desain system didefinisikan lebih dulu di `docs/DESIGN_BRIEF.md`: bahasa
+visual mobile-first `bg-blue-500` dengan lembaran konten putih
+`rounded-t-[60px]`, font **Plus Jakarta Sans**, palet biru/oranye/slate
+berbasis Tailwind, ikon **MUI Material Design**, tombol CTA primary uppercase,
+carousel untuk banner sekolah, status selalu disertai teks (tidak hanya warna),
+bottom nav per role, serta pemisahan struktur feature-folder di
+`frontend/GUIDE.md`. Fase implementasi:
+
 - **F0 — Fondasi & API client:** React 19 + Vite, router, React Query, Axios
   + cookie credentials, Zustand untuk session saja, react-hook-form + zod,
-  Headless UI, error mapping terpusat, ProtectedRoute/RoleRoute, dan
-  `.env.example`. Test routing memakai MSW sebagai test double.
+  Headless UI, error mapping terpusat, ProtectedRoute/RoleRoute, design tokens
+  di `src/index.css`, dan `.env.example`. Test routing memakai MSW sebagai
+  test double.
 - **F1 — Auth, AppShell, profil:** halaman login/forgot-password, shell
   terautentikasi dengan navigasi per role (beranda + profil saja — tanpa item
-  mati), logout, profil dengan NIM read-only.
+  mati), logout, profil dengan NIM read-only. AppShell memakai pola header biru
+  + lembaran putih + bottom nav pada mobile dan sidebar pada desktop.
 - **F2 — Dashboard/Jadwal/Riwayat siswa:** beranda dengan banner, ringkasan
   absensi hari ini (data dari `GET /attendance/today`), jadwal, riwayat dengan
   filter + pagination, label PRD (`Bisa absen`, `Belum dibuka`, `Selesai`),
@@ -365,47 +346,26 @@ menebak requirement, laporkan keputusan yang dikunci).
   di Express 5.1.
 - **F6 — Quality & integration:** audit aksesibilitas, viewport 320/768/1440,
   keyboard flow, reduced motion, kontras, dan tidak ada PII/token bocor ke
-  DOM/console.
+  DOM/console. Hasil audit mengarahkan penyempurnaan label aksesibel (tombol
+  back `aria-label`, titik status `aria-hidden`, halaman 404 dengan aksi
+  kembali ke beranda) dan penyelarasan UI ke spesifikasi DESIGN_BRIEF.
 
-### 3.5 Fase Merge UI — M0 sampai M5 (commit `m0`…`m5`)
+### 3.5 Penutup, Rebrand, dan Penyempurnaan Operasional
 
-Titik balik tersendiri: repository memiliki dua frontend, dan proyek memutuskan
-`frontend_new/` (prototype eksisting) menjadi **golden master** desain, lalu
-visualnya di-merge ke aplikasi produksi `frontend/` tanpa menyentuh business
-logic. Rencana ini terdokumentasi di `docs/PLAN_MERGE_UI.md` dan seluruh
-keputusan dikunci di `docs/DECISIONS.md` §15–§20:
+Setelah seluruh fase fitur tuntas, project ditutup dengan pekerjaan identitas
+dan operasional:
 
-- **M0 — Keputusan visual (D1–D9):** ikon MUI di kedua proyek, bell notifikasi
-  dihapus, search bar beranda jadi filter fungsional, font Plus Jakarta Sans,
-  banner carousel golden master menang, label CTA uppercase via CSS, sidebar
-  desktop guru/admin dipertahankan dengan palet baru, dan **rebrand nama produk:
-  LIMAN → Kak Lia → SINTAS**.
-- **M1 — Pangkas golden master:** `frontend_new/` dibatasi jadi prototype fokus
-  absen; tab ujian/tryout dihapus; jadwal jadi konteks absen dengan status
-  PRD + aksi `Absen sekarang`; bottom nav diaktifkan per role; layar referensi
-  baru (scan, hasil, riwayat, profil, buat absen, QR sesi, rekap) memakai pola
-  sheet putih.
-- **M2 — Token & primitif:** palet golden master dipetakan ke alias di
-  `frontend/src/index.css`; primitif presentasi bersama dibuat
-  (`ContentShell`, `BlueHeader`, `PrimaryButton`, `StatusDot`, `PillSearch`,
-  `FeatureGrid`, `BottomNav`, `BannerCarousel`); AppShell mobile mengikuti pola
-  header biru + sheet putih + bottom nav.
-- **M3 — Repaint auth & siswa:** halaman login/404/beranda/jadwal/scan/riwayat/
-  profil produksi diselaraskan dengan golden master; test tetap hijau.
-- **M4 — Repaint guru & admin:** tabel tetap `<table>` semantik direstyle token
-  baru; form/dialog memakai label terlihat; QR sesi produksi tetap QR nyata.
-- **M5 — Visual regression & release readiness:** `lucide-react` dihapus dari
-  produksi; bottom nav 7-item admin scrollable di 320px; sinkronisasi
-  aksesibilitas ke golden master; verifikasi parity lintas viewport
-  (320/390/768/1440) via screenshot headless Chrome CDP, hasilnya dicatat di
-  `docs/PARITY_REPORT.md`.
-
-Commit-commit terakhir menyempurnakan hal operasional:
-- Dev HTTPS (`@vitejs/plugin-basic-ssl`) + akses LAN + CORS multi-origin +
+- **Rebrand penuh ke SINTAS** — nama tampilan (login, shell, judul halaman,
+  permintaan izin kamera), identitas teknis (`package.json` `name` →
+  `sintas`/`sintas-backend`, `JWT_ISSUER` → `sintas`), dan default
+  `SEED_PASSWORD` → `Sintas-Dev-Only-ChangeMe` disinkronkan secara menyeluruh.
+- **Dev HTTPS + akses LAN** — `@vitejs/plugin-basic-ssl` untuk secure context
+  kamera, `server.host` untuk akses dari perangkat lain, CORS multi-origin, dan
   dokumentasi `docs/DEV_INSTRUCTION.md`.
-- Perbaikan frame scanner QR (`ebb9d16`) agar proses pemindaian lebih cepat.
-- Rebrand penuh ke SINTAS (`163883c`).
-- Redirect `/` ke login/dashboard sesuai status sesi (`f45ba1c`).
+- **Perbaikan frame scanner QR** (`ebb9d16`) agar proses pemindaian lebih
+  cepat dan akurat.
+- **Redirect route root `/`** (`f45ba1c`) — masuk ke dashboard sesuai role bila
+  sudah login, atau ke halaman login bila belum.
 
 ### 3.6 Ringkasan Timeline Development
 
@@ -413,7 +373,7 @@ Commit-commit terakhir menyempurnakan hal operasional:
 Inisiasi & klarifikasi (brief_awal, question_log)
    │
    ▼
-PRD.md + backend/GUIDE.md + frontend/GUIDE.md
+PRD.md + DESIGN_BRIEF.md + backend/GUIDE.md + frontend/GUIDE.md
    │
    ▼
 Fase Backend  B0 B1 B2 ... B9   → API_CONTRACT.md + openapi.yaml (gate)
@@ -422,10 +382,7 @@ Fase Backend  B0 B1 B2 ... B9   → API_CONTRACT.md + openapi.yaml (gate)
 Fase Frontend F0 F1 ... F6      (auth, siswa, scan, guru, admin, QA)
    │
    ▼
-Fase Merge UI M0 ... M5         (golden master → produksi, parity, rebrand)
-   │
-   ▼
-Penyempurnaan opsional (LAN/HTTPS dev, QR scanner, route root)
+Rebrand & penyempurnaan operasional (SINTAS, HTTPS/LAN dev, QR scanner, route root)
 ```
 
 ---
@@ -470,17 +427,17 @@ adalah eksekutor teknis yang bekerja langsung di dalam editor. Peran spesifiknya
 
 1. **Implementasi coding murni.** Menyusun backend (Express factory,
    middleware, controller, service, repository, domain), schema Prisma +
-   migration + seed, dan frontend React (routing, guard, query, komponen)
-   sesuai panduan yang sudah ada (`AGENTS.md`, `backend/GUIDE.md`,
-   `frontend/GUIDE.md`, `docs/PROMPT_GUIDE.md`).
+   migration + seed, dan frontend React (routing, guard, query, komponen,
+   halaman per role) sesuai panduan yang sudah ada (`AGENTS.md`,
+   `backend/GUIDE.md`, `frontend/GUIDE.md`, `docs/PROMPT_GUIDE.md`).
 2. **Perbaikan bug (debugging).** Menemukan dan memperbaiki regresi — contoh
    nyata pada repository ini: bugfix middleware `validate` (default pagination
    query tidak terpakai di Express 5.1), frame scanner QR yang memperlambat
    deteksi, dan supaya build/test kembali hijau.
 3. **Refactoring di dalam editor.** Menjaga disiplin layering
    (route → middleware → controller → service → repository), memindahkan
-   aturan status ke `src/domain/attendanceStatus.js`, menghapus `lucide-react`
-   demi parity ikon MUI, dan pemangkasan golden master menjadi fokus absen.
+   aturan status ke `src/domain/attendanceStatus.js`, dan menyatukan pemakaian
+   ikon MUI Material Design agar konsisten di seluruh lapisan presentasi.
 
 **Aturan kerja lintas alat (dari PROMPT_GUIDE §1–§2):**
 
@@ -631,16 +588,14 @@ rate limiting, bot protection).
 
 | Dokumen | Isi |
 | --- | --- |
+| `docs/DOKUMENTASI_PROJECT_SINTAS_POPULER.md` | Versi populer dari dokumen ini — sisi teknis tetap utuh dalam bahasa awam |
 | `docs/PRD.md` | Requirement produk lengkap, data model sketch, edge cases |
-| `docs/DECISIONS.md` | Keputusan teknis terkunci (D1–D20, M0–M5) |
-| `docs/DESIGN_BRIEF.md` | Bahasa visual, token warna/radius/typography |
-| `docs/PLAN_MERGE_UI.md` | Kontrak visual "sama persis" golden master ↔ produksi |
-| `docs/PARITY_REPORT.md` | Laporan verifikasi parity lintas viewport (M5) |
+| `docs/DECISIONS.md` | Keputusan produk & teknis terkunci (timezone UTC, satu kelas aktif, computed `TIDAK_HADIR`, format export, password 8–128, branding) |
+| `docs/DESIGN_BRIEF.md` | Bahasa visual, token warna/radius/typography, design principles |
 | `docs/API_CONTRACT.md` | Kontrak API per-endpoint (sumber kebenaran) |
 | `docs/openapi.yaml` | Spesifikasi OpenAPI untuk endpoint |
 | `docs/PROMPT_GUIDE.md` | Rencana bertahap + checkpoint pengembangan berbasis AI |
 | `docs/DEV_INSTRUCTION.md` | Panduan run lokal, HTTPS dev, akses LAN, troubleshooting |
 | `backend/GUIDE.md` | Arsitektur & aturan backend |
 | `backend/OPERATIONS.md` | Runbook deployment, backup, rollback, load test |
-| `frontend/GUIDE.md` | Arsitektur & aturan frontend produksi |
-| `frontend_new/plan.md` | Peran golden master, struktur folder, metode folder |
+| `frontend/GUIDE.md` | Arsitektur, tech stack, dan aturan frontend |
