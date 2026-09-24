@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Project "Kak Lia" — attendance SPA (STUDENT/TEACHER/ADMIN) for a single school. All product/architecture docs are in **Indonesian**; user-facing errors are also Indonesian. Status enums stay `HADIR`/`TERLAMBAT`/`TIDAK_HADIR`.
+Project "SINTAS" — attendance SPA (STUDENT/TEACHER/ADMIN) for a single school. All product/architecture docs are in **Indonesian**; user-facing errors are also Indonesian. Status enums stay `HADIR`/`TERLAMBAT`/`TIDAK_HADIR`.
 
 ## Layout & commands
 
@@ -42,7 +42,7 @@ Frontend (`frontend/`, React 19 + Vite + Tailwind 4):
 
 Schema changes flow via Prisma from `backend/prisma/schema.prisma`:
 - dev: `npx prisma migrate dev` then restart dev server; `npx prisma migrate deploy` for non-dev environments
-- `npm run prisma:seed` is idempotent, dev-only, refuses `NODE_ENV=production`; seeds three demo users (`student.demo`, `teacher.demo`, `admin.demo` — password via `SEED_PASSWORD`, default `KakLia-Dev-Only-ChangeMe`) and one demo session.
+- `npm run prisma:seed` is idempotent, dev-only, refuses `NODE_ENV=production`; seeds three demo users (`student.demo`, `teacher.demo`, `admin.demo` — password via `SEED_PASSWORD`, default `Sintas-Dev-Only-ChangeMe`) and one demo session.
 - Destructive dev reset: `npx prisma migrate reset --force` (+ reseed). Never run reset/seed against production.
 
 ## Frontend

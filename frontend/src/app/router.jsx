@@ -1,5 +1,6 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from '../components/layout/AppShell'
+import { PageLoader } from '../components/feedback/PageLoader'
 import { ProtectedRoute } from '../components/layout/ProtectedRoute'
 import { RoleRoute } from '../components/layout/RoleRoute'
 import { ROLES, roleHome } from '../lib/permissions'

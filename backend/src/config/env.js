@@ -17,7 +17,7 @@ const envSchema = z
       .string()
       .min(32)
       .default("development-only-jwt-secret-change-me-32"),
-    JWT_ISSUER: z.string().min(1).default("project-kak-lia"),
+    JWT_ISSUER: z.string().min(1).default("sintas"),
     ACCESS_TOKEN_TTL: z.string().min(1).default("15m"),
     AUTH_COOKIE_NAME: z.string().min(1).default("auth_token"),
     REQUEST_TIMEOUT_MS: z.coerce

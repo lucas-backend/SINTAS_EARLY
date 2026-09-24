@@ -2,7 +2,7 @@
 
 Dokumen ini adalah rencana eksekusi agar:
 
-1. `frontend_new/` **hanya fokus pada absen** (dipangkas menjadi prototype/desain referensi untuk alur absensi Kak Lia).
+1. `frontend_new/` **hanya fokus pada absen** (dipangkas menjadi prototype/desain referensi untuk alur absensi SINTAS).
 2. **Style** (tokens, warna, typography, radius, ikon) dari `frontend_new/` **di-merge** ke `frontend/` sebagai aplikasi produksi.
 3. **Style & layout `frontend/` sama persis dengan `frontend_new/`** (parity visual, mobile-first, material design blue-500).
 
@@ -17,7 +17,7 @@ Saat ini ada dua kodebasis frontend dengan tujuan berbeda:
 | Proyek | Teknologi | Isi sekarang | Peran setelah plan ini |
 | --- | --- | --- | --- |
 | `frontend_new/` | React 19 + TS + Tailwind 4 + MUI icons + react-router 7 | Prototype "LIMAN": login, dashboard, jadwal, latihan-soal, quiz, ujian/tryout | **Sumber desain (golden master)** — prototype absensi mobile-first yang dibatasi cuma fitur absen + layar referensi alur absen |
-| `frontend/` | React 19 + JS + Tailwind 4 + lucide-react + headlessui + RQ + zustand + RHF/zod | SPA Kak Lia produksi: auth, siswa/guru/admin, scan, riwayat, sesi, QR, laporan, export | **Aplikasi produksi** — arsitektur & logic tetap, visual & layout **sama persis** dengan `frontend_new/` |
+| `frontend/` | React 19 + JS + Tailwind 4 + lucide-react + headlessui + RQ + zustand + RHF/zod | SPA SINTAS produksi: auth, siswa/guru/admin, scan, riwayat, sesi, QR, laporan, export | **Aplikasi produksi** — arsitektur & logic tetap, visual & layout **sama persis** dengan `frontend_new/` |
 
 Hasil akhir visual: tampilan mobile-first `bg-blue-500` dengan lembaran putih `rounded-t-[60px]`, header biru, pill search, status absen, grid fitur 3 kolom, dan bottom nav — yang berlaku di kedua proyek.
 
@@ -76,7 +76,7 @@ Palet yang digunakan golden master (bukan tokens `school-blue` di `DESIGN_BRIEF`
 
 ## 5. Scope `frontend_new/`: Hanya Fokus Absen
 
-Pangkas `frontend_new/` agar hanya berisi alur absensi. Nama aplikasi diubah dari "LIMAN" menjadi "Kak Lia" (atau label lain yang disepakati), bahasa `lang="id"`, dan teks UI memakai istilah PRD (`Hadir`, `Terlambat`, `Tidak Hadir`, `Bisa absen`, `Belum dibuka`, `Selesai`).
+Pangkas `frontend_new/` agar hanya berisi alur absensi. Nama aplikasi diubah dari "LIMAN" menjadi "SINTAS" (atau label lain yang disepakati), bahasa `lang="id"`, dan teks UI memakai istilah PRD (`Hadir`, `Terlambat`, `Tidak Hadir`, `Bisa absen`, `Belum dibuka`, `Selesai`).
 
 ### 5.1 Fitur/layar yang dipertahankan
 
@@ -215,7 +215,7 @@ Kriteria lulus: tidak ada perbedaan visual bermakna pada seluruh layar bagian 5.
 | D5 | Banner carousel (golden master `AdSlider` memakai panah) vs "satu banner + indikator" di DESIGN_BRIEF | (a) ikuti golden master (carousel dengan panah), (b) ganti golden master | (a) golden master menang; DESIGN_BRIEF di-update. |
 | D6 | All-caps tombol (golden master `MASUK`) vs sentence case di DESIGN_BRIEF | (a) ikuti golden master, (b) ubah golden master | (a) golden master menang jika produk menyetujui; DESIGN_BRIEF di-update. |
 | D7 | App shell desktop Guru/Admin: golden master tidak punya referensi sidebar | (a) sidebar tetap + token golden master, (b) buat referensi sidebar baru di golden master dulu | (a) sidebar tetap untuk MVP; parity penuh ditangguhkan hanya untuk bagian desktop yang belum ada referensinya. |
-| D8 | Branding/nama app pada golden master ("LIMAN" → "Kak Lia") | — | Ganti ke "Kak Lia" agar konsisten; `frontend_new` tetap bermuatan prototype. |
+| D8 | Branding/nama app pada golden master ("LIMAN" → "Kak Lia", lalu "SINTAS" — lihat D9) | — | Ganti ke "SINTAS" agar konsisten; `frontend_new` tetap bermuatan prototype. |
 
 Setiap keputusan wajib ditulis format `DECISIONS.md`: pilihan final, alasan, dampak database/API/UI, asumsi.
 

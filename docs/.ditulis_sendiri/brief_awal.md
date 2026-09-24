@@ -4,7 +4,7 @@ siswa
 
 guru
 - login: sama kaya siswa alurnya
-- tampilan dashboard mirip siswa tapi itu "buat absen". cek figma kak lia
+- tampilan dashboard mirip siswa tapi itu "buat absen". cek figma sintas
 - ada tanda qr code di list mapel guru buat munculin qr code. 
 - ada tanda mata untuk lihat riawayat
 - tiap pertemuan bikin absen baru

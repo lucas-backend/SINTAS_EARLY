@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Project Kak Lia API
+  title: SINTAS API
   version: 1.0.0
   description: REST API untuk absensi sekolah. Semua timestamp API menggunakan ISO 8601.
 servers:

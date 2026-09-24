@@ -12,7 +12,7 @@ const env = {
   NODE_ENV: "test",
   CORS_ORIGIN: "http://localhost:5173",
   JWT_SECRET: "test-secret-that-is-long-enough-for-jwt",
-  JWT_ISSUER: "project-kak-lia-test",
+  JWT_ISSUER: "sintas-test",
   ACCESS_TOKEN_TTL: "15m",
   AUTH_COOKIE_NAME: "auth_token",
 };

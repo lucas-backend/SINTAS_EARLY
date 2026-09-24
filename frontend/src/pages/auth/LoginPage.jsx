@@ -56,7 +56,7 @@ export default function LoginPage() {
       <ContentShell>
         <div className="text-center">
           <MenuBookRoundedIcon className="w-16! h-16!" />
-          <p className="text-6xl font-bold">Kak Lia</p>
+          <p className="text-6xl font-bold">SINTAS</p>
         </div>
 
         <form

@@ -5,7 +5,7 @@ import { createApp } from '../../src/app.js'
 import { isOpaqueQrPayload } from '../../src/domain/attendanceQr.js'
 
 const env = {
-  NODE_ENV: 'test', CORS_ORIGIN: 'http://localhost:5173', JWT_SECRET: 'test-secret-that-is-long-enough-for-jwt', JWT_ISSUER: 'project-kak-lia-test', ACCESS_TOKEN_TTL: '15m', AUTH_COOKIE_NAME: 'auth_token', SCHOOL_TIMEZONE: 'Asia/Jakarta',
+  NODE_ENV: 'test', CORS_ORIGIN: 'http://localhost:5173', JWT_SECRET: 'test-secret-that-is-long-enough-for-jwt', JWT_ISSUER: 'sintas-test', ACCESS_TOKEN_TTL: '15m', AUTH_COOKIE_NAME: 'auth_token', SCHOOL_TIMEZONE: 'Asia/Jakarta',
 }
 const passwordHash = await argon2.hash('password-123', { type: argon2.argon2id })
 const users = [

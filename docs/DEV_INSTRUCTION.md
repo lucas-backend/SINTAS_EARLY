@@ -1,6 +1,6 @@
 # Panduan Development & Akses via LAN
 
-Panduan ini menjelaskan cara menjalankan Kak Lia di mesin lokal dan mengaksesnya dari alamat LAN (mis. `http://172.29.224.1:5173/` atau `https://172.29.224.1:5173/` untuk kamera), termasuk konfigurasi CORS, cookie, dan troubleshooting.
+Panduan ini menjelaskan cara menjalankan SINTAS di mesin lokal dan mengaksesnya dari alamat LAN (mis. `http://172.29.224.1:5173/` atau `https://172.29.224.1:5173/` untuk kamera), termasuk konfigurasi CORS, cookie, dan troubleshooting.
 
 ## 1. Arsitektur dev
 

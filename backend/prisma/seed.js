@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const seedPassword = process.env.SEED_PASSWORD ?? "KakLia-Dev-Only-ChangeMe";
+const seedPassword = process.env.SEED_PASSWORD ?? "Sintas-Dev-Only-ChangeMe";
 
 async function main() {
   if (process.env.NODE_ENV === "production") {

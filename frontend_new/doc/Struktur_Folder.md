@@ -1,4 +1,4 @@
-# Dokumentasi FrontEnd Kak Lia
+# Dokumentasi FrontEnd SINTAS
 
 ## Pengembangan Struktur Folder
 

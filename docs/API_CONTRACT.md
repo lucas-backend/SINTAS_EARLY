@@ -1,4 +1,4 @@
-# API Contract — Project Kak Lia
+# API Contract — SINTAS
 
 Dokumen ini adalah **sumber kebenaran kontrak API** yang dipakai backend dan
 frontend. Setiap endpoint di bawah diverifikasi terhadap implementasi nyata
@@ -289,7 +289,7 @@ Contoh:
 POST /api/v1/auth/login
 Content-Type: application/json
 
-{ "username": "student.demo", "password": "KakLia-Dev-Only-ChangeMe" }
+{ "username": "student.demo", "password": "Sintas-Dev-Only-ChangeMe" }
 ```
 
 ```json

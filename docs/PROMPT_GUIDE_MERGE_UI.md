@@ -30,7 +30,7 @@ Setiap prompt sebaiknya menghasilkan perubahan kecil yang dapat diuji. Minta age
 Gunakan pembuka ini sebelum prompt fase mana pun:
 
 ```text
-Kamu bekerja di repository project-kak-lia. Baca terlebih dahulu docs/PLAN_MERGE_UI.md,
+Kamu bekerja di repository project-sintas. Baca terlebih dahulu docs/PLAN_MERGE_UI.md,
 docs/DECISIONS.md, docs/DESIGN_BRIEF.md, frontend/GUIDE.md, dan bagian terkait dari
 frontend_new/doc/Struktur_Folder.md sesuai scope fase ini.
 
@@ -69,7 +69,7 @@ dikunci, risiko, dan pertanyaan yang masih terbuka.
 	6. All-caps tombol ("MASUK") vs sentence case.
 	7. App shell desktop Guru/Admin: sidebar tetap dengan token golden master, atau buat referensi
 		sidebar baru di golden master terlebih dahulu.
-	8. Branding/nama app: ganti "LIMAN" menjadi "Kak Lia".
+	8. Branding/nama app: ganti "LIMAN" menjadi "SINTAS".
 
 	Setelah keputusan terkunci, sinkronkan docs/DESIGN_BRIEF.md (bagian Visual Direction dan
 	Design Tokens) agar TIDAK bertentangan dengan kontrak visual PLAN_MERGE_UI bagian 3. Tandai
@@ -88,7 +88,7 @@ Scope:
 - Hapus fitur non-absen: features/quiz/*, features/latihan-soal/*, components/QuizItemCard.tsx,
 	dan route-nya di src/App.tsx; pada features/jadwal/* hapus section Ujian/Tryout, sisakan
 	jadwal pelajaran sebagai konteks absen.
-- Ubah identitas: nama aplikasi "LIMAN" menjadi "Kak Lia", <html lang="id">, judul halaman, dan
+- Ubah identitas: nama aplikasi "LIMAN" menjadi "SINTAS", <html lang="id">, judul halaman, dan
 	label UI memakai istilah PRD (Hadir, Terlambat, Tidak Hadir, Bisa absen, Belum dibuka, Selesai).
 - Isi ulang FeatureGrid (data.ts) dengan item absensi saja; aktifkan kembali BottomNav dengan
 	menu absensi (Beranda, Absen, Riwayat, Profil); perbarui switcher per role.

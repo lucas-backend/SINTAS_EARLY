@@ -6,5 +6,5 @@ export const userData = {
   username: "student.demo",
   nim: "12345678",
   kelas: "XII-A",
-  email: "dipa@kaklia.sch.id",
+  email: "dipa@sintas.sch.id",
 };

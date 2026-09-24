@@ -226,12 +226,21 @@ Golden master (`frontend_new/`) adalah sumber keputusan visual; `frontend/` meni
 
 ### D8 — Branding "LIMAN" → "Kak Lia"
 
+**Status: DECIDED (historis; nilai nama produk disempurnakan oleh D9).**
+
+- **Pilihan final:** Ganti branding golden master dari "LIMAN" menjadi "Kak Lia": `src/features/login/Login.tsx` (`appName`), `index.html` (`title` + `lang="id"`), `package.json` `name`, dan judul `doc/Struktur_Folder.md`. `frontend/` (produksi) tetap memakai nama yang sama. Nama produk kemudian di-rebrand menjadi **SINTAS** (lihat D9).
+- **Alasan:** Konsistensi nama produk; golden master adalah kanvas desain aplikasi, bukan produk berbeda.
+- **Dampak database/API/UI:** Tidak ada dampak backend/API. UI dan judul dokumen berubah; nama package berubah (prototype, bukan breaking).
+- **Asumsi:** Perubahan branding tidak mengubah route/path (asumsi ini tetap berlaku setelah rebrand D9).
+
+### D9 — Branding "Kak Lia" → "SINTAS" (rebrand penuh)
+
 **Status: DECIDED.**
 
-- **Pilihan final:** Ganti branding golden master dari "LIMAN" menjadi "Kak Lia": `src/features/login/Login.tsx` (`appName`), `index.html` (`title` + `lang="id"`), `package.json` `name`, dan judul `doc/Struktur_Folder.md`. `frontend/` (produksi) tetap memakai nama "Kak Lia".
-- **Alasan:** Konsistensi nama produk; golden master adalah kanvas desain aplikasi Kak Lia, bukan produk berbeda.
-- **Dampak database/API/UI:** Tidak ada dampak backend/API. UI dan judul dokumen berubah; nama package berubah (prototype, bukan breaking).
-- **Asumsi:** Nama tampilan ditulis "Kak Lia" (bukan all-caps dan bukan "KAK LIA"); perubahan branding tidak mengubah route/path.
+- **Pilihan final:** Rebrand seluruh proyek dari "Kak Lia" menjadi "SINTAS" pada nama tampilan (login, shell, judul halaman, banner, prompt izin kamera, email mock `@sintas.sch.id`), identitas teknis (`package.json` `name` → `sintas`/`sintas-backend`, `JWT_ISSUER` default → `sintas`), default `SEED_PASSWORD` → `Sintas-Dev-Only-ChangeMe`, konstanta test (`sintas-test`), dan dokumentasi. D8 dianggap superseded untuk nilai nama produk.
+- **Alasan:** Perubahan identitas produk atas permintaan pemangku kepentingan; konsistensi branding di semua lapisan (golden master, produksi, backend, docs).
+- **Dampak database/API/UI:** Tidak ada perubahan schema/rute. `JWT_ISSUER` default berubah dari `project-kak-lia` ke `sintas` → token lama invalid (perlu login ulang). Default `SEED_PASSWORD` berubah → DB dev yang sudah di-seed tetap memakai password lama sampai di-reseed. `dist/` (gitignored) tidak diedit manual — cukup `npm run build` ulang.
+- **Asumsi:** Nama database lokal `kak_lia_dev` (`.env`) dan nama folder repo tidak diubah (operasional, bukan branding); perubahan branding tidak mengubah route/path.
 
 ### Penjabaran token & override DESIGN_BRIEF
 
@@ -275,7 +284,7 @@ Fase M1 memangkas `frontend_new/` menjadi prototype fokus absen. D1–D8 (§15) 
 
 ### M1-5 — Konten banner mock netral sekolah
 
-- **Pilihan final:** Aset banner mock `AdSlider/adData.tsx` diganti dari konten lama "Promo SanEdu" (mereka legacy LIMAN) menjadi banner sekolah netral ("Open House & Expo Kak Lia", "Pendaftaran Ekstrakurikuler") dengan gambar lokal SVG di `public/` (rasio 16:7, offline-safe). Kontrak visual carousel (panah prev/next) dipertahankan.
+- **Pilihan final:** Aset banner mock `AdSlider/adData.tsx` diganti dari konten lama "Promo SanEdu" (mereka legacy LIMAN) menjadi banner sekolah netral ("Open House & Expo SINTAS", "Pendaftaran Ekstrakurikuler") dengan gambar lokal SVG di `public/` (rasio 16:7, offline-safe). Kontrak visual carousel (panah prev/next) dipertahankan.
 - **Alasan:** Menghapus sisa branding lama dan memenuhi banner sekolah (PRD FR-02) sebagai elemen visual murni; menghindari dead element pada img (`src="#"`).
 - **Dampak:** Hanya mock data/aset; favicon `public/favicon.svg` (logo LIMAN ungu) **tidak diubah** karena D8 tidak mencantumkannya — dicatat sebagai residual/open item untuk konfirmasi produk.
 

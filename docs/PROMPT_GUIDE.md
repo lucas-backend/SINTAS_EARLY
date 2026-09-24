@@ -1,4 +1,4 @@
-# Prompt Guide - Pengembangan Bertahap Project Kak Lia
+# Prompt Guide - Pengembangan Bertahap Project SINTAS
 
 Dokumen ini adalah urutan prompt yang dapat diberikan kepada coding agent agar pengembangan berjalan bertahap, terukur, dan tetap sesuai dengan [PRD](PRD.md), [Design Brief](DESIGN_BRIEF.md), [Frontend Guide](../frontend/GUIDE.md), dan [Backend Guide](../backend/GUIDE.md).
 
@@ -28,7 +28,7 @@ Setiap prompt sebaiknya menghasilkan perubahan kecil yang dapat diuji. Minta age
 Gunakan pembuka ini sebelum prompt fase apa pun:
 
 ```text
-Kamu bekerja di repository project-kak-lia. Baca terlebih dahulu docs/PRD.md,
+Kamu bekerja di repository project-sintas. Baca terlebih dahulu docs/PRD.md,
 docs/DESIGN_BRIEF.md, backend/GUIDE.md, dan frontend/GUIDE.md yang relevan dengan
 scope tugas ini.
 

@@ -9,7 +9,7 @@ export interface IAd {
 export const ads: IAd[] = [
   {
     id: 1,
-    title: "Open House & Expo Kak Lia",
+    title: "Open House & Expo SINTAS",
     name: "Kegiatan Sekolah",
     imageLink: "/banner-kegiatan.svg",
   },

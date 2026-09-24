@@ -3,7 +3,7 @@ import Button from "../../components/Button";
 import XPadding from "../../components/XPadding";
 import { useNavigate } from "react-router-dom";
 
-const appName = "Kak Lia";
+const appName = "SINTAS";
 
 export default function Login() {
   const navigate = useNavigate();

@@ -181,7 +181,7 @@ export function AppShell() {
       {isStaff ? (
         <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col bg-blue-500 text-white lg:flex">
           <div className="flex h-16 items-center px-5">
-            <span className="text-label-md font-semibold text-white">Kak Lia</span>
+            <span className="text-label-md font-semibold text-white">SINTAS</span>
           </div>
           <nav aria-label="Navigasi utama" className="flex-1 overflow-y-auto px-3 pb-4">
             <NavList items={navItems} />
@@ -213,7 +213,7 @@ export function AppShell() {
             >
               <MenuIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-            <span className="text-label-md font-semibold text-white">Kak Lia</span>
+            <span className="text-label-md font-semibold text-white">SINTAS</span>
             {!isStaff ? (
               <nav aria-label="Navigasi utama" className="ml-4 hidden lg:block">
                 <NavList items={navItems} orientation="horizontal" />
@@ -247,7 +247,7 @@ export function AppShell() {
           <DialogPanel className="relative ml-auto flex h-full w-64 flex-col bg-blue-500 text-white shadow-2">
             <div className="flex h-16 items-center justify-between px-4">
               <span className={`text-label-md font-semibold text-white ${isStaff ? 'lg:hidden' : ''}`}>
-                Kak Lia
+                SINTAS
               </span>
               <button
                 type="button"

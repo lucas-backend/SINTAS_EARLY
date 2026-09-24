@@ -14,7 +14,7 @@ export function ScanPermissionPrompt({ onAllow, onBack, onManual }) {
       <CameraAltRoundedIcon className="h-16! w-16! text-blue-500" />
       <h2 className="text-2xl font-bold text-ink-900">Akses kamera</h2>
       <p className="text-sm text-slate-700">
-        Kak Lia memerlukan izin kamera untuk memindai QR Code. Kamera hanya
+        SINTAS memerlukan izin kamera untuk memindai QR Code. Kamera hanya
         dinyalakan setelah Anda mengizinkan.
       </p>
       <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">

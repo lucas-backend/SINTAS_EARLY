@@ -1,10 +1,10 @@
-## Plan: Kak Lia — Prototype Fokus Absen
+## Plan: SINTAS — Prototype Fokus Absen
 
-Repositori ini kini adalah **golden master** desain visual aplikasi absensi Kak Lia (lihat `docs/PLAN_MERGE_UI.md`). Prototype hanya memuat alur absensi dengan mock data; bukan produk mandiri. `frontend/` (produksi) menirukan visualnya secara persis tanpa menyalin struktur file.
+Repositori ini kini adalah **golden master** desain visual aplikasi absensi SINTAS (lihat `docs/PLAN_MERGE_UI.md`). Prototype hanya memuat alur absensi dengan mock data; bukan produk mandiri. `frontend/` (produksi) menirukan visualnya secara persis tanpa menyalin struktur file.
 
 **Scope (setelah fase M1)**
 
-1. Identitas: nama aplikasi "Kak Lia", `lang="id"`, judul halaman, font Plus Jakarta Sans (keputusan D4/D8).
+1. Identitas: nama aplikasi "SINTAS", `lang="id"`, judul halaman, font Plus Jakarta Sans (keputusan D4/D8/D9).
 2. Fitur absensi yang dipertahankan: login, beranda (status absen + grid fitur absen + banner sekolah + bottom nav), jadwal pelajaran sebagai konteks absen (status `Bisa absen`/`Belum dibuka`/`Selesai` + aksi `Absen sekarang`).
 3. Layar referensi absen (sub-bab 5.3 PLAN): Scanner `/scan`, Hasil Scan `/scan/result` (preview Hadir/Terlambat/Sudah absen), Riwayat `/riwayat`, Profil `/profil`, dan minimal guru: `/guru/buat-absen`, `/guru/sesi/:id`, `/guru/rekap`.
 4. Fitur yang dihapus: quiz, latihan-soal, ujian/tryout, `QuizItemCard`. Grid fitur hanya berisi item absensi; BottomNav diaktifkan ulang (Beranda/Absen/Riwayat/Profil per role).
