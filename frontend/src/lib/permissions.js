@@ -45,7 +45,7 @@ const ROLE_NAV = Object.freeze({
     { to: '/app/admin/plotting', label: 'Penempatan', end: false, icon: 'network' },
     { to: '/app/admin/sessions', label: 'Sesi', end: false, icon: 'qr' },
     { to: '/app/admin/reports', label: 'Laporan', end: false, icon: 'chart' },
-    { to: '/app/admin/profile', label: 'Profil', end: true, icon: 'user' },
+    { to: '/app/admin/users', label: 'Pengguna', end: false, icon: 'users' },
   ],
 })
 
@@ -63,6 +63,22 @@ export function roleSegment(role) {
 
 export function roleNav(role) {
   return ROLE_NAV[role] ?? []
+}
+
+// Bottom nav mobile memuat item inti per role. Admin hanya menampilkan
+// tombol menuju halaman Pengguna; menu lain ada di sidebar/drawer.
+const ROLE_BOTTOM_NAV = Object.freeze({
+  STUDENT: ROLE_NAV.STUDENT,
+  TEACHER: ROLE_NAV.TEACHER,
+  ADMIN: [
+    { to: '/app/admin/academic', label: 'Akademik', end: false, icon: 'school' },
+    { to: '/app/admin/plotting', label: 'Penempatan', end: false, icon: 'network' },
+    { to: '/app/admin/users', label: 'Pengguna', end: false, icon: 'users' },
+  ],
+})
+
+export function roleBottomNav(role) {
+  return ROLE_BOTTOM_NAV[role] ?? []
 }
 
 export function hasRole(user, roles) {

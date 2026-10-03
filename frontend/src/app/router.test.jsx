@@ -121,7 +121,7 @@ describe('routing dan guard', () => {
     )
     renderApp(['/app'])
     expect(
-      await screen.findByRole('heading', { name: 'Beranda Admin' }),
+      await screen.findByRole('heading', { name: 'Kelola' }),
     ).toBeInTheDocument()
   })
 })

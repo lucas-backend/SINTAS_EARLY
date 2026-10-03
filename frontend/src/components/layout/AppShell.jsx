@@ -25,7 +25,7 @@ import SchoolRounded from '@mui/icons-material/SchoolRounded'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuthLogout } from '../../hooks/useAuth'
-import { ROLES, roleLabel, roleNav, roleSegment } from '../../lib/permissions'
+import { ROLES, roleBottomNav, roleLabel, roleNav, roleSegment } from '../../lib/permissions'
 import { useSessionStore } from '../../stores/sessionStore'
 import { PageLoader } from '../feedback/PageLoader'
 import BottomNav from './BottomNav'
@@ -162,7 +162,7 @@ export function AppShell() {
   }
 
   const navItems = roleNav(user.role)
-  const mobileMenus = navItems.map((item) => ({
+  const mobileMenus = roleBottomNav(user.role).map((item) => ({
     name: item.label,
     link: item.to,
     end: item.end,
