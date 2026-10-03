@@ -16,19 +16,19 @@ export function createAuthService({ userRepository }) {
   return {
     async login({ username, password }) {
       const user = await userRepository.findByUsername(username)
-      const valid = user ? await verifyPassword(user.passwordHash, password).catch(() => false) : false
+      const valid = user && !user.deletedAt ? await verifyPassword(user.passwordHash, password).catch(() => false) : false
       if (!valid) throw new AppError(401, 'INVALID_CREDENTIALS', 'Username atau password tidak sesuai.')
       return publicUser(user)
     },
     async forgotPassword({ email, birthDate, password }) {
       const user = await userRepository.findByEmailAndBirthDate(email, birthDate)
-      if (!user) throw new AppError(400, 'RESET_DATA_INVALID', 'Data pemulihan password tidak sesuai.')
+      if (!user || user.deletedAt) throw new AppError(400, 'RESET_DATA_INVALID', 'Data pemulihan password tidak sesuai.')
       await userRepository.updatePassword(user.id, await hashPassword(password))
       return { message: 'Password berhasil diubah.' }
     },
     async getProfile(id) {
       const user = await userRepository.findById(id)
-      if (!user) throw new AppError(401, 'UNAUTHENTICATED', 'Sesi tidak valid atau sudah berakhir.')
+      if (!user || user.deletedAt) throw new AppError(401, 'UNAUTHENTICATED', 'Sesi tidak valid atau sudah berakhir.')
       return publicUser(user)
     },
     async updateProfile(id, data) {

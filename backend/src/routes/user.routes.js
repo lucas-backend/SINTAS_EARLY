@@ -6,7 +6,7 @@ import { createAuthenticate } from '../middleware/authenticate.js'
 import { authorize } from '../middleware/authorize.js'
 import { validate } from '../middleware/validate.js'
 import { idParamSchema } from '../schemas/common.schemas.js'
-import { createUserSchema, resetUserPasswordSchema, userListSchema } from '../schemas/academic.schemas.js'
+import { createUserSchema, resetUserPasswordSchema, updateUserSchema, userListSchema } from '../schemas/academic.schemas.js'
 
 export function createUserRouter({ prisma, env }) {
   const router = Router()
@@ -16,6 +16,8 @@ export function createUserRouter({ prisma, env }) {
   const admin = [authenticate, authorize('ADMIN')]
   router.get('/', ...admin, validate(userListSchema, 'query'), controller.listUsers)
   router.post('/', ...admin, validate(createUserSchema), controller.createUser)
+  router.patch('/:id', ...admin, validate(idParamSchema, 'params'), validate(updateUserSchema), controller.updateUser)
+  router.delete('/:id', ...admin, validate(idParamSchema, 'params'), controller.deleteUser)
   router.patch('/:id/password', ...admin, validate(idParamSchema, 'params'), validate(resetUserPasswordSchema), controller.resetPassword)
   return router
 }

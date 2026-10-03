@@ -34,6 +34,15 @@ export const createUserSchema = z.object({
   educationLevelId: id.optional(),
 }).strict()
 
+export const updateUserSchema = z.object({
+  name: z.string().trim().min(1).max(150).optional(),
+  email: z.string().trim().email().max(255).nullable().optional(),
+  phone: z.string().trim().max(30).nullable().optional(),
+  birthDate: z.coerce.date().nullable().optional(),
+  studentNumber: z.string().trim().min(1).max(50).optional(),
+  educationLevelId: id.optional(),
+}).strict()
+
 export const resetUserPasswordSchema = z.object({
   password: z.string().min(8).max(128),
   passwordConfirmation: z.string(),

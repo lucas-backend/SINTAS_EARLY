@@ -9,6 +9,7 @@ import { idParamSchema } from "../schemas/common.schemas.js";
 import {
   attendanceReportQuerySchema,
   attendanceScanSchema,
+  attendanceSessionPatchSchema,
   attendanceSessionSchema,
 } from "../schemas/attendance.schemas.js";
 
@@ -23,7 +24,7 @@ export function createAttendanceRouter({ prisma, env }) {
   router.post(
     "/",
     authenticate,
-    authorize("TEACHER"),
+    authorize("ADMIN", "TEACHER"),
     validate(attendanceSessionSchema),
     controller.createSession,
   );
@@ -32,6 +33,21 @@ export function createAttendanceRouter({ prisma, env }) {
     authenticate,
     authorize("ADMIN", "TEACHER"),
     controller.listSessions,
+  );
+  router.patch(
+    "/:id",
+    authenticate,
+    authorize("ADMIN"),
+    validate(idParamSchema, "params"),
+    validate(attendanceSessionPatchSchema),
+    controller.updateSession,
+  );
+  router.delete(
+    "/:id",
+    authenticate,
+    authorize("ADMIN"),
+    validate(idParamSchema, "params"),
+    controller.deleteSession,
   );
   router.get(
     "/:id/qr",

@@ -122,6 +122,40 @@ export function toCreateUserPayload(values) {
   }
 }
 
+export const updateUserSchema = z.object({
+  name: z.string().trim().min(1, 'Nama wajib diisi.').max(150),
+  email: z.string().trim().email('Masukkan email yang valid.').max(255).or(z.literal('')),
+  phone: z.string().trim().max(30),
+  birthDate: dateField,
+  studentNumber: z.string().trim().max(50),
+  educationLevelId: z.string().trim().optional(),
+})
+
+export function toUpdateUserPayload(values, user) {
+  const payload = {
+    name: values.name,
+    email: values.email || null,
+    phone: values.phone || null,
+    birthDate: values.birthDate || null,
+  }
+  if (user.role === 'STUDENT') {
+    if (values.studentNumber) payload.studentNumber = values.studentNumber
+    if (values.educationLevelId) payload.educationLevelId = Number(values.educationLevelId)
+  }
+  return payload
+}
+
+export function userToForm(user) {
+  return {
+    name: user.name ?? '',
+    email: user.email ?? '',
+    phone: user.phone ?? '',
+    birthDate: user.birthDate ? String(user.birthDate).slice(0, 10) : '',
+    studentNumber: user.studentNumber ?? '',
+    educationLevelId: '',
+  }
+}
+
 export const resetPasswordSchema = z
   .object({
     password: z.string().min(8, 'Password minimal 8 karakter.').max(128),
@@ -153,6 +187,29 @@ export function toClassPayload(values) {
 export const subjectSchema = z.object({
   name: z.string().trim().min(1, 'Nama wajib diisi.').max(150),
 })
+
+export const membershipFormSchema = z.object({
+  classId: z.string().min(1, 'Pilih kelas.'),
+  studentId: z.string().min(1, 'Pilih siswa.'),
+})
+
+export function toMembershipPayload(values) {
+  return { classId: Number(values.classId), studentId: Number(values.studentId) }
+}
+
+export const assignmentFormSchema = z.object({
+  teacherId: z.string().min(1, 'Pilih guru.'),
+  classId: z.string().min(1, 'Pilih kelas.'),
+  subjectId: z.string().min(1, 'Pilih mata pelajaran.'),
+})
+
+export function toAssignmentPayload(values) {
+  return {
+    teacherId: Number(values.teacherId),
+    classId: Number(values.classId),
+    subjectId: Number(values.subjectId),
+  }
+}
 
 export const reportFilterSchema = z.object({
   from: dateField,

@@ -198,4 +198,41 @@ describe('academic, assignment, membership, and banner scope', () => {
     expect(response.status).toBe(400)
     expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
+
+  it('deactivates a membership and is idempotent when already inactive', async () => {
+    const { prisma } = createPrisma()
+    prisma.classStudent.findUnique.mockResolvedValueOnce({ id: 50, classId: 30, studentId: 3, isActive: true })
+    prisma.classStudent.update.mockResolvedValueOnce({ id: 50, isActive: false })
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'admin')
+    const response = await request(app).delete('/api/v1/academic/memberships/50').set('Cookie', cookie)
+    expect(response.status).toBe(200)
+    expect(prisma.classStudent.update).toHaveBeenCalledWith({ where: { id: 50 }, data: { isActive: false } })
+
+    prisma.classStudent.findUnique.mockResolvedValueOnce({ id: 51, isActive: false })
+    prisma.classStudent.update.mockClear()
+    const again = await request(app).delete('/api/v1/academic/memberships/51').set('Cookie', cookie)
+    expect(again.status).toBe(200)
+    expect(prisma.classStudent.update).not.toHaveBeenCalled()
+  })
+
+  it('deactivates an assignment for the admin', async () => {
+    const { prisma } = createPrisma()
+    prisma.teacherAssignment.findUnique.mockResolvedValueOnce({ id: 60, isActive: true })
+    prisma.teacherAssignment.update.mockResolvedValueOnce({ id: 60, isActive: false })
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'admin')
+    const response = await request(app).delete('/api/v1/academic/assignments/60').set('Cookie', cookie)
+    expect(response.status).toBe(200)
+    expect(prisma.teacherAssignment.update).toHaveBeenCalledWith({ where: { id: 60 }, data: { isActive: false } })
+  })
+
+  it('rejects non-admin membership delete before querying', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'teacher')
+    const response = await request(app).delete('/api/v1/academic/memberships/50').set('Cookie', cookie)
+    expect(response.status).toBe(403)
+    expect(prisma.classStudent.findUnique).not.toHaveBeenCalled()
+  })
 })

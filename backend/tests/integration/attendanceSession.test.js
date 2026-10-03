@@ -24,7 +24,7 @@ function createPrisma() {
       findFirst: vi.fn(({ where }) => Promise.resolve(users.find((value) => value.id === where.id && value.role === where.role) ?? null)),
     },
     teacherAssignment: {
-      findFirst: vi.fn(({ where }) => Promise.resolve(where.teacherId === assignment.teacherId && where.id === assignment.id && where.isActive ? assignment : null)),
+      findFirst: vi.fn(({ where }) => Promise.resolve(where.id === assignment.id && where.isActive && (where.teacherId === undefined || where.teacherId === assignment.teacherId) ? assignment : null)),
     },
     attendanceSession: {
       create: vi.fn(({ data }) => {
@@ -37,6 +37,14 @@ function createPrisma() {
       }),
       findMany: vi.fn(({ where }) => Promise.resolve(sessions.filter((value) => !where?.assignment || (where.assignment.teacherId === assignment.teacherId && value.assignment.isActive)))),
       findFirst: vi.fn(({ where }) => Promise.resolve(sessions.find((value) => value.id === where.id && (!where.assignment || (where.assignment.teacherId === assignment.teacherId && value.assignment.isActive))) ?? null)),
+      update: vi.fn(({ where, data }) => {
+        const session = sessions.find((value) => value.id === where.id)
+        Object.assign(session, data)
+        return Promise.resolve({ ...session, assignment, class: assignment.class })
+      }),
+    },
+    attendanceRecord: {
+      count: vi.fn().mockResolvedValue(0),
     },
   }
   return { prisma, sessions }
@@ -107,5 +115,49 @@ describe('attendance session scope', () => {
     expect((await request(app).get('/api/v1/attendance-sessions/1/qr').set('Cookie', otherCookie)).status).toBe(404)
     expect((await request(app).get('/api/v1/attendance-sessions').set('Cookie', await login(app, 'student'))).status).toBe(403)
     expect(prisma.attendanceSession.findMany).toHaveBeenCalled()
+  })
+
+  it('lets an admin create, update, and delete a session without records', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const adminCookie = await login(app, 'admin')
+
+    const created = await request(app).post('/api/v1/attendance-sessions').set('Cookie', adminCookie).send(sessionBody)
+    expect(created.status).toBe(200)
+    expect(created.body.data.id).toBe(1)
+
+    const patched = await request(app).patch('/api/v1/attendance-sessions/1').set('Cookie', adminCookie).send({ ...sessionBody, startAt: '2026-09-17T08:30:00+07:00', endAt: '2026-09-17T09:30:00+07:00' })
+    expect(patched.status).toBe(200)
+    expect(patched.body.data.startAt).toBe('2026-09-17T01:30:00.000Z')
+
+    const deleted = await request(app).delete('/api/v1/attendance-sessions/1').set('Cookie', adminCookie)
+    expect(deleted.status).toBe(200)
+    expect(prisma.attendanceSession.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ deletedAt: expect.any(Date) }) }))
+  })
+
+  it('blocks admin update and delete when the session already has records', async () => {
+    const { prisma } = createPrisma()
+    prisma.attendanceRecord.count.mockResolvedValue(2)
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const adminCookie = await login(app, 'admin')
+    await request(app).post('/api/v1/attendance-sessions').set('Cookie', adminCookie).send(sessionBody)
+
+    const patched = await request(app).patch('/api/v1/attendance-sessions/1').set('Cookie', adminCookie).send({ ...sessionBody, startAt: '2026-09-17T08:30:00+07:00', endAt: '2026-09-17T09:30:00+07:00' })
+    expect(patched.status).toBe(409)
+    expect(patched.body.error.code).toBe('SESSION_HAS_RECORDS')
+
+    const deleted = await request(app).delete('/api/v1/attendance-sessions/1').set('Cookie', adminCookie)
+    expect(deleted.status).toBe(409)
+    expect(deleted.body.error.code).toBe('SESSION_HAS_RECORDS')
+  })
+
+  it('rejects a teacher from updating or deleting sessions', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const teacherCookie = await login(app, 'teacher')
+    await request(app).post('/api/v1/attendance-sessions').set('Cookie', teacherCookie).send(sessionBody)
+
+    expect((await request(app).patch('/api/v1/attendance-sessions/1').set('Cookie', teacherCookie).send(sessionBody)).status).toBe(403)
+    expect((await request(app).delete('/api/v1/attendance-sessions/1').set('Cookie', teacherCookie)).status).toBe(403)
   })
 })

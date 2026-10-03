@@ -40,7 +40,7 @@ export default function AdminAcademicPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-6">
+    <section className="mx-auto w-full max-w-5xl space-y-6 min-h-[75vh]">
       <div>
         <h1 className="text-2xl font-bold text-ink-900">Akademik</h1>
         <p className="mt-1 text-sm text-slate-700">Kelola jenjang, kelas, dan mata pelajaran.</p>

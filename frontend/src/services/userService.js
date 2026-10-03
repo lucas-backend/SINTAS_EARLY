@@ -16,6 +16,16 @@ export async function createUser(data) {
   return payload.data
 }
 
+export async function updateUser(id, data) {
+  const payload = await apiClient.patch(`/users/${id}`, data)
+  return payload.data
+}
+
+export async function deleteUser(id) {
+  const payload = await apiClient.delete(`/users/${id}`)
+  return payload.data
+}
+
 export async function resetUserPassword(id, data) {
   const payload = await apiClient.patch(`/users/${id}/password`, data)
   return payload.data

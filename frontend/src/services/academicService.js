@@ -89,9 +89,39 @@ export async function getMemberships({ page = 1, limit = 20, classId } = {}) {
   return payload.data
 }
 
+export async function createMembership(data) {
+  const payload = await apiClient.post('/academic/memberships', data)
+  return payload.data
+}
+
+export async function updateMembership(id, data) {
+  const payload = await apiClient.patch(`/academic/memberships/${id}`, data)
+  return payload.data
+}
+
+export async function deleteMembership(id) {
+  const payload = await apiClient.delete(`/academic/memberships/${id}`)
+  return payload.data
+}
+
 export async function getAssignmentsManage({ page = 1, limit = 20, teacherId } = {}) {
   const payload = await apiClient.get('/academic/assignments/manage', {
     params: { page, limit, teacherId },
   })
+  return payload.data
+}
+
+export async function createAssignment(data) {
+  const payload = await apiClient.post('/academic/assignments', data)
+  return payload.data
+}
+
+export async function updateAssignment(id, data) {
+  const payload = await apiClient.patch(`/academic/assignments/${id}`, data)
+  return payload.data
+}
+
+export async function deleteAssignment(id) {
+  const payload = await apiClient.delete(`/academic/assignments/${id}`)
   return payload.data
 }

@@ -135,22 +135,27 @@ export function createAttendanceService({
 }) {
   return {
     async createSession(user, data) {
-      if (user.role !== "TEACHER")
+      if (!["ADMIN", "TEACHER"].includes(user.role))
         throw new AppError(
           403,
           "FORBIDDEN",
-          "Hanya guru yang dapat membuat sesi absensi.",
+          "Hanya guru atau admin yang dapat membuat sesi absensi.",
         );
-      const assignment = await repository.findActiveAssignmentForTeacher(
-        data.assignmentId,
-        user.id,
-      );
+      const assignment =
+        user.role === "TEACHER"
+          ? await repository.findActiveAssignmentForTeacher(
+              data.assignmentId,
+              user.id,
+            )
+          : await repository.findActiveAssignmentById(data.assignmentId);
       if (!assignment)
-        throw new AppError(
-          403,
-          "ASSIGNMENT_FORBIDDEN",
-          "Penugasan tidak aktif atau bukan milik Anda.",
-        );
+        throw user.role === "TEACHER"
+          ? new AppError(
+              403,
+              "ASSIGNMENT_FORBIDDEN",
+              "Penugasan tidak aktif atau bukan milik Anda.",
+            )
+          : new AppError(404, "NOT_FOUND", "Penugasan tidak ditemukan.");
       const times = normalizeSessionTimes(data, env.SCHOOL_TIMEZONE);
       try {
         const session = await repository.createSession({
@@ -172,6 +177,72 @@ export function createAttendanceService({
           );
         throw error;
       }
+    },
+    async updateSession(user, id, data) {
+      if (user.role !== "ADMIN")
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Hanya admin yang dapat mengubah sesi absensi.",
+        );
+      const session = await repository.findSessionForReader(id, user);
+      if (!session)
+        throw new AppError(404, "NOT_FOUND", "Sesi absensi tidak ditemukan.");
+      if ((await repository.countSessionRecords(id)) > 0)
+        throw new AppError(
+          409,
+          "SESSION_HAS_RECORDS",
+          "Sesi yang sudah memiliki kehadiran tidak dapat diubah.",
+        );
+      const scheduleProvided = data.startAt !== undefined;
+      let target = {};
+      if (data.assignmentId !== undefined && data.assignmentId !== session.assignmentId) {
+        const assignment = await repository.findActiveAssignmentById(data.assignmentId);
+        if (!assignment)
+          throw new AppError(404, "NOT_FOUND", "Penugasan tidak ditemukan.");
+        target = { assignmentId: assignment.id, classId: assignment.classId };
+      } else if (scheduleProvided) {
+        target = { classId: session.classId };
+      }
+      if (scheduleProvided) {
+        const times = normalizeSessionTimes(data, env.SCHOOL_TIMEZONE);
+        target.sessionDate = times.sessionDate;
+        target.startAt = times.startAt;
+        target.endAt = times.endAt;
+      }
+      if (Object.keys(target).length === 0)
+        throw new AppError(400, "VALIDATION_ERROR", "Tidak ada perubahan yang dikirim.");
+      try {
+        const updated = await repository.updateSession(id, target);
+        return sessionMetadata(updated);
+      } catch (error) {
+        if (error?.code === "P2002")
+          throw new AppError(
+            409,
+            "DUPLICATE_ATTENDANCE_SESSION",
+            "Sesi absensi untuk pertemuan tersebut sudah ada.",
+          );
+        throw error;
+      }
+    },
+    async deleteSession(user, id) {
+      if (user.role !== "ADMIN")
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Hanya admin yang dapat menghapus sesi absensi.",
+        );
+      const session = await repository.findSessionForReader(id, user);
+      if (!session)
+        throw new AppError(404, "NOT_FOUND", "Sesi absensi tidak ditemukan.");
+      if ((await repository.countSessionRecords(id)) > 0)
+        throw new AppError(
+          409,
+          "SESSION_HAS_RECORDS",
+          "Sesi yang sudah memiliki kehadiran tidak dapat dihapus.",
+        );
+      await repository.softDeleteSession(id);
+      return sessionMetadata(session);
     },
     async listSessions(user) {
       requireReader(user);

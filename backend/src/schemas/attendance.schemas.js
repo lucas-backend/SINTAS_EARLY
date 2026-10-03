@@ -15,6 +15,22 @@ export const attendanceScanSchema = z.object({
   qrPayload: z.string().trim().min(1).max(255),
 }).strict()
 
+export const attendanceSessionPatchSchema = z.object({
+  assignmentId: id.optional(),
+  sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Gunakan format tanggal YYYY-MM-DD.').optional(),
+  startAt: isoDateTime.optional(),
+  endAt: isoDateTime.optional(),
+  timezone: z.string().trim().min(1).max(100).optional(),
+}).strict().superRefine((value, context) => {
+  const scheduleFields = ['sessionDate', 'startAt', 'endAt', 'timezone'].filter((field) => value[field] !== undefined)
+  if (scheduleFields.length > 0 && scheduleFields.length < 4) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Sertakan sessionDate, startAt, endAt, dan timezone sekaligus.' })
+  }
+  if (value.assignmentId === undefined && scheduleFields.length === 0) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Tidak ada perubahan yang dikirim.' })
+  }
+})
+
 export const attendanceReportQuerySchema = z.object({
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),

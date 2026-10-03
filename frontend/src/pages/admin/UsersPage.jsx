@@ -4,13 +4,14 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import { useState } from 'react'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { Pagination } from '../../components/common/Pagination'
 import { Skeleton } from '../../components/common/Skeleton'
 import { useIsOnline } from '../../hooks/useIsOnline'
 import { roleLabel } from '../../lib/permissions'
 import { UserFormDialog } from '../../features/admin/forms/UserFormDialog'
 import { ResetPasswordDialog } from '../../features/admin/forms/ResetPasswordDialog'
-import { useAdminUsers } from '../../features/admin/hooks/useAdminUsers'
+import { useAdminUsers, useDeleteUser } from '../../features/admin/hooks/useAdminUsers'
 import { UserDesktopTable, UserMobileList } from '../../features/admin/views/UserViews'
 
 const ROLE_OPTIONS = ['ADMIN', 'TEACHER', 'STUDENT']
@@ -24,7 +25,10 @@ export default function AdminUsersPage() {
   const [applied, setApplied] = useState({ ...BASE, search: '', role: '' })
   const [draft, setDraft] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState(null)
   const [passwordTarget, setPasswordTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const deleteUser = useDeleteUser()
 
   const filters = {
     page: applied.page,
@@ -139,8 +143,18 @@ export default function AdminUsersPage() {
         }
         errorTitle="Pengguna tidak dapat dimuat."
       >
-        <UserMobileList items={items} onResetPassword={setPasswordTarget} />
-        <UserDesktopTable items={items} onResetPassword={setPasswordTarget} />
+        <UserMobileList
+          items={items}
+          onResetPassword={setPasswordTarget}
+          onEdit={setEditTarget}
+          onDelete={setDeleteTarget}
+        />
+        <UserDesktopTable
+          items={items}
+          onResetPassword={setPasswordTarget}
+          onEdit={setEditTarget}
+          onDelete={setDeleteTarget}
+        />
 
         <Pagination
           page={filters.page}
@@ -151,12 +165,33 @@ export default function AdminUsersPage() {
         />
       </SectionState>
 
-      <UserFormDialog key={createOpen ? 'open' : 'closed'} open={createOpen} onClose={() => setCreateOpen(false)} />
+      <UserFormDialog
+        key={createOpen ? 'new' : editTarget ? `edit-${editTarget.id}` : 'form-closed'}
+        open={createOpen || editTarget !== null}
+        user={editTarget}
+        onClose={() => {
+          setCreateOpen(false)
+          setEditTarget(null)
+        }}
+      />
       <ResetPasswordDialog
-        key={passwordTarget ? passwordTarget.id : 'closed'}
+        key={passwordTarget ? `pw-${passwordTarget.id}` : 'password-closed'}
         open={passwordTarget !== null}
         user={passwordTarget}
         onClose={() => setPasswordTarget(null)}
+      />
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={`Hapus pengguna "${deleteTarget?.name ?? ''}"`}
+        message="Akun tidak akan dapat masuk lagi. Riwayat absensi tetap tersimpan dan tindakan ini tidak dapat dibatalkan."
+        confirmLabel="Hapus"
+        busy={deleteUser.isPending}
+        onConfirm={() => {
+          deleteUser.mutate(deleteTarget.id, {
+            onSuccess: () => setDeleteTarget(null),
+          })
+        }}
+        onClose={() => setDeleteTarget(null)}
       />
     </section>
   )

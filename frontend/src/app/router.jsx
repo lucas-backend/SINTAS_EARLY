@@ -10,6 +10,7 @@ import AdminAcademicPage from '../pages/admin/AcademicPage'
 import AdminBannersPage from '../pages/admin/BannersPage'
 import AdminPlottingPage from '../pages/admin/PlottingPage'
 import AdminReportsPage from '../pages/admin/ReportsPage'
+import AdminSessionsPage from '../pages/admin/SessionsPage'
 import AdminUsersPage from '../pages/admin/UsersPage'
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage'
 import LoginPage from '../pages/auth/LoginPage'
@@ -75,6 +76,7 @@ export function AppRoutes() {
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="academic" element={<AdminAcademicPage />} />
             <Route path="plotting" element={<AdminPlottingPage />} />
+            <Route path="sessions" element={<AdminSessionsPage />} />
             <Route path="reports" element={<AdminReportsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>

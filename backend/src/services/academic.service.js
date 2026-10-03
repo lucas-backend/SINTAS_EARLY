@@ -146,6 +146,26 @@ export function createAcademicService({ repository }) {
       );
       return repository.updateMembership(membership.id, data);
     },
+    async deleteMembership(user, id) {
+      requireAdmin(user);
+      const membership = await requireEntity(
+        "Penempatan siswa",
+        id,
+        repository.findMembership,
+      );
+      if (!membership.isActive) return membership;
+      try {
+        return await repository.updateMembership(id, { isActive: false });
+      } catch (error) {
+        if (error?.code === "P2002")
+          throw new AppError(
+            409,
+            "MEMBERSHIP_ARCHIVED",
+            "Penempatan siswa sudah memiliki arsip nonaktif.",
+          );
+        throw error;
+      }
+    },
     async createAssignment(user, data) {
       requireAdmin(user);
       await requireEntity("Guru", data.teacherId, repository.findTeacher);
@@ -177,6 +197,26 @@ export function createAcademicService({ repository }) {
         repository.findAssignment,
       );
       return repository.updateAssignment(assignment.id, data);
+    },
+    async deleteAssignment(user, id) {
+      requireAdmin(user);
+      const assignment = await requireEntity(
+        "Penugasan",
+        id,
+        repository.findAssignment,
+      );
+      if (!assignment.isActive) return assignment;
+      try {
+        return await repository.updateAssignment(id, { isActive: false });
+      } catch (error) {
+        if (error?.code === "P2002")
+          throw new AppError(
+            409,
+            "ASSIGNMENT_ARCHIVED",
+            "Penugasan sudah memiliki arsip nonaktif.",
+          );
+        throw error;
+      }
     },
     async listAssignments(user) {
       if (user.role !== "TEACHER")

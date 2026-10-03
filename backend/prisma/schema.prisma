@@ -30,6 +30,7 @@ model User {
   name               String              @db.VarChar(150)
   createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamp(6)
+  deletedAt          DateTime?           @map("deleted_at") @db.Timestamp(6)
   studentProfile     StudentProfile?
   teacherProfile     TeacherProfile?
   createdSessions    AttendanceSession[] @relation("SessionCreatedBy")
@@ -40,6 +41,7 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([deletedAt])
   @@map("users")
 }
 
@@ -147,6 +149,7 @@ model AttendanceSession {
   createdById  Int                @map("created_by")
   createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt    DateTime           @updatedAt @map("updated_at") @db.Timestamp(6)
+  deletedAt    DateTime?          @map("deleted_at") @db.Timestamp(6)
   assignment   TeacherAssignment  @relation(fields: [assignmentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   class        Class              @relation(fields: [classId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   createdBy    User               @relation("SessionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -155,6 +158,7 @@ model AttendanceSession {
   @@unique([assignmentId, sessionDate, startAt, endAt])
   @@index([assignmentId, startAt, endAt])
   @@index([classId, sessionDate])
+  @@index([deletedAt])
   @@map("attendance_sessions")
 }
 

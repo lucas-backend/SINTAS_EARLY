@@ -1,3 +1,6 @@
+import AddRoundedIcon from '@mui/icons-material/AddRounded'
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'
+import RestoreRoundedIcon from '@mui/icons-material/RestoreRounded'
 import { StatusBadge } from '../../../components/common/StatusBadge'
 import { formatSchoolDate } from '../../../lib/dateTime'
 
@@ -10,7 +13,32 @@ function MembershipStatus({ isActive }) {
   )
 }
 
-export function MembershipsTable({ items }) {
+function RowActions({ item, onDelete, onActivate }) {
+  if (item.isActive) {
+    return (
+      <button
+        type="button"
+        onClick={() => onDelete(item)}
+        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-red-500 hover:bg-red-500/10"
+      >
+        <DeleteRoundedIcon className="h-4! w-4!" aria-hidden="true" />
+        Hapus
+      </button>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => onActivate(item)}
+      className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-blue-500 hover:bg-blue-100/50"
+    >
+      <RestoreRoundedIcon className="h-4! w-4!" aria-hidden="true" />
+      Aktifkan
+    </button>
+  )
+}
+
+export function MembershipsTable({ items, onDelete, onActivate }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-black/10 bg-white">
       <table className="w-full text-left text-sm">
@@ -22,6 +50,7 @@ export function MembershipsTable({ items }) {
             <th scope="col" className="p-3 font-semibold">NISN</th>
             <th scope="col" className="p-3 font-semibold">Sejak</th>
             <th scope="col" className="p-3 font-semibold">Status</th>
+            <th scope="col" className="sr-only p-3">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -40,6 +69,11 @@ export function MembershipsTable({ items }) {
               <td className="p-3">
                 <MembershipStatus isActive={membership.isActive} />
               </td>
+              <td className="p-3 text-right">
+                <div className="flex justify-end">
+                  <RowActions item={membership} onDelete={onDelete} onActivate={onActivate} />
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -48,7 +82,7 @@ export function MembershipsTable({ items }) {
   )
 }
 
-export function AssignmentsManageTable({ items }) {
+export function AssignmentsManageTable({ items, onDelete, onActivate }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-black/10 bg-white">
       <table className="w-full text-left text-sm">
@@ -60,6 +94,7 @@ export function AssignmentsManageTable({ items }) {
             <th scope="col" className="p-3 font-semibold">Guru</th>
             <th scope="col" className="p-3 font-semibold">Sejak</th>
             <th scope="col" className="p-3 font-semibold">Status</th>
+            <th scope="col" className="sr-only p-3">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -80,10 +115,28 @@ export function AssignmentsManageTable({ items }) {
               <td className="p-3">
                 <MembershipStatus isActive={assignment.isActive} />
               </td>
+              <td className="p-3 text-right">
+                <div className="flex justify-end">
+                  <RowActions item={assignment} onDelete={onDelete} onActivate={onActivate} />
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
+  )
+}
+
+export function AddPlacementButton({ label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white"
+    >
+      <AddRoundedIcon className="h-4! w-4!" aria-hidden="true" />
+      {label}
+    </button>
   )
 }

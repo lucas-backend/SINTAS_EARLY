@@ -6,6 +6,7 @@ export const attendanceKeys = {
   history: (filters) => ['attendance', 'history', filters],
   scan: ['attendance', 'scan'],
   teacherSessions: ['attendance', 'sessions'],
+  adminSessions: ['attendance', 'sessions', 'all'],
   sessionQr: (id) => ['attendance', 'sessions', id, 'qr'],
   classAttendanceBase: ['attendance', 'classes'],
   classAttendance: (classId, filters) => ['attendance', 'classes', classId, filters],
@@ -54,6 +55,22 @@ export async function getSessionQr(id) {
 
 export async function createAttendanceSession(data) {
   const payload = await apiClient.post('/attendance-sessions', data)
+  return payload.data
+}
+
+// Sesi seluruh sekolah untuk admin (scope backend: ADMIN melihat semua).
+export async function getAdminSessions() {
+  const payload = await apiClient.get('/attendance-sessions')
+  return payload.data
+}
+
+export async function updateAttendanceSession(id, data) {
+  const payload = await apiClient.patch(`/attendance-sessions/${id}`, data)
+  return payload.data
+}
+
+export async function deleteAttendanceSession(id) {
+  const payload = await apiClient.delete(`/attendance-sessions/${id}`)
   return payload.data
 }
 

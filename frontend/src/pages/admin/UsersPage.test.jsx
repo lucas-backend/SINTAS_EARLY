@@ -120,4 +120,79 @@ describe('halaman pengguna admin', () => {
       passwordConfirmation: 'KataRahasia123!',
     })
   })
+
+  it('mengubah data pengguna', async () => {
+    const user = userEvent.setup()
+    let body = null
+    renderUsers([
+      http.get(USERS_URL, () =>
+        HttpResponse.json({
+          data: page([
+            {
+              id: 1,
+              username: 'student.demo',
+              role: 'STUDENT',
+              name: 'Siswa Demo',
+              email: null,
+              phone: null,
+              birthDate: null,
+              studentNumber: 'S-0001',
+            },
+          ]),
+        }),
+      ),
+      http.patch(`${API_BASE_URL}/users/1`, async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({ data: { id: 1, name: body.name } })
+      }),
+    ])
+
+    await screen.findAllByText('Siswa Demo')
+    await user.click(screen.getAllByRole('button', { name: 'Ubah' })[0])
+
+    const dialog = await screen.findByRole('dialog')
+    const nameInput = within(dialog).getByLabelText('Nama lengkap')
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Siswa Baru')
+    await user.click(within(dialog).getByRole('button', { name: 'Simpan perubahan' }))
+
+    await waitFor(() => expect(body).not.toBeNull())
+    expect(body.name).toBe('Siswa Baru')
+    expect(body.studentNumber).toBe('S-0001')
+  })
+
+  it('menghapus pengguna setelah konfirmasi', async () => {
+    const user = userEvent.setup()
+    let deleted = false
+    renderUsers([
+      http.get(USERS_URL, () =>
+        HttpResponse.json({
+          data: page([
+            {
+              id: 1,
+              username: 'student.demo',
+              role: 'STUDENT',
+              name: 'Siswa Demo',
+              email: null,
+              phone: null,
+              birthDate: null,
+              studentNumber: 'S-0001',
+            },
+          ]),
+        }),
+      ),
+      http.delete(`${API_BASE_URL}/users/1`, () => {
+        deleted = true
+        return HttpResponse.json({ data: { message: 'Pengguna berhasil dihapus.' } })
+      }),
+    ])
+
+    await screen.findAllByText('Siswa Demo')
+    await user.click(screen.getAllByRole('button', { name: 'Hapus' })[0])
+
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Hapus' }))
+
+    await waitFor(() => expect(deleted).toBe(true))
+  })
 })

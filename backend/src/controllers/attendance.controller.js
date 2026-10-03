@@ -22,6 +22,8 @@ export function createAttendanceController({ service }) {
   return {
     createSession: run((req) => service.createSession(req.user, req.body)),
     listSessions: run((req) => service.listSessions(req.user)),
+    updateSession: run((req) => service.updateSession(req.user, Number(req.params.id), req.body)),
+    deleteSession: run((req) => service.deleteSession(req.user, Number(req.params.id))),
     getQr: run((req) => service.getQr(req.user, Number(req.params.id))),
     todaySchedule: run((req) => service.todaySchedule(req.user)),
     scan: run((req) => service.scan(req.user, req.body)),

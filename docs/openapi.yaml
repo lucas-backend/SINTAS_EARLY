@@ -271,6 +271,32 @@ paths:
             "403": { $ref: "#/components/responses/Forbidden" },
           },
       }
+  /api/v1/academic/memberships/{id}:
+    patch:
+      {
+        tags: [Academic],
+        security: [{ cookieAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/Id" }],
+        responses:
+          {
+            "200": { $ref: "#/components/responses/Data" },
+            "403": { $ref: "#/components/responses/Forbidden" },
+            "404": { $ref: "#/components/responses/NotFound" },
+          },
+      }
+    delete:
+      {
+        tags: [Academic],
+        security: [{ cookieAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/Id" }],
+        responses:
+          {
+            "200": { $ref: "#/components/responses/Data" },
+            "403": { $ref: "#/components/responses/Forbidden" },
+            "404": { $ref: "#/components/responses/NotFound" },
+            "409": { $ref: "#/components/responses/Conflict" },
+          },
+      }
   /api/v1/academic/assignments:
     get:
       {
@@ -305,6 +331,19 @@ paths:
           {
             "200": { $ref: "#/components/responses/Data" },
             "403": { $ref: "#/components/responses/Forbidden" },
+          },
+      }
+    delete:
+      {
+        tags: [Academic],
+        security: [{ cookieAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/Id" }],
+        responses:
+          {
+            "200": { $ref: "#/components/responses/Data" },
+            "403": { $ref: "#/components/responses/Forbidden" },
+            "404": { $ref: "#/components/responses/NotFound" },
+            "409": { $ref: "#/components/responses/Conflict" },
           },
       }
   /api/v1/academic/my-classes:
@@ -388,6 +427,33 @@ paths:
         responses:
           {
             "200": { $ref: "#/components/responses/Data" },
+            "409": { $ref: "#/components/responses/Conflict" },
+          },
+      }
+  /api/v1/attendance-sessions/{id}:
+    patch:
+      {
+        tags: [Attendance],
+        security: [{ cookieAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/Id" }],
+        responses:
+          {
+            "200": { $ref: "#/components/responses/Data" },
+            "403": { $ref: "#/components/responses/Forbidden" },
+            "404": { $ref: "#/components/responses/NotFound" },
+            "409": { $ref: "#/components/responses/Conflict" },
+          },
+      }
+    delete:
+      {
+        tags: [Attendance],
+        security: [{ cookieAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/Id" }],
+        responses:
+          {
+            "200": { $ref: "#/components/responses/Data" },
+            "403": { $ref: "#/components/responses/Forbidden" },
+            "404": { $ref: "#/components/responses/NotFound" },
             "409": { $ref: "#/components/responses/Conflict" },
           },
       }
@@ -523,6 +589,33 @@ paths:
           {
             "200": { $ref: "#/components/responses/Data" },
             "403": { $ref: "#/components/responses/Forbidden" },
+          },
+      }
+  /api/v1/users/{id}:
+    patch:
+      {
+        tags: [User],
+        security: [{ cookieAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/Id" }],
+        responses:
+          {
+            "200": { $ref: "#/components/responses/Data" },
+            "403": { $ref: "#/components/responses/Forbidden" },
+            "404": { $ref: "#/components/responses/NotFound" },
+            "409": { $ref: "#/components/responses/Conflict" },
+          },
+      }
+    delete:
+      {
+        tags: [User],
+        security: [{ cookieAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/Id" }],
+        responses:
+          {
+            "200": { $ref: "#/components/responses/Data" },
+            "400": { $ref: "#/components/responses/ValidationError" },
+            "403": { $ref: "#/components/responses/Forbidden" },
+            "404": { $ref: "#/components/responses/NotFound" },
           },
       }
   /api/v1/users/{id}/password:

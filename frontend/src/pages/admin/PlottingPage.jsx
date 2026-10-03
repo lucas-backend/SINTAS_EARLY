@@ -1,13 +1,24 @@
 import { useState } from 'react'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { Pagination } from '../../components/common/Pagination'
 import { Skeleton } from '../../components/common/Skeleton'
 import { useIsOnline } from '../../hooks/useIsOnline'
 import { useClasses } from '../../features/admin/hooks/useAcademicMasters'
 import { useAdminUsers } from '../../features/admin/hooks/useAdminUsers'
-import { useAssignmentsManage, useMemberships } from '../../features/admin/hooks/usePlotting'
 import {
+  useAssignmentsManage,
+  useDeleteAssignment,
+  useDeleteMembership,
+  useMemberships,
+  useUpdateAssignment,
+  useUpdateMembership,
+} from '../../features/admin/hooks/usePlotting'
+import { MembershipFormDialog } from '../../features/admin/forms/MembershipFormDialog'
+import { AssignmentFormDialog } from '../../features/admin/forms/AssignmentFormDialog'
+import {
+  AddPlacementButton,
   AssignmentsManageTable,
   MembershipsTable,
 } from '../../features/admin/views/PlottingViews'
@@ -27,11 +38,18 @@ export default function AdminPlottingPage() {
   const [page, setPage] = useState(1)
   const [classId, setClassId] = useState('')
   const [teacherId, setTeacherId] = useState('')
+  const [formType, setFormType] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const classesQuery = useClasses({ page: 1, limit: 100 })
   const teachersQuery = useAdminUsers({ page: 1, limit: 100, role: 'TEACHER' })
   const membershipsQuery = useMemberships({ page, limit: LIMIT, classId: classId || undefined })
   const assignmentsQuery = useAssignmentsManage({ page, limit: LIMIT, teacherId: teacherId || undefined })
+
+  const activateMembership = useUpdateMembership()
+  const activateAssignment = useUpdateAssignment()
+  const deleteMembership = useDeleteMembership()
+  const deleteAssignment = useDeleteAssignment()
 
   const classes = classesQuery.data?.items ?? []
   const teachers = teachersQuery.data?.items ?? []
@@ -39,11 +57,26 @@ export default function AdminPlottingPage() {
   const meta = tab === 'memberships' ? membershipsQuery.data?.meta : assignmentsQuery.data?.meta
   const activeQuery = tab === 'memberships' ? membershipsQuery : assignmentsQuery
 
+  const activate = (item) => {
+    if (tab === 'memberships') activateMembership.mutate({ id: item.id, data: { isActive: true } })
+    else activateAssignment.mutate({ id: item.id, data: { isActive: true } })
+  }
+
+  const deleteMutation = deleteTarget?.type === 'membership' ? deleteMembership : deleteAssignment
+
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink-900">Penempatan</h1>
-        <p className="mt-1 text-sm text-slate-700">Lihat siswa pada kelas dan penugasan guru (hanya baca).</p>
+    <section className="mx-auto w-full max-w-5xl space-y-6 min-h-[75vh]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ink-900">Penempatan</h1>
+          <p className="mt-1 text-sm text-slate-700">
+            Kelola siswa pada kelas dan penugasan guru mata pelajaran.
+          </p>
+        </div>
+        <AddPlacementButton
+          label={tab === 'memberships' ? 'Tempatkan siswa' : 'Tugaskan guru'}
+          onClick={() => setFormType(tab === 'memberships' ? 'membership' : 'assignment')}
+        />
       </div>
 
       <div role="tablist" aria-label="Penempatan" className="flex flex-wrap gap-2">
@@ -71,11 +104,11 @@ export default function AdminPlottingPage() {
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-black/10 bg-white p-4">
         {tab === 'memberships' ? (
           <div className="min-w-60">
-            <label htmlFor="membership-class" className="block text-sm font-medium text-slate-700">
-              Kelas
+            <label htmlFor="membership-class-filter" className="block text-sm font-medium text-slate-700">
+              Filter kelas
             </label>
             <select
-              id="membership-class"
+              id="membership-class-filter"
               value={classId}
               onChange={(event) => {
                 setClassId(event.target.value)
@@ -93,11 +126,11 @@ export default function AdminPlottingPage() {
           </div>
         ) : (
           <div className="min-w-60">
-            <label htmlFor="assignment-teacher" className="block text-sm font-medium text-slate-700">
-              Guru
+            <label htmlFor="assignment-teacher-filter" className="block text-sm font-medium text-slate-700">
+              Filter guru
             </label>
             <select
-              id="assignment-teacher"
+              id="assignment-teacher-filter"
               value={teacherId}
               onChange={(event) => {
                 setTeacherId(event.target.value)
@@ -140,9 +173,9 @@ export default function AdminPlottingPage() {
         errorTitle={tab === 'memberships' ? 'Penempatan siswa tidak dapat dimuat.' : 'Penugasan guru tidak dapat dimuat.'}
       >
         {tab === 'memberships' ? (
-          <MembershipsTable items={itemList} />
+          <MembershipsTable items={itemList} onDelete={(item) => setDeleteTarget({ type: 'membership', item })} onActivate={activate} />
         ) : (
-          <AssignmentsManageTable items={itemList} />
+          <AssignmentsManageTable items={itemList} onDelete={(item) => setDeleteTarget({ type: 'assignment', item })} onActivate={activate} />
         )}
 
         <Pagination
@@ -153,6 +186,34 @@ export default function AdminPlottingPage() {
           onChange={setPage}
         />
       </SectionState>
+
+      <MembershipFormDialog
+        key={formType === 'membership' ? 'membership-open' : 'membership-closed'}
+        open={formType === 'membership'}
+        onClose={() => setFormType(null)}
+      />
+      <AssignmentFormDialog
+        key={formType === 'assignment' ? 'assignment-open' : 'assignment-closed'}
+        open={formType === 'assignment'}
+        onClose={() => setFormType(null)}
+      />
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={
+          deleteTarget?.type === 'membership'
+            ? `Hapus penempatan ${deleteTarget?.item?.student?.name ?? ''}`
+            : `Hapus penugasan ${deleteTarget?.item?.subject?.name ?? ''}`
+        }
+        message="Data akan dinonaktifkan, bukan dihapus permanen. Sesi dan riwayat absensi tetap tersimpan."
+        confirmLabel="Hapus"
+        busy={deleteMutation.isPending}
+        onConfirm={() => {
+          deleteMutation.mutate(deleteTarget.item.id, {
+            onSuccess: () => setDeleteTarget(null),
+          })
+        }}
+        onClose={() => setDeleteTarget(null)}
+      />
     </section>
   )
 }

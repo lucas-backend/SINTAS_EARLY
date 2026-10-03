@@ -452,6 +452,65 @@ Fase M5 memvalidasi parity `frontend/` terhadap golden master `frontend_new/` pa
 - Parity desktop guru/admin tidak penuh (D7 + M4-1) dan header beranda siswa belum mengikuti golden master penuh (M3-4); ini dicatat sebagai residual, bukan cacat M5.
 - Verifikasi visual otomatis (image diff ber-threshold) belum menjadi bagian test suite; laporan parity berbasis screenshot manual/headless yang diregenerasi saat fase lanjutan.
 
+## 21. CRUD Admin dan soft delete (PLAN_ADMIN_CRUD)
+
+**Status: DECIDED untuk MVP — fase A0 `PLAN_ADMIN_CRUD.md`.**
+
+Menutup gap CRUD pada halaman admin: `users` (update + delete), `class_students`/`teacher_assignments` (delete), dan admin CRUD `attendance_sessions`. `education_levels`/`classes`/`subjects`/`banners` sudah CRUD penuh dan tidak diubah. `attendance_records` tetap tanpa operasi delete (ditegaskan D9).
+
+### A0-1 — Soft delete `users` dan `attendance_sessions`
+
+- **Pilihan final:** Tambah kolom `deletedAt DateTime? @map("deleted_at") @db.Timestamp(6)` (+ index) pada `users` dan `attendance_sessions`. Delete = set `deletedAt = now()`. Semua list/read (`GET /users`, `GET /attendance-sessions`, report/export, QR, scan) mengabaikan baris dengan `deletedAt != null`. Login dan `resetPassword` menolak/mengabaikan user terhapus.
+- **Alasan:** FK mayoritas `onDelete: Restrict`; hard delete akan merusak FK dan riwayat absensi. Soft delete menjaga integritas referensial tanpa worker penghapusan.
+- **Dampak database/API/UI:** Migration baru (`deletedAt` + index); repository menambah filter `deletedAt: null` (termasuk `findSessionForScan` sebagai predikat kolom, bukan query baru di jalur scan). `DELETE` mengembalikan `200` dengan baris ter-soft-delete. `docs/DATABASE.md` diperbarui.
+- **Asumsi yang masih perlu dikonfirmasi:** user terhapus tetap memegang `username`/`email` unik (tidak bisa dipakai ulang) — lihat A0-6.
+
+### A0-2 — Deactivate idempotent untuk `class_students` dan `teacher_assignments`
+
+- **Pilihan final:** Delete = `isActive = false`, **idempotent**: bila baris sudah nonaktif → `200`. Bila update gagal karena `P2002` (sudah ada baris nonaktif lain untuk tuple yang sama), endpoint mengembalikan `409 MEMBERSHIP_ARCHIVED`/`409 ASSIGNMENT_ARCHIVED` dengan pesan jelas. Schema/constraint tidak diubah.
+- **Alasan:** Kedua tabel sudah memiliki lifecycle `isActive`; menambah `deletedAt` akan menduplikasi konsep status. Unique `@@unique([..., isActive])` hanya mengizinkan satu baris nonaktif per tuple, sehingga siklus aktif→nonaktif berulang tidak dapat diarsipkan tanpa mengubah constraint (O-4).
+- **Dampak database/API/UI:** Tidak ada migration. Endpoint baru `DELETE /academic/memberships/:id` dan `DELETE /academic/assignments/:id` (ADMIN). UI Plotting mendapat aksi nonaktifkan/hapus.
+- **Asumsi yang masih perlu dikonfirmasi:** arsip nonaktif dibatasi satu baris per tuple; bila product butuh banyak arsip nonaktif, perlu ubah constraint (migration lanjutan) — lihat O-4.
+
+### A0-3 — Field edit pengguna
+
+- **Pilihan final:** `PATCH /api/v1/users/:id` (ADMIN) mengubah `name`, `email`, `phone`, `birthDate`, dan khusus `role = STUDENT` juga `studentNumber` + `educationLevelId` (upsert `studentProfile`). `username` dan `role` **tidak** dapat diubah. Target `ADMIN` tetap `404 NOT_FOUND` (selaras D8). `email`/`studentNumber` duplikat → `409`.
+- **Alasan:** PRD FR-03 mengizinkan perubahan nama/email/WhatsApp/tanggal lahir dan melarang perubahan username/identitas login; data akademik mengikuti hak kelola Admin. Role tidak diubah agar profil student/teacher dan scope akses tidak menjadi tidak konsisten.
+- **Dampak database/API/UI:** Tidak ada kolom baru. `updateUserSchema` (strict) baru; field username/role read-only pada `UserFormDialog`; field siswa hanya tampil untuk role STUDENT. Error baru `DUPLICATE_EMAIL`, `DUPLICATE_STUDENT_NUMBER`, `CANNOT_DELETE_SELF`.
+- **Asumsi yang masih perlu dikonfirmasi:** Admin tidak dapat mengubah role maupun menghapus/mengedit akun ADMIN lain.
+
+### A0-4 — Admin CRUD sesi absensi
+
+- **Pilihan final:** `POST /attendance-sessions` mengizinkan ADMIN selain TEACHER (ADMIN tanpa cek ownership, assignment cukup aktif). Tambah `PATCH /attendance-sessions/:id` dan `DELETE /attendance-sessions/:id` (ADMIN). Update hanya metadata (`assignmentId`, `sessionDate`, `startAt`, `endAt`, `timezone`; `qrPayload` tetap); **update dan delete ditolak `409 SESSION_HAS_RECORDS` bila sesi sudah memiliki `attendance_records`**. Delete = soft delete (A0-1). Duplikat tetap `409 DUPLICATE_ATTENDANCE_SESSION`.
+- **Alasan:** Mencegah perubahan jadwal/penghapusan sesi merusak status `HADIR`/`TERLAMBAT` yang sudah tercatat dan menjaga riwayat absensi sebagai sumber kebenaran. Ini melampaui FR-05 (sesi dibuat Guru) atas permintaan pemangku kepentingan, sehingga dikunci di sini.
+- **Dampak database/API/UI:** Route authorize bertambah ADMIN; schema patch baru; filter `deletedAt` di list/report/QR/scan. UI admin mendapat halaman Sesi + item navigasi (D12) + service/hook baru.
+- **Asumsi yang masih perlu dikonfirmasi:** apakah ADMIN boleh membuat sesi untuk kelas mana pun (diasumsikan ya, selama assignment aktif) atau hanya mengoreksi/menghapus — lihat O-2.
+
+### A0-5 — Revokasi token user terhapus
+
+- **Pilihan final:** Terima bahwa token JWT user yang di-soft-delete tetap valid sampai kedaluwarsa (`ACCESS_TOKEN_TTL` default `15m`). Tidak menambah lookup `users` pada middleware `authenticate` (agar jalur scan tetap ringan). Login user terhapus ditolak.
+- **Alasan:** `authenticate` dirancang stateless tanpa akses DB; menambah query per-request membebani jalur scan yang dibatasi. TTL 15 menit membatasi jendela penyalahgunaan.
+- **Dampak database/API/UI:** Tidak ada perubahan middleware. Perilaku dicatat sebagai residual risk pada `PLAN_ADMIN_CRUD.md`.
+- **Asumsi yang masih perlu dikonfirmasi:** jendela 15 menit dapat diterima; bila tidak, opsi revokasi (denylist/DB lookup/penurunan TTL) menjadi keputusan baru — lihat O-3.
+
+### A0-6 — Batasan soft delete yang dicatat
+
+- **Pilihan final:** (a) Sesi ter-soft-delete tetap memegang unique `(assignmentId, sessionDate, startAt, endAt)` sehingga sesi identik tidak dapat dibuat ulang selama masih terhapus (tetap `409`); tidak ada endpoint restore pada MVP. (b) User ter-soft-delete tetap memegang `username`/`email` unik. (c) Tidak ada `deletedById`/audit trail pada MVP.
+- **Alasan:** Menjaga identitas historis dan kesederhanaan MVP tanpa menambah migration/kolom audit.
+- **Dampak database/API/UI:** Tidak ada perubahan tambahan. Batasan didokumentasikan sebagai Open Item O-5/O-6/O-7 pada `PLAN_ADMIN_CRUD.md`.
+- **Asumsi yang masih perlu dikonfirmasi:** product menerima batasan recreate sesi dan reuse username/email.
+
+### A0-7 — Master akademik tetap hard delete pada fase ini
+
+- **Pilihan final:** `education_levels`/`classes`/`subjects` mempertahankan hard delete yang sudah ada; konversi ke soft delete ditangguhkan ke fase lanjutan.
+- **Alasan:** Mengubahnya ke soft delete berdampak ke unique `subject.name`, filter list, dan data existing — perlu keputusan terpisah di luar scope CRUD gap ini.
+- **Dampak database/API/UI:** Tidak ada perubahan. Dicatat sebagai O-1 pada `PLAN_ADMIN_CRUD.md`.
+- **Asumsi yang masih perlu dikonfirmasi:** tidak ada; konsistensi soft delete master ditangani fase lanjutan.
+
+### Gate fase A0
+
+Keputusan A0-1 s.d. A0-7 dikunci. Open Item O-2/O-3 boleh dikerjakan dengan nilai default di atas selama product tidak menyatakan sebaliknya; O-1/O-4/O-5/O-6/O-7 tidak memblokir fase A1–A8.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

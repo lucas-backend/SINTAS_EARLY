@@ -410,6 +410,7 @@ Pola identik classes. `GET` (staff) mengembalikan `{ "data": { "items": [Subject
 | `GET` | `/memberships` | ya | query list admin | `{ "data": { "items": [ClassStudent+class+student], "meta" } }`; filter opsional `classId` |
 | `POST` | `/memberships` | ya | body `{ "classId": int>0, "studentId": int>0 }` | `{ "data": ClassStudent+class+student }` (isActive selalu `true`) |
 | `PATCH` | `/memberships/:id` | ya | params id; body `{ "isActive": boolean }` | `{ "data": ClassStudent }`; `404` "Penempatan siswa tidak ditemukan." |
+| `DELETE` | `/memberships/:id` | ya | params id | `{ "data": ClassStudent }` — nonaktifkan (soft delete, D21); `404` "Penempatan siswa tidak ditemukan." |
 
 Query list membership (`membershipListSchema`): strict, `page`(1)/`limit`(20,max100)/
 `sort`(`createdAt` default)/`order`(`desc` default) + `classId` (filter penempatan
@@ -419,6 +420,10 @@ per kelas).
   STUDENT) / "Kelas tidak ditemukan.".
 - `409 ACTIVE_CLASS_MEMBERSHIP_EXISTS` "Siswa sudah memiliki kelas aktif."
   (satu kelas aktif per siswa — keputusan D2; perpindahan = nonaktifkan dulu).
+- `DELETE` idempotent: baris sudah nonaktif → `200`; bila tuple sudah punya
+  arsip nonaktif lain → `409 MEMBERSHIP_ARCHIVED` "Penempatan siswa sudah
+  memiliki arsip nonaktif." (batas unique `(class_id, student_id, is_active)`,
+  D21/A0-2).
 - `ClassStudent`: `id`, `classId`, `studentId`, `isActive`, `createdAt`,
   `updatedAt`.
 
@@ -430,6 +435,7 @@ per kelas).
 | `GET` | `/assignments/manage` | ADMIN only | query list admin | `{ "data": { "items": [Assignment+class+subject+teacher], "meta" } }`; filter opsional `teacherId` |
 | `POST` | `/assignments` | ADMIN only | body `{ "teacherId", "classId", "subjectId": int>0 }` | `{ "data": Assignment+class+subject+teacher }` (isActive true) |
 | `PATCH` | `/assignments/:id` | ADMIN only | params id; body `{ "isActive": boolean }` | `{ "data": TeacherAssignment }`; `404` "Penugasan tidak ditemukan." |
+| `DELETE` | `/assignments/:id` | ADMIN only | params id | `{ "data": TeacherAssignment }` — nonaktifkan (soft delete, D21); `404` "Penugasan tidak ditemukan." |
 
 Query list assignment admin (`assignmentListSchema`): strict, `page`(1)/
 `limit`(20,max100)/`sort`(`createdAt` default)/`order`(`desc` default) +
@@ -439,6 +445,9 @@ Query list assignment admin (`assignmentListSchema`): strict, `page`(1)/
   "Mata pelajaran tidak ditemukan."
 - `409 DUPLICATE_ASSIGNMENT` "Penugasan aktif sudah ada." (triplet
   teacher/class/subject aktif unik).
+- `DELETE` idempotent: baris sudah nonaktif → `200`; bila tuple sudah punya
+  arsip nonaktif lain → `409 ASSIGNMENT_ARCHIVED` "Penugasan sudah memiliki
+  arsip nonaktif." (D21/A0-2). Sesi lama tetap tersimpan.
 - `TeacherAssignment`: `id`, `teacherId`, `classId`, `subjectId`, `isActive`,
   `createdAt`, `updatedAt`.
 
@@ -462,7 +471,8 @@ Semua route `[authenticate, authorize('ADMIN')]`.
 - Query (`userListSchema`) — strict: `page`(1)/`limit`(20,max100)/
   `sort`(`name`|`createdAt`)/`order`(`asc`|`desc`), `role`
   (`STUDENT`|`TEACHER`|`ADMIN`) opsional, `search` (≤100, cocok `username` ATAU
-  `name`, contains) opsional.
+  `name`, contains) opsional. User ter-soft-delete (`deletedAt != null`) tidak
+  pernah disertakan.
 - Success `200`: `{ "data": { "items": [publicUser], "meta": {...} } }`.
 
 ### 7.2 `POST /api/v1/users`
@@ -487,8 +497,38 @@ Semua route `[authenticate, authorize('ADMIN')]`.
 - Success `200`: `{ "data": { "message": "Password berhasil direset." } }`.
 - Errors: `404 NOT_FOUND` "Pengguna tidak ditemukan." — termasuk jika target
   **Admin** (password admin tidak dapat direset lewat endpoint ini, keputusan
-  D6).
+  D6) atau user sudah ter-soft-delete.
 - Password admin: gunakan forgot-password.
+
+### 7.4 `PATCH /api/v1/users/:id`
+
+- Auth: ADMIN. Params `id` int > 0 (coerce). Body (`updateUserSchema`) —
+  strict, minimal satu field: `name?` (1–150), `email?` (nullable, email ≤255),
+  `phone?` (nullable ≤30), `birthDate?` (nullable date), dan khusus
+  `role = STUDENT`: `studentNumber?` (1–50) + `educationLevelId?` (int>0).
+- `username` dan `role` tidak dapat diubah (tidak ada di schema).
+- Success `200`: `{ "data": <publicUser> }`.
+- Errors:
+  - `404 NOT_FOUND` "Pengguna tidak ditemukan." — target tidak ada, sudah
+    dihapus (`deletedAt`), atau target `ADMIN` (selaras D8).
+  - `400 VALIDATION_ERROR` "Data akademik hanya berlaku untuk akun siswa." bila
+    `studentNumber`/`educationLevelId` dikirim untuk non-siswa.
+  - `409 DUPLICATE_EMAIL` "Email sudah digunakan." /
+    `409 DUPLICATE_STUDENT_NUMBER` "Nomor siswa sudah digunakan."
+  - `404 NOT_FOUND` "Jenjang tidak ditemukan." bila `educationLevelId` invalid.
+
+### 7.5 `DELETE /api/v1/users/:id`
+
+- Auth: ADMIN. Params `id` int > 0 (coerce).
+- Soft delete (`deletedAt = now`, D21/A0-1): user hilang dari listing dan tidak
+  dapat login; riwayat absensi tetap. `username`/`email` tetap terpakai.
+- Success `200`: `{ "data": { "message": "Pengguna berhasil dihapus." } }`.
+- Errors:
+  - `400 CANNOT_DELETE_SELF` "Anda tidak dapat menghapus akun sendiri."
+  - `404 NOT_FOUND` "Pengguna tidak ditemukan." — target tidak ada, sudah
+    dihapus, atau target `ADMIN`.
+- Catatan (D21/A0-5): token JWT user yang dihapus tetap valid hingga
+  `ACCESS_TOKEN_TTL` (default `15m`).
 
 ---
 
@@ -544,15 +584,17 @@ Semua route `[authenticate, authorize('ADMIN')]`.
 
 ### 9.1 `POST /api/v1/attendance-sessions`
 
-- Auth: `[authenticate, authorize('TEACHER')]`.
+- Auth: `[authenticate, authorize('ADMIN','TEACHER')]`.
 - Body (`attendanceSessionSchema`) — strict:
   - `assignmentId`: int > 0
   - `sessionDate`: string `YYYY-MM-DD` (regex)
   - `startAt`, `endAt`: ISO 8601 **dengan offset** (wajib `datetime({offset:true})`)
   - `timezone`: string ≤100 — **wajib sama persis** dengan `SCHOOL_TIMEZONE`
 - Rules service:
-  - Assignment wajib milik guru dan aktif →
+  - TEACHER: assignment wajib milik guru dan aktif →
     `403 ASSIGNMENT_FORBIDDEN` "Penugasan tidak aktif atau bukan milik Anda."
+  - ADMIN: assignment cukup ada dan aktif (tanpa cek ownership) → `404 NOT_FOUND`
+    "Penugasan tidak ditemukan." bila tidak.
   - `timezone` tidak valid / beda dari sekolah →
     `400 INVALID_TIMEZONE` (fieldError `timezone`)
   - `endAt <= startAt` → `400 INVALID_TIME_RANGE` (fieldError `endAt`)
@@ -612,6 +654,31 @@ x-csrf-token: <csrf_token>
   milik guru — tidak membocorkan keberadaan), `400 VALIDATION_ERROR` (id).
 
 Sesi yang assignment-nya sudah dinonaktifkan tetap tidak muncul untuk guru.
+Sesi ter-soft-delete (`deletedAt != null`) juga tidak pernah muncul, tidak
+dapat diambil QR-nya, dan tidak dapat dipindai.
+
+### 9.4 `PATCH /api/v1/attendance-sessions/:id`
+
+- Auth: ADMIN only. Params `id` int > 0. Body (`attendanceSessionPatchSchema`)
+  — strict: `assignmentId?`, `sessionDate?`, `startAt?`, `endAt?`, `timezone?`.
+  Bila salah satu field jadwal dikirim, `sessionDate` + `startAt` + `endAt` +
+  `timezone` wajib dikirim sekaligus (superRefine); minimal satu field berubah.
+- Guard: `404 NOT_FOUND` "Sesi absensi tidak ditemukan." bila sesi tidak ada
+  atau ter-soft-delete.
+- `409 SESSION_HAS_RECORDS` "Sesi yang sudah memiliki kehadiran tidak dapat
+  diubah." bila sudah ada `attendance_records` (D21/A0-4).
+- Validasi timezone/range/tanggal sama seperti create; duplikat →
+  `409 DUPLICATE_ATTENDANCE_SESSION`. `qrPayload` tidak berubah.
+- Success `200`: `{ "data": sessionMetadata }`.
+
+### 9.5 `DELETE /api/v1/attendance-sessions/:id`
+
+- Auth: ADMIN only. Params `id` int > 0.
+- Guard: `404 NOT_FOUND` bila tidak ada/terhapus; `409 SESSION_HAS_RECORDS`
+  bila sudah ada kehadiran (D21/A0-4).
+- Soft delete (`deletedAt = now`) → sesi hilang dari listing/report dan scan
+  ditolak; riwayat `attendance_records` tidak diubah.
+- Success `200`: `{ "data": sessionMetadata }`.
 
 ---
 
@@ -807,21 +874,27 @@ Perilaku bersama:
 | `GET` | `/api/v1/academic/memberships` | cookie | ADMIN | Academic |
 | `POST` | `/api/v1/academic/memberships` | cookie | ADMIN | Academic |
 | `PATCH` | `/api/v1/academic/memberships/:id` | cookie | ADMIN | Academic |
+| `DELETE` | `/api/v1/academic/memberships/:id` | cookie | ADMIN | Academic |
 | `GET` | `/api/v1/academic/assignments` | cookie | TEACHER | Academic |
 | `GET` | `/api/v1/academic/assignments/manage` | cookie | ADMIN | Academic |
 | `POST` | `/api/v1/academic/assignments` | cookie | ADMIN | Academic |
 | `PATCH` | `/api/v1/academic/assignments/:id` | cookie | ADMIN | Academic |
+| `DELETE` | `/api/v1/academic/assignments/:id` | cookie | ADMIN | Academic |
 | `GET` | `/api/v1/academic/my-classes` | cookie | STUDENT | Academic |
 | `GET` | `/api/v1/users` | cookie | ADMIN | Users |
 | `POST` | `/api/v1/users` | cookie | ADMIN | Users |
+| `PATCH` | `/api/v1/users/:id` | cookie | ADMIN | Users |
+| `DELETE` | `/api/v1/users/:id` | cookie | ADMIN | Users |
 | `PATCH` | `/api/v1/users/:id/password` | cookie | ADMIN | Users |
 | `GET` | `/api/v1/banners` | cookie | semua | Banner |
 | `GET` | `/api/v1/banners/manage` | cookie | ADMIN | Banner |
 | `POST` | `/api/v1/banners` | cookie | ADMIN | Banner |
 | `PATCH` | `/api/v1/banners/:id` | cookie | ADMIN | Banner |
 | `DELETE` | `/api/v1/banners/:id` | cookie | ADMIN | Banner |
-| `POST` | `/api/v1/attendance-sessions` | cookie | TEACHER | Sesi |
+| `POST` | `/api/v1/attendance-sessions` | cookie | ADMIN, TEACHER* | Sesi |
 | `GET` | `/api/v1/attendance-sessions` | cookie | ADMIN, TEACHER* | Sesi |
+| `PATCH` | `/api/v1/attendance-sessions/:id` | cookie | ADMIN | Sesi |
+| `DELETE` | `/api/v1/attendance-sessions/:id` | cookie | ADMIN | Sesi |
 | `GET` | `/api/v1/attendance-sessions/:id/qr` | cookie | ADMIN, TEACHER* | QR |
 | `POST` | `/api/v1/attendance-scans` | cookie | STUDENT | Scan |
 | `GET` | `/api/v1/attendance/history` | cookie | STUDENT | Riwayat |
@@ -866,9 +939,10 @@ Metode verifikasi yang dijalankan saat dokumen ini dibuat:
    - `/api/v1/academic/education-levels` (+`:id`), `classes` (+`:id`),
      `subjects` (+`:id`), `memberships` (+`:id`), `assignments` (+`:id`),
      `my-classes`
-   - `/api/v1/users` (GET, POST), `/api/v1/users/:id/password`
+   - `/api/v1/users` (GET, POST), `/api/v1/users/:id` (PATCH, DELETE),
+     `/api/v1/users/:id/password`
    - `/api/v1/banners` (GET, POST), `/manage`, `/:id` (PATCH, DELETE)
-   - `/api/v1/attendance-sessions` (GET, POST), `/:id/qr`
+   - `/api/v1/attendance-sessions` (GET, POST), `/:id` (PATCH, DELETE), `/:id/qr`
    - `/api/v1/attendance-scans` (POST)
    - `/api/v1/attendance/history`, `/api/v1/attendance/classes/:id`,
      `/api/v1/attendance/today`
@@ -888,8 +962,9 @@ Metode verifikasi yang dijalankan saat dokumen ini dibuat:
    dan reset manual tanpa target Admin (D6), nama file export
    `laporan-kehadiran-{from}-{to}.xlsx` + `404 NO_DATA_TO_EXPORT` (D7),
    timezone UTC + configurable (D1).
-5. **Test.** `npm test` (unit + integration) di `backend/` hijau: 11 file,
-   60 test. Menutup login/logout/forgot, role rejection, create session,
+5. **Test.** `npm test` (unit + integration) di `backend/` hijau: 14 file,
+   93 test. Menutup login/logout/forgot, role rejection, CRUD admin
+   users/membership/assignment/session (soft delete D21), create session,
    invalid/duplicate scan (sequential + concurrent + P2002), boundary
    `-15/0/+15` menit, history scope, teacher class detail scope, admin global
    report, dan export workbook (kolom + nama file + empty `NO_DATA_TO_EXPORT`).

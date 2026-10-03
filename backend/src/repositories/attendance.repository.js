@@ -11,6 +11,7 @@ export function createAttendanceRepository(prisma) {
             },
           }
         : {}),
+      deletedAt: null,
       ...(classId ? { classId } : {}),
       ...(query.assignmentId ? { assignmentId: query.assignmentId } : {}),
       ...(user.role === "TEACHER"
@@ -71,6 +72,12 @@ export function createAttendanceRepository(prisma) {
         include: { class: true, subject: true },
       });
     },
+    findActiveAssignmentById(assignmentId) {
+      return prisma.teacherAssignment.findFirst({
+        where: { id: assignmentId, isActive: true },
+        include: { class: true, subject: true },
+      });
+    },
     createSession(data) {
       return prisma.attendanceSession.create({
         data,
@@ -82,7 +89,7 @@ export function createAttendanceRepository(prisma) {
     },
     listSessionsForTeacher(teacherId) {
       return prisma.attendanceSession.findMany({
-        where: { assignment: { teacherId, isActive: true } },
+        where: { deletedAt: null, assignment: { teacherId, isActive: true } },
         orderBy: [{ sessionDate: "desc" }, { startAt: "desc" }],
         include: {
           assignment: { include: { class: true, subject: true } },
@@ -92,6 +99,7 @@ export function createAttendanceRepository(prisma) {
     },
     listAllSessions() {
       return prisma.attendanceSession.findMany({
+        where: { deletedAt: null },
         orderBy: [{ sessionDate: "desc" }, { startAt: "desc" }],
         include: {
           assignment: { include: { class: true, subject: true } },
@@ -102,8 +110,8 @@ export function createAttendanceRepository(prisma) {
     findSessionForReader(id, user) {
       const where =
         user.role === "TEACHER"
-          ? { id, assignment: { teacherId: user.id, isActive: true } }
-          : { id };
+          ? { id, deletedAt: null, assignment: { teacherId: user.id, isActive: true } }
+          : { id, deletedAt: null };
       return prisma.attendanceSession.findFirst({
         where,
         include: {
@@ -112,9 +120,28 @@ export function createAttendanceRepository(prisma) {
         },
       });
     },
+    updateSession(id, data) {
+      return prisma.attendanceSession.update({
+        where: { id },
+        data,
+        include: {
+          assignment: { include: { class: true, subject: true } },
+          class: true,
+        },
+      });
+    },
+    softDeleteSession(id) {
+      return prisma.attendanceSession.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+    },
+    countSessionRecords(sessionId) {
+      return prisma.attendanceRecord.count({ where: { sessionId } });
+    },
     findSessionForScan(qrPayload) {
-      return prisma.attendanceSession.findUnique({
-        where: { qrPayload },
+      return prisma.attendanceSession.findFirst({
+        where: { qrPayload, deletedAt: null },
         include: { assignment: true },
       });
     },
@@ -122,6 +149,7 @@ export function createAttendanceRepository(prisma) {
       return prisma.attendanceSession.findMany({
         where: {
           sessionDate,
+          deletedAt: null,
           assignment: { isActive: true },
           class: { memberships: { some: { studentId, isActive: true } } },
         },

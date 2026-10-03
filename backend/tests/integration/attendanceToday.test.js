@@ -115,6 +115,7 @@ describe('attendance today schedule', () => {
     const args = findMany.mock.calls[0][0]
     expect(args.where).toEqual({
       sessionDate: new Date('2026-09-17T00:00:00.000Z'),
+      deletedAt: null,
       assignment: { isActive: true },
       class: { memberships: { some: { studentId: 1, isActive: true } } },
     })

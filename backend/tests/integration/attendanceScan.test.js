@@ -29,7 +29,7 @@ function createPrisma({ member = true, conflict = false, assignmentActive = true
       findFirst: vi.fn(({ where }) => Promise.resolve(users.find((value) => value.id === where.id && value.role === where.role) ?? null)),
     },
     attendanceSession: {
-      findUnique: vi.fn(({ where }) => Promise.resolve(where.qrPayload === qrPayload ? scanSession : null)),
+      findFirst: vi.fn(({ where }) => Promise.resolve(where.qrPayload === qrPayload ? scanSession : null)),
     },
     classStudent: {
       findFirst: vi.fn(() => Promise.resolve(member ? { id: 1, classId: session.classId, studentId: 1, isActive: true } : null)),
@@ -104,7 +104,7 @@ describe('attendance scan', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.error.code).toBe('INVALID_QR_PAYLOAD')
-    expect(prisma.attendanceSession.findUnique).not.toHaveBeenCalled()
+    expect(prisma.attendanceSession.findFirst).not.toHaveBeenCalled()
   })
 
   it('rejects a student who is not an active class member', async () => {
