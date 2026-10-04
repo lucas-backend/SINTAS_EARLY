@@ -11,6 +11,9 @@ import {
   attendanceScanSchema,
   attendanceSessionPatchSchema,
   attendanceSessionSchema,
+  attendanceStatusOverrideSchema,
+  dailyRecapQuerySchema,
+  recapSummaryQuerySchema,
 } from "../schemas/attendance.schemas.js";
 
 export function createAttendanceRouter({ prisma, env }) {
@@ -55,6 +58,13 @@ export function createAttendanceRouter({ prisma, env }) {
     authorize("ADMIN", "TEACHER"),
     validate(idParamSchema, "params"),
     controller.getQr,
+  );
+  router.get(
+    "/:id/roster",
+    authenticate,
+    authorize("ADMIN", "TEACHER"),
+    validate(idParamSchema, "params"),
+    controller.sessionRoster,
   );
   return router;
 }
@@ -125,11 +135,49 @@ export function createAttendanceReportRouter({ prisma, env }) {
     controller.exportReport,
   );
   router.get(
+    "/attendance/daily",
+    authenticate,
+    authorize("TEACHER"),
+    validate(dailyRecapQuerySchema, "query"),
+    controller.dailyRecap,
+  );
+  router.get(
+    "/attendance/summary",
+    authenticate,
+    authorize("TEACHER"),
+    validate(recapSummaryQuerySchema, "query"),
+    controller.recapSummary,
+  );
+  router.get(
     "/attendance",
     authenticate,
     authorize("ADMIN"),
     validate(attendanceReportQuerySchema, "query"),
     controller.globalReport,
+  );
+  return router;
+}
+
+export function createAttendanceStatusOverrideRouter({ prisma, env }) {
+  const router = Router();
+  const authenticate = createAuthenticate({ env });
+  const service = createAttendanceService({
+    repository: createAttendanceRepository(prisma),
+    env,
+  });
+  const controller = createAttendanceController({ service });
+  router.post(
+    "/",
+    authenticate,
+    authorize("TEACHER"),
+    validate(attendanceStatusOverrideSchema),
+    controller.setStatusOverride,
+  );
+  router.delete(
+    "/:sessionId/:studentId",
+    authenticate,
+    authorize("TEACHER"),
+    controller.clearStatusOverride,
   );
   return router;
 }

@@ -25,6 +25,19 @@ export function createAttendanceController({ service }) {
     updateSession: run((req) => service.updateSession(req.user, Number(req.params.id), req.body)),
     deleteSession: run((req) => service.deleteSession(req.user, Number(req.params.id))),
     getQr: run((req) => service.getQr(req.user, Number(req.params.id))),
+    sessionRoster: run((req) =>
+      service.sessionRoster(req.user, Number(req.params.id)),
+    ),
+    setStatusOverride: run((req) => service.setStatusOverride(req.user, req.body)),
+    clearStatusOverride: run((req) =>
+      service.clearStatusOverride(
+        req.user,
+        Number(req.params.sessionId),
+        Number(req.params.studentId),
+      ),
+    ),
+    dailyRecap: run((req) => service.dailyRecap(req.user, req.query)),
+    recapSummary: run((req) => service.recapSummary(req.user, req.query)),
     todaySchedule: run((req) => service.todaySchedule(req.user)),
     scan: run((req) => service.scan(req.user, req.body)),
     history: run((req) => service.history(req.user, req.query)),

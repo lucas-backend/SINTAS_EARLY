@@ -5,13 +5,13 @@ import { adminUser, renderApp, teacherUser } from '../../test/fixtures'
 import { API_BASE_URL, server } from '../../test/server'
 
 describe('akses role halaman siswa', () => {
-  it('guru tidak dapat membuka halaman jadwal siswa', async () => {
+  it('guru tidak dapat membuka halaman profil siswa', async () => {
     server.use(
       http.get(`${API_BASE_URL}/me`, () =>
         HttpResponse.json({ data: { user: teacherUser } }),
       ),
     )
-    renderApp(['/app/student/schedule'])
+    renderApp(['/app/student/profile'])
     expect(
       await screen.findByRole('heading', { name: 'Akses ditolak' }),
     ).toBeInTheDocument()

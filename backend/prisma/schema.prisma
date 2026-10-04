@@ -17,6 +17,10 @@ enum AttendanceStatus {
   HADIR
   TERLAMBAT
   TIDAK_HADIR
+  IZIN
+  SAKIT
+  ALFA
+  DISPEN
 }
 
 model User {
@@ -38,6 +42,8 @@ model User {
   classMemberships   ClassStudent[]      @relation("StudentMembership")
   teacherAssignments TeacherAssignment[] @relation("TeacherAssignmentOwner")
   attendanceRecords  AttendanceRecord[]
+  createdOverrides   AttendanceStatusOverride[] @relation("OverrideCreatedBy")
+  statusOverrides    AttendanceStatusOverride[] @relation("OverrideStudent")
 
   @@index([email])
   @@index([role])
@@ -154,6 +160,7 @@ model AttendanceSession {
   class        Class              @relation(fields: [classId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   createdBy    User               @relation("SessionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
   records      AttendanceRecord[]
+  statusOverrides AttendanceStatusOverride[]
 
   @@unique([assignmentId, sessionDate, startAt, endAt])
   @@index([assignmentId, startAt, endAt])
@@ -178,6 +185,24 @@ model AttendanceRecord {
   @@index([studentId, scannedAt])
   @@index([sessionId, status])
   @@map("attendance_records")
+}
+
+model AttendanceStatusOverride {
+  id        Int               @id @default(autoincrement())
+  sessionId Int               @map("session_id")
+  studentId Int               @map("student_id")
+  status    AttendanceStatus
+  createdBy Int               @map("created_by")
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime          @updatedAt @map("updated_at") @db.Timestamp(6)
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  student   User              @relation("OverrideStudent", fields: [studentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  author    User              @relation("OverrideCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([sessionId, studentId])
+  @@index([studentId])
+  @@index([sessionId, status])
+  @@map("attendance_status_overrides")
 }
 
 model Banner {

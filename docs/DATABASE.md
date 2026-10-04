@@ -185,12 +185,28 @@ Menyimpan satu record hasil scan siswa per sesi. Record ini adalah sumber data s
 | `session_id` | `INTEGER` | Tidak | FK ke `attendance_sessions.id` |
 | `student_id` | `INTEGER` | Tidak | FK ke `users.id` |
 | `scanned_at` | `TIMESTAMP(6)` | Tidak | Waktu server, UTC |
-| `status` | `ENUM('HADIR', 'TERLAMBAT', 'TIDAK_HADIR')` | Tidak | Wajib diisi |
+| `status` | `ENUM('HADIR', 'TERLAMBAT', 'TIDAK_HADIR', 'IZIN', 'SAKIT', 'ALFA', 'DISPEN')` | Tidak | Wajib diisi |
 | `late_minutes` | `INTEGER UNSIGNED` | Ya | Menit keterlambatan |
 | `created_at` | `TIMESTAMP(6)` | Tidak | `CURRENT_TIMESTAMP(6)` |
 | `updated_at` | `TIMESTAMP(6)` | Tidak | Diperbarui Prisma |
 
-### 4.11 `banners`
+### 4.11 `attendance_status_overrides`
+
+Menyimpan status manual guru (`IZIN`/`SAKIT`/`ALFA`/`DISPEN`) per `(sesi, siswa)`. Override hanya berlaku selama siswa belum scan; begitu ada `attendance_records`, status scan (`HADIR`/`TERLAMBAT`) yang menang. Tanpa record maupun override, status dihitung (`TIDAK_HADIR`) atau `null`.
+
+| Kolom | Tipe SQL | Null | Default/Constraint |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | Tidak | Primary key, `AUTO_INCREMENT` |
+| `session_id` | `INTEGER` | Tidak | FK ke `attendance_sessions.id` |
+| `student_id` | `INTEGER` | Tidak | FK ke `users.id` |
+| `status` | `ENUM('HADIR', 'TERLAMBAT', 'TIDAK_HADIR', 'IZIN', 'SAKIT', 'ALFA', 'DISPEN')` | Tidak | Wajib diisi |
+| `created_by` | `INTEGER` | Tidak | FK ke `users.id` (guru pembuat) |
+| `created_at` | `TIMESTAMP(6)` | Tidak | `CURRENT_TIMESTAMP(6)` |
+| `updated_at` | `TIMESTAMP(6)` | Tidak | Diperbarui Prisma |
+
+Unique `(session_id, student_id)` untuk idempotensi; index pada `student_id` dan `(session_id, status)`.
+
+### 4.12 `banners`
 
 Menyimpan banner informasi/event yang dapat ditampilkan pada beranda.
 
@@ -219,13 +235,17 @@ Nilai yang diperbolehkan pada `users.role`:
 
 ### `AttendanceStatus`
 
-Nilai enum pada `attendance_records.status`:
+Nilai enum pada `attendance_records.status` dan `attendance_status_overrides.status`:
 
 - `HADIR`
 - `TERLAMBAT`
 - `TIDAK_HADIR`
+- `IZIN`
+- `SAKIT`
+- `ALFA`
+- `DISPEN`
 
-Menurut aturan domain yang sudah dikunci, record yang dibuat oleh scan hanya menggunakan `HADIR` atau `TERLAMBAT`. `TIDAK_HADIR` dihitung pada saat history/report dibaca untuk siswa aktif pada kelas sesi yang belum memiliki record. Karena itu, enum tetap menyediakan nilai tersebut untuk kontrak domain, tetapi tidak boleh dibuat oleh alur scan.
+Menurut aturan domain yang sudah dikunci, record yang dibuat oleh scan hanya menggunakan `HADIR` atau `TERLAMBAT`. `TIDAK_HADIR` dihitung pada saat history/report dibaca untuk siswa aktif pada kelas sesi yang belum memiliki record. `IZIN`/`SAKIT`/`ALFA`/`DISPEN` hanya dibuat melalui input manual guru pada `attendance_status_overrides`. Karena itu, enum tetap menyediakan nilai tersebut untuk kontrak domain, tetapi tidak boleh dibuat oleh alur scan.
 
 ## 6. Unique Constraint dan Index
 
@@ -242,6 +262,7 @@ Menurut aturan domain yang sudah dikunci, record yang dibuat oleh scan hanya men
 - `attendance_sessions.qr_payload`
 - `attendance_sessions (assignment_id, session_date, start_at, end_at)`
 - `attendance_records (session_id, student_id)`
+- `attendance_status_overrides (session_id, student_id)`
 
 ### Index pendukung
 

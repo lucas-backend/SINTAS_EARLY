@@ -469,6 +469,69 @@ paths:
           "200": { $ref: "#/components/responses/Data" },
           "404": { $ref: "#/components/responses/NotFound" },
         }
+  /api/v1/attendance-sessions/{id}/roster:
+    get:
+      tags: [Attendance]
+      security: [{ cookieAuth: [] }]
+      description: Roster siswa satu sesi dengan status teresolusi (scan/override/computed). TEACHER dibatasi assignment aktif miliknya.
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        {
+          "200": { $ref: "#/components/responses/Data" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        }
+  /api/v1/attendance-status-overrides:
+    post:
+      tags: [Attendance]
+      security: [{ cookieAuth: [] }]
+      description: "TEACHER only. Status manual IZIN/SAKIT/ALFA/DISPEN; HADIR/TERLAMBAT/TIDAK_HADIR ditolak 400; siswa sudah scan ditolak 409."
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [sessionId, studentId, status],
+                      properties:
+                        {
+                          sessionId: { type: integer },
+                          studentId: { type: integer },
+                          status:
+                            {
+                              type: string,
+                              enum: [IZIN, SAKIT, ALFA, DISPEN],
+                            },
+                        },
+                    },
+                },
+            },
+        }
+      responses:
+        {
+          "200": { $ref: "#/components/responses/Data" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "404": { $ref: "#/components/responses/NotFound" },
+          "409": { $ref: "#/components/responses/Conflict" },
+        }
+  /api/v1/attendance-status-overrides/{sessionId}/{studentId}:
+    delete:
+      tags: [Attendance]
+      security: [{ cookieAuth: [] }]
+      description: TEACHER only. Menghapus override sehingga status kembali ke scan/computed.
+      parameters:
+        [
+          { $ref: "#/components/parameters/SessionId" },
+          { $ref: "#/components/parameters/StudentId" },
+        ]
+      responses:
+        {
+          "200": { $ref: "#/components/responses/Data" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        }
   /api/v1/attendance-scans:
     post:
       tags: [Attendance]
@@ -572,6 +635,37 @@ paths:
                   { schema: { $ref: "#/components/schemas/ErrorResponse" } },
               },
           }
+  /api/v1/reports/attendance/daily:
+    get:
+      tags: [Report]
+      security: [{ cookieAuth: [] }]
+      description: TEACHER only. Rekap siswa tidak masuk pada satu tanggal sekolah.
+      parameters:
+        [
+          {
+            name: date,
+            in: query,
+            required: true,
+            schema: { type: string, format: date },
+          },
+          { $ref: "#/components/parameters/ClassIdQuery" },
+        ]
+      responses:
+        {
+          "200": { $ref: "#/components/responses/Data" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        }
+  /api/v1/reports/attendance/summary:
+    get:
+      tags: [Report]
+      security: [{ cookieAuth: [] }]
+      description: TEACHER only. Rekap H.I.S.A.D per siswa dalam scope assignment guru.
+      parameters: [{ $ref: "#/components/parameters/ClassIdQuery" }]
+      responses:
+        {
+          "200": { $ref: "#/components/responses/Data" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        }
   /api/v1/users:
     get:
       {
@@ -647,6 +741,27 @@ components:
       required: false
       schema: { type: string, format: date-time }
       description: Filter tambahan `to`, `status`, `classId`, `assignmentId`, `page`, `limit`, `sort`, dan `order` mengikuti attendanceReportQuerySchema.
+    SessionId:
+      {
+        name: sessionId,
+        in: path,
+        required: true,
+        schema: { type: integer, minimum: 1 },
+      }
+    StudentId:
+      {
+        name: studentId,
+        in: path,
+        required: true,
+        schema: { type: integer, minimum: 1 },
+      }
+    ClassIdQuery:
+      {
+        name: classId,
+        in: query,
+        required: false,
+        schema: { type: integer, minimum: 1 },
+      }
   requestBodies:
     Name:
       {

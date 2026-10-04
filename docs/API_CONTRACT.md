@@ -746,7 +746,8 @@ Boundary yang dikunci (waktu server):
 Semua memakai `attendanceReportQuerySchema` (strict):
 
 - `from?`, `to?`: date (coerce); superRefine `to > from` (fieldError `to`)
-- `status?`: `HADIR` | `TERLAMBAT` | `TIDAK_HADIR`
+- `status?`: `HADIR` | `TERLAMBAT` | `TIDAK_HADIR` | `IZIN` | `SAKIT` | `ALFA` |
+  `DISPEN`
 - `classId?`, `assignmentId?`: int > 0
 - `page`(1), `limit`(20, max 100), `sort`(`sessionDate`|`scannedAt`|`status`,
   default `sessionDate`), `order`(`desc` default |`asc`)
@@ -853,6 +854,70 @@ Perilaku bersama:
     lagi nanti." (concurrency limit = 2)
   - `400 VALIDATION_ERROR` (query tidak dikenal / rentang invalid)
 
+### 11.6 `GET /api/v1/reports/attendance/daily` — rekap harian guru
+
+- Auth: TEACHER only. Query (`dailyRecapQuerySchema`, strict): `date`
+  (`YYYY-MM-DD`, wajib), `classId?` (int > 0).
+- Mengembalikan siswa yang **tidak masuk** pada tanggal sekolah tersebut dalam
+  scope assignment aktif guru, termasuk status `IZIN`/`SAKIT`/`ALFA`/`DISPEN`
+  manual dan `TIDAK_HADIR` computed.
+- Success `200`: `{ "data": { "date", "absent": [reportMetadata], "summary": { "hadir", "terlambat", "izin", "sakit", "alfa", "dispen", "tidakHadir", "h" } } }`.
+- Error role lain: `403 FORBIDDEN` "Hanya guru yang dapat melihat rekap harian."
+
+### 11.7 `GET /api/v1/reports/attendance/summary` — rekap H.I.S.A.D guru
+
+- Auth: TEACHER only. Query (`recapSummaryQuerySchema`, strict): `classId?`.
+- Mengagregasi seluruh sesi dalam scope assignment aktif guru per siswa. `h`
+  (H.I.S.A.D) = `hadir` + `terlambat`.
+- Success `200`: `{ "data": { "items": [{ "studentId", "studentName", "studentNumber", "classId", "className", "totalMeetings", "hadir", "terlambat", "izin", "sakit", "alfa", "dispen", "tidakHadir", "h" }], "summary": {...}, "meta": { "totalStudents", "totalSessions" } } }`.
+- Error role lain: `403 FORBIDDEN` "Hanya guru yang dapat melihat rekap
+  keseluruhan."
+
+### 11.8 `GET /api/v1/attendance-sessions/:id/roster` — roster satu sesi
+
+- Auth: `[authenticate, authorize('ADMIN','TEACHER')]`. Params `id` = sessionId.
+- Guru hanya untuk sesi pada assignment aktif miliknya; sesi lain/nonexistent →
+  `404 NOT_FOUND` "Sesi absensi tidak ditemukan."
+- Success `200`: `{ "data": { "session": sessionMetadata, "students": [{ "studentId", "studentName", "studentNumber", "status", "source", "scanned", "scannedAt", "lateMinutes" }], "summary": {...} } }`.
+  - `status`: `HADIR`/`TERLAMBAT` (scan), `IZIN`/`SAKIT`/`ALFA`/`DISPEN`
+    (override manual), `TIDAK_HADIR` (computed bila sesi berakhir tanpa
+    record/override), atau `null` (belum ada dan sesi belum berakhir).
+  - `source`: `SCAN` | `OVERRIDE` | `COMPUTED` | `NONE`.
+  - `scanned`: `true` bila siswa sudah memiliki `attendance_records` (status
+    terkunci, tidak dapat diubah manual).
+
+### 11.9 `POST /api/v1/attendance-status-overrides` — input status manual
+
+- Auth: TEACHER only.
+- Body (`attendanceStatusOverrideSchema`, strict): `sessionId` (int > 0),
+  `studentId` (int > 0), `status`: `IZIN` | `SAKIT` | `ALFA` | `DISPEN`.
+  `HADIR`/`TERLAMBAT`/`TIDAK_HADIR` → `400 VALIDATION_ERROR`.
+- Guard: sesi bukan milik assignment guru atau tidak ada → `404`; siswa bukan
+  anggota aktif kelas sesi → `404` (pesan "Siswa bukan anggota kelas sesi ini.").
+- **Siswa sudah melakukan scan** (`attendance_records` ada) → `409
+  ATTENDANCE_ALREADY_SCANNED` "Siswa sudah melakukan scan; status tidak dapat
+  diubah." Override manual tidak dibuat.
+- Upsert by `(sessionId, studentId)`. Override hanya berlaku selama siswa belum
+  scan; setelah ada `attendance_records`, status scan yang dipakai (bukan
+  override).
+- Success `200`: `{ "data": { "id", "sessionId", "studentId", "status" } }`.
+
+Contoh:
+
+```http
+POST /api/v1/attendance-status-overrides
+Content-Type: application/json
+x-csrf-token: <csrf_token>
+
+{ "sessionId": 10, "studentId": 4, "status": "SAKIT" }
+```
+
+### 11.10 `DELETE /api/v1/attendance-status-overrides/:sessionId/:studentId`
+
+- Auth: TEACHER only. Menghapus override sehingga status kembali ke hasil
+  scan/computed. Sesi bukan milik guru → `404`.
+- Success `200`: `{ "data": { "sessionId", "studentId", "cleared": true } }`.
+
 ---
 
 ## 12. Ringkasan Matriks Endpoint
@@ -903,12 +968,17 @@ Perilaku bersama:
 | `PATCH` | `/api/v1/attendance-sessions/:id` | cookie | ADMIN | Sesi |
 | `DELETE` | `/api/v1/attendance-sessions/:id` | cookie | ADMIN | Sesi |
 | `GET` | `/api/v1/attendance-sessions/:id/qr` | cookie | ADMIN, TEACHER* | QR |
+| `GET` | `/api/v1/attendance-sessions/:id/roster` | cookie | ADMIN, TEACHER* | Roster |
 | `POST` | `/api/v1/attendance-scans` | cookie | STUDENT | Scan |
+| `POST` | `/api/v1/attendance-status-overrides` | cookie | TEACHER* | Status manual |
+| `DELETE` | `/api/v1/attendance-status-overrides/:sessionId/:studentId` | cookie | TEACHER* | Status manual |
 | `GET` | `/api/v1/attendance/history` | cookie | STUDENT | Riwayat |
 | `GET` | `/api/v1/attendance/classes/:id` | cookie | TEACHER* | Detail kelas |
 | `GET` | `/api/v1/attendance/today` | cookie | STUDENT | Jadwal hari ini |
 | `GET` | `/api/v1/reports/attendance` | cookie | ADMIN | Report global |
 | `GET` | `/api/v1/reports/attendance/export` | cookie | ADMIN, TEACHER* | Export |
+| `GET` | `/api/v1/reports/attendance/daily` | cookie | TEACHER* | Rekap harian |
+| `GET` | `/api/v1/reports/attendance/summary` | cookie | TEACHER* | Rekap H.I.S.A.D |
 
 `*` = TEACHER dibatasi assignment aktif miliknya (scope di service, bukan
 klien).

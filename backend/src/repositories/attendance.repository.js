@@ -23,7 +23,7 @@ export function createAttendanceRepository(prisma) {
     };
   };
 
-  const reportInclude = (studentId) => ({
+    const reportInclude = (studentId) => ({
     assignment: { include: { subject: true } },
     class: {
       include: {
@@ -37,7 +37,25 @@ export function createAttendanceRepository(prisma) {
       ...(studentId ? { where: { studentId } } : {}),
       include: { student: { include: { studentProfile: true } } },
     },
-  });
+    statusOverrides: {
+      ...(studentId ? { where: { studentId } } : {}),
+    },
+  })
+
+  const recapInclude = () => ({
+    assignment: { include: { subject: true } },
+    class: {
+      include: {
+        memberships: {
+          where: { isActive: true },
+          include: { student: { include: { studentProfile: true } } },
+        },
+      },
+    },
+    records: true,
+    statusOverrides: true,
+  })
+;
 
   const listReportSessions = ({
     user,
@@ -200,6 +218,49 @@ export function createAttendanceRepository(prisma) {
     findActiveMembership(classId, studentId) {
       return prisma.classStudent.findFirst({
         where: { classId, studentId, isActive: true },
+      });
+    },
+    findSessionRoster(id, user) {
+      const where =
+        user.role === "TEACHER"
+          ? { id, deletedAt: null, assignment: { teacherId: user.id, isActive: true } }
+          : { id, deletedAt: null };
+      return prisma.attendanceSession.findFirst({
+        where,
+        include: recapInclude(),
+      });
+    },
+    listSessionsForRecap({ user, from, to, classId } = {}) {
+      return prisma.attendanceSession.findMany({
+        where: {
+          deletedAt: null,
+          ...(from || to
+            ? {
+                sessionDate: {
+                  ...(from ? { gte: from } : {}),
+                  ...(to ? { lte: to } : {}),
+                },
+              }
+            : {}),
+          ...(classId ? { classId } : {}),
+          ...(user?.role === "TEACHER"
+            ? { assignment: { teacherId: user.id, isActive: true } }
+            : {}),
+        },
+        orderBy: [{ sessionDate: "desc" }, { startAt: "desc" }],
+        include: recapInclude(),
+      });
+    },
+    upsertStatusOverride({ sessionId, studentId, status, createdById }) {
+      return prisma.attendanceStatusOverride.upsert({
+        where: { sessionId_studentId: { sessionId, studentId } },
+        create: { sessionId, studentId, status, createdBy: createdById },
+        update: { status },
+      });
+    },
+    deleteStatusOverride(sessionId, studentId) {
+      return prisma.attendanceStatusOverride.delete({
+        where: { sessionId_studentId: { sessionId, studentId } },
       });
     },
     createAttendanceRecord(data) {

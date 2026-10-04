@@ -42,7 +42,17 @@ export const attendanceSessionPatchSchema = z.object({
 export const attendanceReportQuerySchema = z.object({
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
-  status: z.enum(['HADIR', 'TERLAMBAT', 'TIDAK_HADIR']).optional(),
+  status: z
+    .enum([
+      'HADIR',
+      'TERLAMBAT',
+      'TIDAK_HADIR',
+      'IZIN',
+      'SAKIT',
+      'ALFA',
+      'DISPEN',
+    ])
+    .optional(),
   classId: id.optional(),
   assignmentId: id.optional(),
   page: z.coerce.number().int().min(1).default(1),
@@ -54,3 +64,20 @@ export const attendanceReportQuerySchema = z.object({
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['to'], message: 'Tanggal akhir harus setelah tanggal mulai.' })
   }
 })
+
+// Status manual guru (R1/R3): hanya IZIN/SAKIT/ALFA/DISPEN yang dapat diisi;
+// HADIR/TERLAMBAT berasal dari scan dan TIDAK_HADIR dihitung saat membaca.
+export const attendanceStatusOverrideSchema = z.object({
+  sessionId: id,
+  studentId: id,
+  status: z.enum(['IZIN', 'SAKIT', 'ALFA', 'DISPEN']),
+}).strict()
+
+export const dailyRecapQuerySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Gunakan format tanggal YYYY-MM-DD.'),
+  classId: id.optional(),
+}).strict()
+
+export const recapSummaryQuerySchema = z.object({
+  classId: id.optional(),
+}).strict()

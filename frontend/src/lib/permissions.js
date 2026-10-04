@@ -27,7 +27,6 @@ const ROLE_SEGMENT = Object.freeze({
 const ROLE_NAV = Object.freeze({
   STUDENT: [
     { to: '/app/student', label: 'Beranda', end: true, icon: 'home' },
-    { to: '/app/student/schedule', label: 'Jadwal', end: false, icon: 'calendar' },
     { to: '/app/student/profile', label: 'Profil', end: true, icon: 'user' },
   ],
   TEACHER: [

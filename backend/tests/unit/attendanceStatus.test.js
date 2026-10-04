@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   AttendanceStatus,
   attendanceSessionSchema,
+  attendanceSource,
   classifyAttendanceScan,
+  resolveAttendanceStatus,
 } from '../../src/domain/attendanceStatus.js'
 
 const startAt = new Date('2026-09-17T08:00:00.000Z')
@@ -15,6 +17,10 @@ describe('attendance domain', () => {
       HADIR: 'HADIR',
       TERLAMBAT: 'TERLAMBAT',
       TIDAK_HADIR: 'TIDAK_HADIR',
+      IZIN: 'IZIN',
+      SAKIT: 'SAKIT',
+      ALFA: 'ALFA',
+      DISPEN: 'DISPEN',
     })
   })
 
@@ -65,5 +71,33 @@ describe('attendance domain', () => {
   it('rejects scans before the window and after the session', () => {
     expect(() => classifyAttendanceScan({ startAt, endAt, scanAt: scanAt(-15, -1) })).toThrow(RangeError)
     expect(() => classifyAttendanceScan({ startAt, endAt, scanAt: new Date('2026-09-17T09:00:00.001Z') })).toThrow(RangeError)
+  })
+
+  it('lets the scan win over a manual override once the student scans', () => {
+    const record = { status: AttendanceStatus.HADIR }
+    const override = { status: AttendanceStatus.IZIN }
+    expect(resolveAttendanceStatus({ record, override, sessionEnded: true })).toBe(
+      AttendanceStatus.HADIR,
+    )
+    expect(attendanceSource({ record, override, status: AttendanceStatus.HADIR })).toBe(
+      'SCAN',
+    )
+  })
+
+  it('uses the manual override when the student has not scanned yet', () => {
+    const override = { status: AttendanceStatus.SAKIT }
+    expect(resolveAttendanceStatus({ override, sessionEnded: false })).toBe(
+      AttendanceStatus.SAKIT,
+    )
+    expect(attendanceSource({ override, status: AttendanceStatus.SAKIT })).toBe(
+      'OVERRIDE',
+    )
+  })
+
+  it('computes TIDAK_HADIR only after the session ends without record/override', () => {
+    expect(resolveAttendanceStatus({ sessionEnded: true })).toBe(
+      AttendanceStatus.TIDAK_HADIR,
+    )
+    expect(resolveAttendanceStatus({ sessionEnded: false })).toBeNull()
   })
 })

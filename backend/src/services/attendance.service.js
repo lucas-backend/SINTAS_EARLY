@@ -3,6 +3,9 @@ import { normalizeSessionTimes, localDate } from "../domain/attendanceSession.js
 import {
   classifyAttendanceScan,
   classifyScheduleItem,
+  resolveAttendanceStatus,
+  attendanceSource,
+  isPresentStatus,
 } from "../domain/attendanceStatus.js";
 import { isOpaqueQrPayload } from "../domain/attendanceQr.js";
 import { AppError } from "../middleware/errorHandler.js";
@@ -70,7 +73,7 @@ const scheduleItem = (session, schedule) => ({
   scanned: schedule.scanned,
 });
 
-const reportMetadata = ({ session, student, record, status }) => ({
+const reportMetadata = ({ session, student, record, status, override = null }) => ({
   id: record?.id ?? `computed-${session.id}-${student.id}`,
   sessionId: session.id,
   studentId: student.id,
@@ -85,6 +88,7 @@ const reportMetadata = ({ session, student, record, status }) => ({
   endAt: session.endAt,
   scannedAt: record?.scannedAt ?? null,
   status,
+  source: attendanceSource({ record, override, status }),
   lateMinutes: record?.lateMinutes ?? 0,
 });
 
@@ -140,6 +144,72 @@ function exportFileName(query) {
     ? new Date(query.to).toISOString().slice(0, 10).replaceAll("-", "")
     : "akhir";
   return `laporan-kehadiran-${from}-${to}.xlsx`;
+}
+
+const STATUS_SUMMARY_KEYS = Object.freeze({
+  HADIR: "hadir",
+  TERLAMBAT: "terlambat",
+  IZIN: "izin",
+  SAKIT: "sakit",
+  ALFA: "alfa",
+  DISPEN: "dispen",
+  TIDAK_HADIR: "tidakHadir",
+});
+
+function emptySummary() {
+  return {
+    hadir: 0,
+    terlambat: 0,
+    izin: 0,
+    sakit: 0,
+    alfa: 0,
+    dispen: 0,
+    tidakHadir: 0,
+    h: 0,
+  };
+}
+
+function addToSummary(summary, status) {
+  const key = STATUS_SUMMARY_KEYS[status];
+  if (key) summary[key] += 1;
+}
+
+function resolveMemberStatus(session, student, nowValue) {
+  const record =
+    session.records.find((value) => value.studentId === student.id) ?? null;
+  const override =
+    session.statusOverrides?.find(
+      (value) => value.studentId === student.id,
+    ) ?? null;
+  const status = resolveAttendanceStatus({
+    record,
+    override,
+    sessionEnded: nowValue > session.endAt,
+  });
+  return { record, override, status };
+}
+
+function rosterPayload(session, nowValue) {
+  const students = session.class.memberships.map(({ student }) => {
+    const { record, override, status } = resolveMemberStatus(
+      session,
+      student,
+      nowValue,
+    );
+    return {
+      studentId: student.id,
+      studentName: student.name,
+      studentNumber: student.studentProfile?.studentNumber ?? null,
+      status,
+      source: attendanceSource({ record, override, status }),
+      scanned: Boolean(record),
+      scannedAt: record?.scannedAt ?? null,
+      lateMinutes: record?.lateMinutes ?? 0,
+    };
+  });
+  const summary = emptySummary();
+  students.forEach((entry) => addToSummary(summary, entry.status));
+  return { session: sessionMetadata(session), students, summary };
 }
 
 export function createAttendanceService({
@@ -417,14 +487,21 @@ export function createAttendanceService({
             const record = session.records.find(
               (value) => value.studentId === student.id,
             );
-            const status =
-              record?.status ?? (now() > session.endAt ? "TIDAK_HADIR" : null);
+            const override =
+              session.statusOverrides?.find(
+                (value) => value.studentId === student.id,
+              ) ?? null;
+            const status = resolveAttendanceStatus({
+              record,
+              override,
+              sessionEnded: now() > session.endAt,
+            });
             if (
               !status ||
               (reportQuery.status && reportQuery.status !== status)
             )
               return [];
-            return [reportMetadata({ session, student, record, status })];
+            return [reportMetadata({ session, student, record, status, override })];
           }),
         );
         if (rows.length === 0)
@@ -492,14 +569,173 @@ export function createAttendanceService({
           const record = session.records.find(
             (value) => value.studentId === student.id,
           );
-          const status =
-            record?.status ?? (nowValue > session.endAt ? "TIDAK_HADIR" : null);
+          const override =
+            session.statusOverrides?.find(
+              (value) => value.studentId === student.id,
+            ) ?? null;
+          const status = resolveAttendanceStatus({
+            record,
+            override,
+            sessionEnded: nowValue > session.endAt,
+          });
           if (!status || (reportQuery.status && reportQuery.status !== status))
             return [];
-          return [reportMetadata({ session, student, record, status })];
+          return [reportMetadata({ session, student, record, status, override })];
         });
       });
       return pageResult(items, reportQuery, total);
+    },
+    async setStatusOverride(user, { sessionId, studentId, status }) {
+      if (user.role !== "TEACHER")
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Hanya guru yang dapat mengubah status kehadiran.",
+        );
+      const session = await repository.findSessionForReader(sessionId, user);
+      if (!session)
+        throw new AppError(404, "NOT_FOUND", "Sesi absensi tidak ditemukan.");
+      const membership = await repository.findActiveMembership(
+        session.classId,
+        studentId,
+      );
+      if (!membership)
+        throw new AppError(
+          404,
+          "NOT_FOUND",
+          "Siswa bukan anggota kelas sesi ini.",
+        );
+      const record = await repository.findAttendanceRecord(
+        sessionId,
+        studentId,
+      );
+      if (record)
+        throw new AppError(
+          409,
+          "ATTENDANCE_ALREADY_SCANNED",
+          "Siswa sudah melakukan scan; status tidak dapat diubah.",
+        );
+      const override = await repository.upsertStatusOverride({
+        sessionId,
+        studentId,
+        status,
+        createdById: user.id,
+      });
+      return {
+        id: override.id,
+        sessionId,
+        studentId,
+        status: override.status ?? status,
+      };
+    },
+    async clearStatusOverride(user, sessionId, studentId) {
+      if (user.role !== "TEACHER")
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Hanya guru yang dapat mengubah status kehadiran.",
+        );
+      const session = await repository.findSessionForReader(sessionId, user);
+      if (!session)
+        throw new AppError(404, "NOT_FOUND", "Sesi absensi tidak ditemukan.");
+      await repository.deleteStatusOverride(sessionId, studentId);
+      return { sessionId, studentId, cleared: true };
+    },
+    async sessionRoster(user, sessionId) {
+      requireReader(user);
+      const session = await repository.findSessionRoster(sessionId, user);
+      if (!session)
+        throw new AppError(404, "NOT_FOUND", "Sesi absensi tidak ditemukan.");
+      return rosterPayload(session, now());
+    },
+    async dailyRecap(user, query) {
+      if (user.role !== "TEACHER")
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Hanya guru yang dapat melihat rekap harian.",
+        );
+      const start = new Date(`${query.date}T00:00:00.000Z`);
+      const end = new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
+      const sessions = await repository.listSessionsForRecap({
+        user,
+        from: start,
+        to: end,
+        classId: query.classId,
+      });
+      const nowValue = now();
+      const absent = [];
+      const summary = emptySummary();
+      sessions.forEach((session) => {
+        session.class.memberships.forEach(({ student }) => {
+          const { record, override, status } = resolveMemberStatus(
+            session,
+            student,
+            nowValue,
+          );
+          if (!status) return;
+          addToSummary(summary, status);
+          if (!isPresentStatus(status))
+            absent.push(
+              reportMetadata({ session, student, record, status, override }),
+            );
+        });
+      });
+      return { date: query.date, absent, summary };
+    },
+    async recapSummary(user, query = {}) {
+      if (user.role !== "TEACHER")
+        throw new AppError(
+          403,
+          "FORBIDDEN",
+          "Hanya guru yang dapat melihat rekap keseluruhan.",
+        );
+      const sessions = await repository.listSessionsForRecap({
+        user,
+        classId: query.classId,
+      });
+      const nowValue = now();
+      const perStudent = new Map();
+      const summary = emptySummary();
+      sessions.forEach((session) => {
+        session.class.memberships.forEach(({ student }) => {
+          const { status } = resolveMemberStatus(session, student, nowValue);
+          let entry = perStudent.get(student.id);
+          if (!entry) {
+            entry = {
+              studentId: student.id,
+              studentName: student.name,
+              studentNumber: student.studentProfile?.studentNumber ?? null,
+              classId: session.classId,
+              className: session.class?.name,
+              totalMeetings: 0,
+              hadir: 0,
+              terlambat: 0,
+              izin: 0,
+              sakit: 0,
+              alfa: 0,
+              dispen: 0,
+              tidakHadir: 0,
+              h: 0,
+            };
+            perStudent.set(student.id, entry);
+          }
+          entry.totalMeetings += 1;
+          if (!status) return;
+          addToSummary(entry, status);
+          addToSummary(summary, status);
+        });
+      });
+      const items = [...perStudent.values()];
+      items.forEach((entry) => {
+        entry.h = entry.hadir + entry.terlambat;
+      });
+      summary.h = summary.hadir + summary.terlambat;
+      return {
+        items,
+        summary,
+        meta: { totalStudents: items.length, totalSessions: sessions.length },
+      };
     },
   };
 }

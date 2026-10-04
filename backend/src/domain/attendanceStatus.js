@@ -7,7 +7,52 @@ export const AttendanceStatus = Object.freeze({
   HADIR: 'HADIR',
   TERLAMBAT: 'TERLAMBAT',
   TIDAK_HADIR: 'TIDAK_HADIR',
+  IZIN: 'IZIN',
+  SAKIT: 'SAKIT',
+  ALFA: 'ALFA',
+  DISPEN: 'DISPEN',
 })
+
+// Status yang hanya dapat diisi manual oleh guru (R1: HADIR/TERLAMBAT dari
+// scan, TIDAK_HADIR computed on read).
+export const MANUAL_ATTENDANCE_STATUSES = Object.freeze([
+  AttendanceStatus.IZIN,
+  AttendanceStatus.SAKIT,
+  AttendanceStatus.ALFA,
+  AttendanceStatus.DISPEN,
+])
+
+// Status yang dianggap "masuk" (R2: kolom H = HADIR + TERLAMBAT).
+export const PRESENT_STATUSES = Object.freeze([
+  AttendanceStatus.HADIR,
+  AttendanceStatus.TERLAMBAT,
+])
+
+export function isManualAttendanceStatus(status) {
+  return MANUAL_ATTENDANCE_STATUSES.includes(status)
+}
+
+export function isPresentStatus(status) {
+  return PRESENT_STATUSES.includes(status)
+}
+
+// Prioritas: hasil scan guru menang atas override manual — begitu siswa scan,
+// statusnya pasti "masuk" (HADIR/TERLAMBAT) walau guru sebelumnya mengisi
+// IZIN/SAKIT/ALFA/DISPEN. Tanpa scan, override manual dipakai; sesi yang sudah
+// berakhir tanpa record/override dihitung TIDAK_HADIR; sebelum sesi berakhir
+// tanpa keduanya = null.
+export function resolveAttendanceStatus({ record = null, override = null, sessionEnded = false }) {
+  if (record?.status) return record.status
+  if (override?.status) return override.status
+  return sessionEnded ? AttendanceStatus.TIDAK_HADIR : null
+}
+
+export function attendanceSource({ record = null, override = null, status = null }) {
+  if (record?.status) return 'SCAN'
+  if (override?.status) return 'OVERRIDE'
+  return status === AttendanceStatus.TIDAK_HADIR ? 'COMPUTED' : 'NONE'
+}
+
 
 export const ScheduleWindowStatus = Object.freeze({
   BELUM_DIBUKA: 'BELUM_DIBUKA',

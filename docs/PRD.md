@@ -29,7 +29,7 @@ Guru mengajar satu atau lebih mata pelajaran pada beberapa kelas. Guru membutuhk
 
 - Menyediakan login berbasis username dan password untuk tiga role.
 - Menyediakan absensi QR Code dengan aturan waktu yang konsisten.
-- Menyimpan status Hadir, Terlambat, dan Tidak Hadir.
+- Menyimpan status Hadir, Terlambat, dan Tidak Hadir, serta status manual Izin, Sakit, Alfa, dan Dispen (format H.I.S.A.D).
 - Menyediakan riwayat personal, riwayat per kelas, dan laporan keseluruhan sekolah.
 - Memungkinkan Admin mengelola pengguna, kelas, penempatan guru-siswa, dan banner event.
 - Menghasilkan aplikasi monolith React.js dan Express.js dengan MySQL yang dapat diuji dan didokumentasikan.
@@ -193,9 +193,11 @@ project/
 
 - Siswa dapat melihat riwayat absensi miliknya beserta tanggal, kelas/mata pelajaran, status, dan menit keterlambatan bila ada.
 - Guru dapat membuka detail kehadiran siswa per kelas melalui aksi lihat.
+- Guru dapat memilih satu pertemuan (sesi) dan melihat daftar siswa beserta status H.I.S.A.D, serta menetapkan status manual Izin/Sakit/Alfa/Dispen per siswa untuk pertemuan tersebut (Hadir/Terlambat berasal dari scan, Tidak Hadir dihitung server).
+- Guru dapat membuka rekap harian (siswa tidak masuk) dan rekap keseluruhan per siswa dalam format H.I.S.A.D untuk penugasan yang diampu.
 - Guru dapat mengekspor rekap kelas ke `.xlsx`.
 - Guru hanya dapat melihat data dari kelas dan mata pelajaran yang ditugaskan.
-- Acceptance criteria: hasil riwayat sesuai data tersimpan; filter/scope akses tidak melampaui penugasan; file ekspor dapat dibuka sebagai workbook Excel dan memuat status kehadiran.
+- Acceptance criteria: hasil riwayat sesuai data tersimpan; filter/scope akses tidak melampaui penugasan; status manual hanya Izin/Sakit/Alfa/Dispen dan hanya oleh guru pemegang penugasan; file ekspor dapat dibuka sebagai workbook Excel dan memuat status kehadiran.
 
 ### FR-08. Laporan Admin
 

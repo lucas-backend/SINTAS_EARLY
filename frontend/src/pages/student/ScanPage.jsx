@@ -199,11 +199,11 @@ export default function StudentScanPage() {
     <section className="mx-auto w-full max-w-md space-y-4">
       <div>
         <Link
-          to="/app/student/schedule"
+          to="/app/student"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-500"
         >
           <ArrowBackRoundedIcon className="h-4! w-4!" />
-          Kembali ke jadwal
+          Kembali
         </Link>
         <h1 className="mt-3 text-2xl font-semibold text-ink-900">
           {stage === STAGE.RESULT ? 'Hasil scan' : 'Scan QR absensi'}

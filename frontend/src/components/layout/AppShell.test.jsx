@@ -27,9 +27,6 @@ describe('app shell dan navigasi per role', () => {
     expect(
       within(bottomNav).queryByRole('button', { name: 'Riwayat' }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Jadwal' }).getAttribute('href'),
-    ).toBe('/app/student/schedule')
   })
 
   it('menampilkan navigasi Beranda dan Profil untuk guru', async () => {

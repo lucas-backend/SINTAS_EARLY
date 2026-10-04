@@ -151,6 +151,23 @@ function createPrisma() {
           updatedAt: new Date("2026-09-16T05:00:00.000Z"),
         }),
       ),
+      delete: vi.fn(({ where }) =>
+        Promise.resolve({
+          id: 300,
+          sessionId: where.sessionId_studentId.sessionId,
+          studentId: where.sessionId_studentId.studentId,
+        }),
+      ),
+    },
+    attendanceRecord: {
+      findUnique: vi.fn(({ where }) => {
+        const { sessionId, studentId } = where.sessionId_studentId;
+        const session = sessions.find((value) => value.id === sessionId);
+        const record =
+          session?.records.find((value) => value.studentId === studentId) ??
+          null;
+        return Promise.resolve(record);
+      }),
     },
   };
 }
@@ -186,6 +203,16 @@ describe("teacher attendance recap", () => {
       studentId: 4,
       status: "SAKIT",
     });
+    expect(prisma.attendanceStatusOverride.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          sessionId: 10,
+          studentId: 4,
+          status: "SAKIT",
+          createdBy: 2,
+        }),
+      }),
+    );
 
     const invalid = await request(app)
       .post("/api/v1/attendance-status-overrides")
@@ -205,6 +232,22 @@ describe("teacher attendance recap", () => {
       .set("Cookie", cookie)
       .send({ sessionId: 10, studentId: 99, status: "IZIN" });
     expect(notMember.status).toBe(404);
+  });
+
+  it("rejects setting a manual status for a student who already scanned", async () => {
+    setServerTime("2026-09-16T05:00:00.000Z");
+    const prisma = createPrisma();
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } });
+    const cookie = await login(app, "teacher");
+
+    const response = await request(app)
+      .post("/api/v1/attendance-status-overrides")
+      .set("Cookie", cookie)
+      .send({ sessionId: 10, studentId: 3, status: "IZIN" });
+
+    expect(response.status).toBe(409);
+    expect(response.body.error.code).toBe("ATTENDANCE_ALREADY_SCANNED");
+    expect(prisma.attendanceStatusOverride.upsert).not.toHaveBeenCalled();
   });
 
   it.each(["admin", "student"])(
@@ -270,6 +313,44 @@ describe("teacher attendance recap", () => {
       tidakHadir: 1,
     });
     expect(response.body.data.summary).toMatchObject({ hadir: 1, izin: 1 });
+  });
+
+  it("returns the per-session roster with resolved statuses", async () => {
+    setServerTime("2026-09-16T05:00:00.000Z");
+    const app = createApp({
+      prisma: createPrisma(),
+      env,
+      logger: { error: vi.fn() },
+    });
+    const response = await request(app)
+      .get("/api/v1/attendance-sessions/10/roster")
+      .set("Cookie", await login(app, "teacher"));
+
+    expect(response.status).toBe(200);
+    const byStudent = Object.fromEntries(
+      response.body.data.students.map((row) => [row.studentId, row]),
+    );
+    expect(byStudent[3]).toMatchObject({ status: "HADIR", source: "SCAN" });
+    expect(byStudent[4]).toMatchObject({ status: "IZIN", source: "OVERRIDE" });
+    expect(response.body.data.summary).toMatchObject({ hadir: 1, izin: 1 });
+  });
+
+  it("lets a teacher clear a manual status override", async () => {
+    const prisma = createPrisma();
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } });
+    const response = await request(app)
+      .delete("/api/v1/attendance-status-overrides/10/4")
+      .set("Cookie", await login(app, "teacher"));
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toMatchObject({
+      sessionId: 10,
+      studentId: 4,
+      cleared: true,
+    });
+    expect(prisma.attendanceStatusOverride.delete).toHaveBeenCalledWith({
+      where: { sessionId_studentId: { sessionId: 10, studentId: 4 } },
+    });
   });
 
   it("scopes recap endpoints to teachers only", async () => {

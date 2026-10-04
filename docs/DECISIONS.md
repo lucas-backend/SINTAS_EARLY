@@ -651,6 +651,80 @@ TEACHER saja. Tidak ada perubahan backend/migration; guru tetap read-only
 Keputusan G1–G6 dikunci. Open Item O-1 (section "Besok") dan O-2 (layar referensi
 golden master) tidak memblokir implementasi J1–J5 dengan nilai default di atas.
 
+## 24. Status manual H.I.S.A.D & halaman kehadiran kelas per pertemuan (PROMPT_FITUR)
+
+**Status: DECIDED untuk MVP.**
+
+Memperluas status kehadiran ke H.I.S.A.D dan menambah input status manual guru
+per pertemuan. Bagian ini meng-override penguncian enum pada `AGENTS.md`
+(`HADIR`/`TERLAMBAT`/`TIDAK_HADIR`) sebagaimana diwajibkan `PROMPT_FITUR.md`,
+dan disertai pembaruan `docs/PRD.md`.
+
+### R1 — Perluasan enum status
+
+- **Pilihan final:** `AttendanceStatus` = `HADIR`, `TERLAMBAT`, `TIDAK_HADIR`,
+  `IZIN`, `SAKIT`, `ALFA`, `DISPEN`. `HADIR`/`TERLAMBAT` tetap berasal dari scan;
+  `TIDAK_HADIR` tetap computed on read; `IZIN`/`SAKIT`/`ALFA`/`DISPEN` hanya dari
+  input manual guru.
+- **Dampak:** migration `20261004014716_attendance_status_overrides` +
+  `schema.prisma`, domain/service/schema, `docs/PRD.md`, `docs/DATABASE.md`,
+  `docs/openapi.yaml`.
+
+### R2 — Rekap H.I.S.A.D
+
+- **Pilihan final:** Kolom `H` = `HADIR` + `TERLAMBAT` (Terlambat jadi breakdown);
+  `A` = `ALFA` + computed `TIDAK_HADIR`. Kartu ringkasan per sesi: Hadir
+  (HADIR+TERLAMBAT), Izin, Sakit, Alfa (ALFA+TIDAK_HADIR), Dispen.
+
+### R3 — Penyimpanan status manual
+
+- **Pilihan final:** Tabel baru `attendance_status_overrides` dengan unique
+  `(session_id, student_id)`; berlaku per sesi/pertemuan; hanya guru pemegang
+  penugasan (scope assignment aktif milik guru). Status tidak disimpan ulang ke
+  `attendance_records`.
+- **Dampak:** model Prisma `AttendanceStatusOverride` + relasi; repository
+  `upsertStatusOverride`/`deleteStatusOverride`.
+
+### R4 — Prioritas sumber status
+
+- **Pilihan final:** Hasil **scan menang atas override manual** — begitu siswa
+  scan, statusnya pasti "masuk" (`HADIR`/`TERLAMBAT`) walau guru sebelumnya
+  mengisi `IZIN`/`SAKIT`/`ALFA`/`DISPEN`. Tanpa scan, override manual dipakai;
+  sesi berakhir tanpa record/override → `TIDAK_HADIR`; sebelum sesi berakhir dan
+  belum ada record/override → `null` (belum absen). Implementasi di
+  `src/domain/attendanceStatus.js` `resolveAttendanceStatus`.
+
+### R5 — Endpoint rekap & input manual
+
+- **Pilihan final:**
+  - `POST /api/v1/attendance-status-overrides` (TEACHER) — body
+    `{sessionId, studentId, status}`; status hanya IZIN/SAKIT/ALFA/DISPEN
+    (HADIR/TERLAMBAT/TIDAK_HADIR → `400 VALIDATION_ERROR`); sesi/siswa bukan
+    sasaran → `404`; **siswa sudah scan → `409 ATTENDANCE_ALREADY_SCANNED`**.
+  - `DELETE /api/v1/attendance-status-overrides/:sessionId/:studentId` (TEACHER)
+    — menghapus override (kembali ke hasil scan/computed).
+  - `GET /api/v1/reports/attendance/daily?date=YYYY-MM-DD` (TEACHER) — siswa
+    tidak masuk pada tanggal itu.
+  - `GET /api/v1/reports/attendance/summary` (TEACHER) — rekap keseluruhan per
+    siswa dalam scope penugasan guru.
+  - `GET /api/v1/attendance-sessions/:id/roster` (ADMIN/TEACHER) — roster satu
+    sesi + status teresolusi (dipakai halaman kehadiran kelas).
+- **Alasan:** Guru butuh daftar per pertemuan untuk menandai status; rekap
+  melengkapi kebutuhan pelaporan. Otorisasi role + scope assignment di service.
+
+### R6 — Halaman kehadiran kelas guru
+
+- **Pilihan final:** Route `/app/teacher/classes/:classId/attendance` tetap, kini
+  berisi pemilih pertemuan (sesi kelas tersebut), kartu ringkasan
+  H.I.S.A.D, dan   kartu siswa dengan tombol huruf `H I S A D` + `Detail`.
+  Tombol `I/S/A/D` mengisi status manual (klik ulang menghapus); tombol `H`
+  hanya menampilkan status hasil scan dan **tidak dapat diubah guru**. **Siswa
+  yang sudah scan terkunci** (tidak dapat diubah I/S/A/D). `Detail`
+  membuka dialog tanggal sesi, jam scan, menit terlambat, dan status.
+- **Dampak:** `pages/teacher/ClassAttendancePage.jsx`,
+  `features/teacher/AttendanceRoster.jsx`, service/hooks terkait; route
+  `/app/teacher/reports` diaktifkan untuk `RecapsPage`.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.
