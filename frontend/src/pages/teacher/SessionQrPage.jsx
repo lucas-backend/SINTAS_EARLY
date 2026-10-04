@@ -37,11 +37,11 @@ export default function TeacherSessionQrPage() {
     <section className="mx-auto w-full max-w-4xl space-y-6">
       <div>
         <Link
-          to="/app/teacher/sessions"
+          to="/app/teacher"
           className="inline-flex items-center gap-1.5 rounded-lg text-sm font-semibold text-blue-500"
         >
           <ArrowBackRoundedIcon className="h-4! w-4!" aria-hidden="true" />
-          Kembali ke daftar sesi
+          Kembali ke beranda
         </Link>
         <h1 className="mt-3 text-2xl font-bold text-ink-900">QR sesi absensi</h1>
         <p className="mt-1 text-sm text-slate-700">

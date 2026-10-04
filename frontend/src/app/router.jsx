@@ -17,12 +17,10 @@ import NotFoundPage from '../pages/NotFoundPage'
 import ProfilePage from '../pages/profile/ProfilePage'
 import StudentDashboardPage from '../pages/student/DashboardPage'
 import StudentScanPage from '../pages/student/ScanPage'
-import TeacherAssignmentsPage from '../pages/teacher/AssignmentsPage'
 import TeacherClassAttendancePage from '../pages/teacher/ClassAttendancePage'
 import TeacherDashboardPage from '../pages/teacher/DashboardPage'
 import TeacherRecapsPage from '../pages/teacher/RecapsPage'
 import TeacherSessionQrPage from '../pages/teacher/SessionQrPage'
-import TeacherSessionsPage from '../pages/teacher/SessionsPage'
 
 function RoleHome() {
   const user = useSessionStore((state) => state.user)
@@ -55,8 +53,6 @@ export function AppRoutes() {
           </Route>
           <Route path="teacher" element={<RoleRoute roles={[ROLES.TEACHER]} />}>
             <Route index element={<TeacherDashboardPage />} />
-            <Route path="assignments" element={<TeacherAssignmentsPage />} />
-            <Route path="sessions" element={<TeacherSessionsPage />} />
             <Route path="sessions/:sessionId/qr" element={<TeacherSessionQrPage />} />
             <Route
               path="classes/:classId/attendance"

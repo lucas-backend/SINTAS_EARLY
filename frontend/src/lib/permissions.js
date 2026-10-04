@@ -31,8 +31,6 @@ const ROLE_NAV = Object.freeze({
   ],
   TEACHER: [
     { to: '/app/teacher', label: 'Beranda', end: true, icon: 'home' },
-    { to: '/app/teacher/assignments', label: 'Penugasan', end: false, icon: 'clipboard' },
-    { to: '/app/teacher/sessions', label: 'Jadwal', end: false, icon: 'qr' },
     { to: '/app/teacher/profile', label: 'Profil', end: true, icon: 'user' },
   ],
   ADMIN: [
@@ -68,7 +66,10 @@ const ROLE_BOTTOM_NAV = Object.freeze({
     { to: '/app/student', label: 'Beranda', end: true, icon: 'home' },
     { to: '/app/student/profile', label: 'Profil', end: true, icon: 'user' },
   ],
-  TEACHER: ROLE_NAV.TEACHER,
+  TEACHER: [
+    { to: '/app/teacher', label: 'Beranda', end: true, icon: 'home' },
+    { to: '/app/teacher/profile', label: 'Profil', end: true, icon: 'user' },
+  ],
   ADMIN: [
     { to: '/app/admin/academic', label: 'Akademik', end: false, icon: 'school' },
     { to: '/app/admin/users', label: 'Pengguna', end: false, icon: 'users' },

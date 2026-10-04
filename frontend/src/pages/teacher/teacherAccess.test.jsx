@@ -5,25 +5,25 @@ import { renderApp, studentUser } from '../../test/fixtures'
 import { API_BASE_URL, server } from '../../test/server'
 
 describe('akses role halaman guru', () => {
-  it('siswa tidak dapat membuka halaman penugasan guru', async () => {
+  it('siswa tidak dapat membuka halaman QR sesi guru', async () => {
     server.use(
       http.get(`${API_BASE_URL}/me`, () =>
         HttpResponse.json({ data: { user: studentUser } }),
       ),
     )
-    renderApp(['/app/teacher/assignments'])
+    renderApp(['/app/teacher/sessions/10/qr'])
     expect(
       await screen.findByRole('heading', { name: 'Akses ditolak' }),
     ).toBeInTheDocument()
   })
 
-  it('siswa tidak dapat membuka halaman sesi guru', async () => {
+  it('siswa tidak dapat membuka halaman rekap guru', async () => {
     server.use(
       http.get(`${API_BASE_URL}/me`, () =>
         HttpResponse.json({ data: { user: studentUser } }),
       ),
     )
-    renderApp(['/app/teacher/sessions'])
+    renderApp(['/app/teacher/reports'])
     expect(
       await screen.findByRole('heading', { name: 'Akses ditolak' }),
     ).toBeInTheDocument()

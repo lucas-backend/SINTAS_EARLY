@@ -1,144 +1,112 @@
-import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded'
-import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
-import { Link } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 import { EmptyState } from '../../components/feedback/EmptyState'
 import { SectionState } from '../../components/feedback/SectionState'
-import { Skeleton } from '../../components/common/Skeleton'
-import { useIsOnline } from '../../hooks/useIsOnline'
-import { AssignmentCard, AssignmentCardSkeleton } from '../../features/teacher/AssignmentCard'
+import { DatePickerDialog } from '../../features/teacher/DatePickerDialog'
+import { ScheduleDateStrip } from '../../features/teacher/ScheduleDateStrip'
 import {
-  SessionDesktopTable,
-  SessionMobileList,
-} from '../../features/teacher/SessionViews'
-import { useTeacherAssignments } from '../../features/teacher/hooks/useTeacherAssignments'
+  TeacherScheduleCard,
+  TeacherScheduleCardSkeleton,
+} from '../../features/teacher/TeacherScheduleCard'
+import { SessionDesktopTable } from '../../features/teacher/SessionViews'
 import { useTeacherSessions } from '../../features/teacher/hooks/useTeacherSessions'
-import { useSessionStore } from '../../stores/sessionStore'
+import { useIsOnline } from '../../hooks/useIsOnline'
+import { todaySchoolDate } from '../../lib/dateTime'
+import {
+  groupSessionsBySchoolDate,
+  scheduleDateLabel,
+} from '../../lib/scheduleDates'
 
-const RECENT_SESSION_LIMIT = 5
-const ASSIGNMENT_PREVIEW_LIMIT = 4
-
-function SummaryCard({ icon: Icon, label, value }) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-white p-4">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-        <Icon className="h-5! w-5!" aria-hidden="true" />
-      </span>
-      <span>
-        <span className="block text-xs text-slate-700">{label}</span>
-        <span className="block text-xl font-bold text-ink-900">{value}</span>
-      </span>
-    </div>
+function sortByStart(items) {
+  return [...items].sort(
+    (a, b) => new Date(a.startAt) - new Date(b.startAt),
   )
 }
 
 export default function TeacherDashboardPage() {
   const online = useIsOnline()
-  const user = useSessionStore((state) => state.user)
-  const assignmentsQuery = useTeacherAssignments()
   const sessionsQuery = useTeacherSessions()
+  const sessions = useMemo(() => sessionsQuery.data ?? [], [sessionsQuery.data])
 
-  const assignments = assignmentsQuery.data ?? []
-  const sessions = sessionsQuery.data ?? []
-  const recentSessions = sessions.slice(0, RECENT_SESSION_LIMIT)
+  const [selectedDate, setSelectedDate] = useState(todaySchoolDate)
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  const sessionsByDate = useMemo(
+    () => groupSessionsBySchoolDate(sessions),
+    [sessions],
+  )
+  const selectedSessions = useMemo(
+    () => sortByStart(sessionsByDate.get(selectedDate) ?? []),
+    [sessionsByDate, selectedDate],
+  )
+
+  const handleSelect = (iso) => {
+    setSelectedDate(iso)
+    setPickerOpen(false)
+  }
 
   return (
     <section className="mx-auto w-full max-w-5xl space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-ink-900">
-            Beranda Guru
-          </h1>
-          <p className="mt-1 text-sm text-slate-700">
-            Pantau jadwal absensi dan kehadiran kelas yang Anda ajar.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <SummaryCard
-          icon={ListAltRoundedIcon}
-          label="Penugasan aktif"
-          value={assignmentsQuery.isPending ? '…' : assignments.length}
-        />
-        <SummaryCard
-          icon={QrCode2RoundedIcon}
-          label="Sesi tersedia"
-          value={sessionsQuery.isPending ? '…' : sessions.length}
+      <div>
+        <h1 className="text-2xl font-bold text-ink-900">Beranda Guru</h1>
+        <p className="mt-1 text-sm text-slate-700">
+          Pantau jadwal absensi dan kehadiran kelas yang Anda ajar.
+        </p>
+        <ScheduleDateStrip
+          selectedDate={selectedDate}
+          sessionsByDate={sessionsByDate}
+          onSelect={handleSelect}
+          onOpenPicker={() => setPickerOpen(true)}
+          onToday={() => handleSelect(todaySchoolDate())}
+          isToday={selectedDate === todaySchoolDate()}
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section aria-labelledby="teacher-assignments-heading" className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="teacher-assignments-heading" className="text-lg font-bold text-ink-900">
-              Penugasan saya
-            </h2>
-            <Link to="/app/teacher/assignments" className="text-sm font-semibold text-blue-500">
-              Lihat semua
-            </Link>
-          </div>
-          <SectionState
-            query={assignmentsQuery}
-            online={online}
-            isEmpty={assignments.length === 0}
-            empty={
-              <EmptyState
-                title="Belum ada penugasan aktif"
-                message="Hubungi admin untuk memplot Anda ke kelas dan mata pelajaran."
-              />
-            }
-            skeleton={
-              <div className="space-y-3">
-                {[0, 1].map((value) => (
-                  <AssignmentCardSkeleton key={value} />
-                ))}
-              </div>
-            }
-            errorTitle="Penugasan tidak dapat dimuat."
-          >
-            <ul className="space-y-3">
-              {assignments.slice(0, ASSIGNMENT_PREVIEW_LIMIT).map((assignment) => (
-                <li key={assignment.id}>
-                  <AssignmentCard assignment={assignment} teacherName={user?.name} />
-                </li>
+      <div className="space-y-3">
+        <h2 className="text-lg font-bold text-ink-900">
+          {scheduleDateLabel(selectedDate)}
+          {selectedSessions.length > 0 ? (
+            <span className="ml-2 text-xs font-normal text-slate-700">
+              {selectedSessions.length} sesi
+            </span>
+          ) : null}
+        </h2>
+
+        <SectionState
+          query={sessionsQuery}
+          online={online}
+          isEmpty={selectedSessions.length === 0}
+          empty={
+            <EmptyState
+              title="Tidak ada jadwal pada tanggal ini"
+              message="Jadwal sesi akan tampil setelah admin membuatnya untuk kelas yang Anda ajar."
+            />
+          }
+          skeleton={
+            <div className="space-y-3">
+              {[0, 1, 2, 3].map((value) => (
+                <TeacherScheduleCardSkeleton key={value} />
               ))}
-            </ul>
-          </SectionState>
-        </section>
-
-        <section aria-labelledby="teacher-sessions-heading" className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="teacher-sessions-heading" className="text-lg font-bold text-ink-900">
-              Sesi terbaru
-            </h2>
-            <Link to="/app/teacher/sessions" className="text-sm font-semibold text-blue-500">
-              Lihat semua
-            </Link>
-          </div>
-          <SectionState
-            query={sessionsQuery}
-            online={online}
-            isEmpty={recentSessions.length === 0}
-            empty={
-              <EmptyState
-                title="Belum ada sesi absensi"
-                message="Jadwal sesi akan tampil setelah admin membuatnya."
-              />
-            }
-            skeleton={
-              <div className="space-y-3">
-                {[0, 1, 2].map((value) => (
-                  <Skeleton key={value} className="h-20 w-full" />
-                ))}
-              </div>
-            }
-            errorTitle="Sesi absensi tidak dapat dimuat."
-          >
-            <SessionMobileList items={recentSessions} />
-            <SessionDesktopTable items={recentSessions} />
-          </SectionState>
-        </section>
+            </div>
+          }
+          errorTitle="Jadwal tidak dapat dimuat."
+        >
+          <ul className="space-y-3 sm:hidden">
+            {selectedSessions.map((session) => (
+              <li key={session.id}>
+                <TeacherScheduleCard session={session} />
+              </li>
+            ))}
+          </ul>
+          <SessionDesktopTable items={selectedSessions} showDate={false} />
+        </SectionState>
       </div>
+
+      <DatePickerDialog
+        open={pickerOpen}
+        value={selectedDate}
+        onClose={() => setPickerOpen(false)}
+        onSelect={handleSelect}
+      />
     </section>
   )
 }
