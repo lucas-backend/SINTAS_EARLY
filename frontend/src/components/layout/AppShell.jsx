@@ -202,8 +202,8 @@ export function AppShell() {
         </aside>
       ) : null}
 
-      <div className={isStaff ? 'lg:pl-60' : ''}>
-        <header className="sticky top-0 z-30 h-16 bg-blue-500 text-white lg:shadow-none">
+      <div className={`flex min-h-dvh flex-col ${isStaff ? 'lg:pl-60' : ''}`}>
+        <header className="sticky top-0 z-30 h-16 shrink-0 bg-blue-500 text-white lg:shadow-none">
           <div className="mx-auto flex h-full max-w-7xl items-center gap-2 px-4">
             <button
               type="button"
@@ -225,7 +225,7 @@ export function AppShell() {
         </header>
 
         {/* Lembaran putih (mobile) / konten normal (desktop) */}
-        <div className="mx-auto w-full max-w-md bg-white rounded-t-[60px] pb-36 lg:max-w-none lg:rounded-none lg:bg-transparent lg:pb-0">
+        <div className="mx-auto w-full max-w-md flex-1 bg-white rounded-t-[60px] pb-36 lg:max-w-none lg:flex-none lg:rounded-none lg:bg-transparent lg:pb-0">
           <main
             id="main"
             tabIndex={-1}
