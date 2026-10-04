@@ -45,14 +45,16 @@ export function SessionMobileList({ items }) {
   )
 }
 
-export function SessionDesktopTable({ items }) {
+export function SessionDesktopTable({ items, showDate = true }) {
   return (
     <div className="hidden overflow-x-auto rounded-lg border border-black/10 bg-white sm:block">
       <table className="w-full text-left text-sm">
         <caption className="sr-only">Daftar sesi absensi yang Anda buat</caption>
         <thead className="border-b border-black/10 text-slate-700">
           <tr>
-            <th scope="col" className="p-3 font-semibold">Tanggal sesi</th>
+            {showDate ? (
+              <th scope="col" className="p-3 font-semibold">Tanggal sesi</th>
+            ) : null}
             <th scope="col" className="p-3 font-semibold">Waktu</th>
             <th scope="col" className="p-3 font-semibold">Mata pelajaran / Kelas</th>
             <th scope="col" className="p-3 font-semibold">Aksi</th>
@@ -61,9 +63,11 @@ export function SessionDesktopTable({ items }) {
         <tbody>
           {items.map((session) => (
             <tr key={session.id} className="border-b border-black/5 last:border-b-0">
-              <td className="p-3 text-ink-900">
-                {formatSchoolDate(session.sessionDate)}
-              </td>
+              {showDate ? (
+                <td className="p-3 text-ink-900">
+                  {formatSchoolDate(session.sessionDate)}
+                </td>
+              ) : null}
               <td className="p-3 text-slate-700">
                 {formatSchoolTime(session.startAt)}–{formatSchoolTime(session.endAt)}
               </td>

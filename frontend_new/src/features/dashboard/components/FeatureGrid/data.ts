@@ -39,6 +39,11 @@ export const guruFeatures: featureType[] = [
     icon: AddCircleRoundedIcon,
   },
   {
+    name: "Jadwal",
+    link: "/guru/jadwal",
+    icon: CalendarMonthRoundedIcon,
+  },
+  {
     name: "Sesi",
     link: "/guru/sesi/1",
     icon: QrCode2RoundedIcon,

@@ -105,6 +105,12 @@ dipetakan ke requirement PRD:
 - Sesi duplikat untuk assignment+tanggal+waktu yang sama → `409 DUPLICATE_ATTENDANCE_SESSION`.
 - Guru/Admin membaca daftar sesi (`GET /api/v1/attendance-sessions`) dan QR per
   sesi (`GET /api/v1/attendance-sessions/:id/qr`); guru read-only (D22/J2).
+- Guru melihat sesi miliknya sebagai **jadwal per tanggal** (`/app/teacher/sessions`,
+  label "Jadwal"): date strip Senin–Jumat (5 hari) yang tiap tanggalnya dapat
+  diklik + tombol "Hari ini" dan "Lebih lengkap" (pemilih tanggal); kartu
+  menampilkan kelas, mapel, rentang jam,
+  durasi, serta aksi Lihat QR/Kehadiran (D23/G1–G6). Pengelompokan dilakukan di
+  klien dari response yang sudah ter-scope; backend tidak berubah.
 
 **Pemindaian dan Status Absensi (FR-06)**
 - `POST /api/v1/attendance-scans` — jalur scan yang ringan (tanpa query

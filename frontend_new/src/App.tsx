@@ -8,6 +8,7 @@ import ScanResult from "./features/scan/ScanResult";
 import Riwayat from "./features/riwayat/Riwayat";
 import Profil from "./features/profil/Profil";
 import BuatAbsen from "./features/guru/BuatAbsen";
+import JadwalGuru from "./features/guru/JadwalGuru";
 import SesiQr from "./features/guru/SesiQr";
 import RekapKelas from "./features/guru/RekapKelas";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/riwayat" element={<Riwayat />} />
         <Route path="/profil" element={<Profil />} />
         <Route path="/guru/buat-absen" element={<BuatAbsen />} />
+        <Route path="/guru/jadwal" element={<JadwalGuru />} />
         <Route path="/guru/sesi/:id" element={<SesiQr />} />
         <Route path="/guru/rekap" element={<RekapKelas />} />
         <Route path="*" element={<NotFound />} />

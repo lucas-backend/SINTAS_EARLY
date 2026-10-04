@@ -570,6 +570,87 @@ Memindahkan tata kelola **sesi absensi (jadwal)** sepenuhnya ke Admin dan memind
 
 Keputusan J1–J7 dikunci. Open Item O-1/O-2 pada `PLAN_JADWAL_ADMIN.md` sudah ditutup (hapus total + non-atomic). O-3 s.d. O-8 tidak memblokir fase P1–P6. Implementasi tidak boleh menyimpang dari J1–J7 tanpa memperbarui entri ini.
 
+## 23. Jadwal guru per tanggal (PLAN_JADWAL_GURU)
+
+**Status: DECIDED untuk MVP — fase J0 `PLAN_JADWAL_GURU.md`.**
+
+Mengubah halaman guru dari daftar sesi datar menjadi **jadwal per tanggal**:
+date strip Senin–Jumat yang tiap tanggalnya dapat diklik + pemilih tanggal,
+daftar sesi untuk tanggal terpilih, dan kartu tanpa ikon mata pelajaran. Role
+TEACHER saja. Tidak ada perubahan backend/migration; guru tetap read-only
+(D22/J2).
+
+### G1 — Label "Jadwal" untuk halaman sesi guru
+
+- **Pilihan final:** Menu dan judul halaman guru untuk sesi absensi diberi label
+  **"Jadwal"** (menggantikan "Sesi absensi"). Route internal tetap
+  `/app/teacher/sessions`; rename path adalah keputusan terpisah.
+- **Alasan:** Menyelaraskan istilah dengan permintaan pemangku kepentingan tanpa
+  churn route/test; meng-override asumsi J6 yang mempertahankan label guru.
+- **Dampak database/API/UI:** `permissions.js` (nav guru) + `SessionsPage` judul.
+  Tidak ada perubahan backend.
+
+### G2 — Pengelompokan tanggal di klien
+
+- **Pilihan final:** Tidak ada perubahan backend. Frontend mengelompokkan hasil
+  `GET /attendance-sessions` per tanggal kalender sekolah (`schoolDateString`).
+- **Alasan:** Kontrak yang ada sudah mengembalikan `sessionDate` dan ter-scope ke
+  assignment aktif milik guru; perubahan backend tidak diperlukan untuk MVP.
+- **Dampak database/API/UI:** Satu request menarik seluruh sesi guru. Karena
+  response tidak terpaginasi, payload membesar seiring waktu — dicatat sebagai
+  risiko O-3 `PLAN_JADWAL_GURU.md`; filter `from`/`to` backend menjadi keputusan
+  lanjutan bila diperlukan.
+
+### G3 — Date strip 5 hari (Senin–Jumat) + date picker
+
+- **Pilihan final:** Strip menampilkan 5 hari (Senin–Jumat) dari minggu yang
+  memuat tanggal terpilih; akhir pekan tidak ditampilkan. Tiap hari adalah tombol
+  yang dapat diklik, ditambah tombol **"Hari ini"** untuk kembali ke tanggal hari
+  ini saat tanggal lain dipilih. Tombol "Lebih lengkap" membuka dialog pemilih
+  tanggal (`<input type="date">`) untuk tanggal mana pun (termasuk akhir pekan).
+  Default tanggal terpilih = hari ini menurut `SCHOOL_TIMEZONE`.
+- **Alasan:** Menyesuaikan hari sekolah (jadwal hanya Senin–Jumat) sekaligus tetap
+  memberi akses ke tanggal mana pun via pemilih; memakai helper `Intl` yang ada
+  (tanpa menambah dependency).
+- **Dampak database/API/UI:** Komponen `ScheduleDateStrip` + `DatePickerDialog`
+  baru; state `selectedDate` di halaman guru. Tidak ada endpoint baru.
+
+### G4 — Kartu jadwal guru tanpa ikon mapel
+
+- **Pilihan final:** Kartu menampilkan **kelas** (utama), **mata pelajaran/topik**
+  (sekunder), **rentang jam + durasi**, serta aksi **Lihat QR** dan **Kehadiran**.
+  Ikon mata pelajaran dihapus. Status window absensi (Bisa absen/Belum dibuka/
+  Selesai) tidak ditampilkan pada kartu guru.
+- **Alasan:** Guru melihat jadwal mengajar, bukan status scan pribadi; berbeda
+  dari kartu siswa yang statusnya relevan untuk absen.
+- **Dampak database/API/UI:** Komponen `TeacherScheduleCard` baru; kartu siswa
+  tidak diubah.
+
+### G5 — Guru saja
+
+- **Pilihan final:** Hanya halaman guru yang diubah. Jadwal siswa
+  (`/app/student/schedule`) tidak diubah pada plan ini.
+- **Alasan:** Permintaan eksplisit; gambar referensi dipakai sebagai bahasa
+  visual, bukan target perubahan role siswa.
+- **Dampak database/API/UI:** Tidak ada.
+
+### G6 — Section daftar = tanggal terpilih
+
+- **Pilihan final:** Daftar hanya memuat tanggal terpilih dengan header label
+  tanggal ("Hari ini"/"Besok"/tanggal lengkap). Section "Besok" terpisah pada
+  gambar referensi **tidak** direplikasi karena strip sudah memungkinkan memilih
+  tanggal mana pun.
+- **Alasan:** Menghindari duplikasi informasi dan menjaga satu sumber tampilan
+  per tanggal.
+- **Asumsi yang masih perlu dikonfirmasi:** bila produk tetap ingin preview
+  "Besok", perubahan dilakukan di golden master lebih dulu (Open Item O-1
+  `PLAN_JADWAL_GURU.md`).
+
+### Gate fase J0
+
+Keputusan G1–G6 dikunci. Open Item O-1 (section "Besok") dan O-2 (layar referensi
+golden master) tidak memblokir implementasi J1–J5 dengan nilai default di atas.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

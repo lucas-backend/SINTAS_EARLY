@@ -22,6 +22,11 @@ export const queryClient = new QueryClient({
 export function clearUserScopedCache(target = queryClient) {
   target.removeQueries({ queryKey: attendanceKeys.today })
   target.removeQueries({ queryKey: attendanceKeys.historyBase })
+  // Prefix `teacherSessions` mencakup `adminSessions` dan `sessionQr`
+  // (`['attendance','sessions', ...]`) sehingga sesi yang sudah diubah admin
+  // tidak tertinggal di cache guru/admin saat ganti akun.
+  target.removeQueries({ queryKey: attendanceKeys.teacherSessions })
+  target.removeQueries({ queryKey: attendanceKeys.classAttendanceBase })
   target.removeQueries({ queryKey: bannerKeys.active })
   target.removeQueries({ queryKey: ['users'] })
   target.removeQueries({ queryKey: ['banners'] })
