@@ -44,7 +44,6 @@ export function ScanResultPanel({
   sessionItem,
   isPending = false,
   onRetry,
-  onManual,
 }) {
   if (result.kind === 'success') {
     const data = result.data
@@ -100,12 +99,6 @@ export function ScanResultPanel({
         </div>
 
         <Link
-          to="/app/student/history"
-          className="flex w-full items-center justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white uppercase"
-        >
-          Lihat riwayat
-        </Link>
-        <Link
           to="/app/student"
           className="flex w-full items-center justify-center rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500"
         >
@@ -138,16 +131,6 @@ export function ScanResultPanel({
             className="flex w-full items-center justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white uppercase disabled:opacity-50"
           >
             {isPending ? 'Memproses…' : 'Coba lagi'}
-          </button>
-        ) : null}
-        {config.manual ? (
-          <button
-            type="button"
-            onClick={onManual}
-            disabled={isPending}
-            className="flex w-full items-center justify-center rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500 disabled:opacity-50"
-          >
-            Masukkan kode manual
           </button>
         ) : null}
         {config.home ? (

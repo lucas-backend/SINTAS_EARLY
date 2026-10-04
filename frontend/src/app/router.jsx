@@ -16,12 +16,12 @@ import LoginPage from '../pages/auth/LoginPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import ProfilePage from '../pages/profile/ProfilePage'
 import StudentDashboardPage from '../pages/student/DashboardPage'
-import StudentHistoryPage from '../pages/student/HistoryPage'
 import StudentScanPage from '../pages/student/ScanPage'
 import StudentSchedulePage from '../pages/student/SchedulePage'
 import TeacherAssignmentsPage from '../pages/teacher/AssignmentsPage'
 import TeacherClassAttendancePage from '../pages/teacher/ClassAttendancePage'
 import TeacherDashboardPage from '../pages/teacher/DashboardPage'
+import TeacherRecapsPage from '../pages/teacher/RecapsPage'
 import TeacherSessionQrPage from '../pages/teacher/SessionQrPage'
 import TeacherSessionsPage from '../pages/teacher/SessionsPage'
 
@@ -53,7 +53,6 @@ export function AppRoutes() {
             <Route index element={<StudentDashboardPage />} />
             <Route path="schedule" element={<StudentSchedulePage />} />
             <Route path="scan" element={<StudentScanPage />} />
-            <Route path="history" element={<StudentHistoryPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
           <Route path="teacher" element={<RoleRoute roles={[ROLES.TEACHER]} />}>
@@ -65,6 +64,7 @@ export function AppRoutes() {
               path="classes/:classId/attendance"
               element={<TeacherClassAttendancePage />}
             />
+            <Route path="reports" element={<TeacherRecapsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
           <Route path="admin" element={<RoleRoute roles={[ROLES.ADMIN]} />}>

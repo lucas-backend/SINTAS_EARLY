@@ -3,8 +3,8 @@ import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded'
 import { CAMERA_STATUS } from './cameraPermission'
 
 // State gagal kamera (docs/PROMPT_GUIDE.md F3): setiap kegagalan menyediakan
-// jalan keluar — kode manual, coba lagi, atau kembali.
-export function ScanCameraFallback({ camera, onRetry, onManual, onBack }) {
+// jalan keluar — coba lagi atau kembali.
+export function ScanCameraFallback({ camera, onRetry, onBack }) {
   if (
     camera !== CAMERA_STATUS.DENIED &&
     camera !== CAMERA_STATUS.UNAVAILABLE &&
@@ -19,19 +19,19 @@ export function ScanCameraFallback({ camera, onRetry, onManual, onBack }) {
         icon: CameraAltRoundedIcon,
         title: 'Akses kamera ditolak',
         message:
-          'Izinkan akses kamera di pengaturan browser untuk memindai, atau gunakan kode manual.',
+          'Izinkan akses kamera di pengaturan browser untuk memindai.',
       }
     : camera === CAMERA_STATUS.UNAVAILABLE
       ? {
           icon: CameraAltRoundedIcon,
           title: 'Kamera tidak tersedia',
           message:
-            'Perangkat ini tidak memiliki kamera yang bisa digunakan. Gunakan kode manual dari guru.',
+            'Perangkat ini tidak memiliki kamera yang bisa digunakan.',
         }
       : {
           icon: ErrorRoundedIcon,
           title: 'Kamera gagal dinyalakan',
-          message: 'Coba nyalakan kamera lagi, atau gunakan kode manual.',
+          message: 'Coba nyalakan kamera lagi.',
         }
   const Icon = config.icon
 
@@ -45,13 +45,6 @@ export function ScanCameraFallback({ camera, onRetry, onManual, onBack }) {
       <p className="text-sm text-slate-700">{config.message}</p>
 
       <div className="flex flex-col gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onManual}
-          className="flex w-full items-center justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white uppercase"
-        >
-          Masukkan kode manual
-        </button>
         <button
           type="button"
           onClick={onRetry}

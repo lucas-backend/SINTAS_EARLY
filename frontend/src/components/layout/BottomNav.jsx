@@ -7,7 +7,11 @@ export default function BottomNav({ menus }) {
   if (!menus || menus.length <= 0) return null
 
   return (
-    <div className="bg-blue-100 rounded-t-[60px] p-4 py-8 w-full -mt-17 fixed bottom-0 z-50 max-w-lg left-1/2 -translate-x-1/2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div
+      role="navigation"
+      aria-label="Navigasi bawah"
+      className="bg-blue-100 rounded-t-[60px] p-4 py-8 w-full -mt-17 fixed bottom-0 z-50 max-w-lg left-1/2 -translate-x-1/2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
       <div className="flex w-max min-w-full items-center justify-around gap-1">
         {menus.map((item) => {
           const NavIcon = item.icon

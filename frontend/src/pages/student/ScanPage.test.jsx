@@ -101,7 +101,7 @@ describe('halaman scan siswa', () => {
     })
   })
 
-  it('menampilkan pre-check generik dan aksi manual tanpa parameter sesi', async () => {
+  it('menampilkan pre-check generik tanpa parameter sesi', async () => {
     installDefaults([])
     renderApp(['/app/student/scan'])
 
@@ -112,8 +112,8 @@ describe('halaman scan siswa', () => {
       screen.getByRole('button', { name: 'Mulai memindai' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Masukkan kode manual' }),
-    ).toBeInTheDocument()
+      screen.queryByRole('button', { name: 'Masukkan kode manual' }),
+    ).not.toBeInTheDocument()
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Mulai memindai' }))
     expect(
@@ -162,9 +162,6 @@ describe('halaman scan siswa', () => {
     expect(screen.getByRole('heading', { name: 'Hasil scan' })).toBeInTheDocument()
     expect(screen.getByText('Hadir')).toBeInTheDocument()
     expect(scanRequests).toEqual([{ qrPayload: QR }])
-    expect(
-      screen.getByRole('link', { name: 'Lihat riwayat' }),
-    ).toHaveAttribute('href', '/app/student/history')
     expect(
       screen.getByRole('link', { name: 'Kembali ke beranda' }),
     ).toHaveAttribute('href', '/app/student')
@@ -272,11 +269,8 @@ describe('halaman scan siswa', () => {
     ).toBeInTheDocument()
   })
 
-  it('menampilkan fallback manual saat kamera ditolak dan mengirim kode manual', async () => {
+  it('menampilkan fallback saat kamera ditolak tanpa opsi kode manual', async () => {
     const user = userEvent.setup()
-    const scanRequests = installScanHandler(() =>
-      HttpResponse.json({ data: HADIR }),
-    )
     installDefaults([
       scheduleItem({ id: 10, windowStatus: 'BISA_ABSEN' }),
     ])
@@ -288,20 +282,16 @@ describe('halaman scan siswa', () => {
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(screen.getByText('Akses kamera ditolak')).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'Masukkan kode manual' }))
-    await user.type(screen.getByLabelText('Kode QR'), QR)
-    await user.click(screen.getByRole('button', { name: 'Kirim absensi' }))
-
-    expect(await screen.findByRole('heading', { name: 'Absensi tercatat' })).toBeInTheDocument()
-    expect(scanRequests).toEqual([{ qrPayload: QR }])
+    expect(
+      screen.queryByRole('button', { name: 'Masukkan kode manual' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Coba lagi' }),
+    ).toBeInTheDocument()
   })
 
-  it('menampilkan fallback saat kamera tidak tersedia dan memakai kode manual', async () => {
+  it('menampilkan fallback saat kamera tidak tersedia tanpa opsi kode manual', async () => {
     const user = userEvent.setup()
-    const scanRequests = installScanHandler(() =>
-      HttpResponse.json({ data: HADIR }),
-    )
     installDefaults([
       scheduleItem({ id: 10, windowStatus: 'BISA_ABSEN' }),
     ])
@@ -316,13 +306,9 @@ describe('halaman scan siswa', () => {
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     expect(screen.getByText('Kamera tidak tersedia')).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'Masukkan kode manual' }))
-    await user.type(screen.getByLabelText('Kode QR'), QR)
-    await user.click(screen.getByRole('button', { name: 'Kirim absensi' }))
-
-    expect(await screen.findByRole('heading', { name: 'Absensi tercatat' })).toBeInTheDocument()
-    expect(scanRequests).toEqual([{ qrPayload: QR }])
+    expect(
+      screen.queryByRole('button', { name: 'Masukkan kode manual' }),
+    ).not.toBeInTheDocument()
   })
 
   it('menjelaskan sesi belum dibuka saat server menolak scan', async () => {

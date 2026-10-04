@@ -17,13 +17,13 @@ describe('akses role halaman siswa', () => {
     ).toBeInTheDocument()
   })
 
-  it('admin tidak dapat membuka halaman riwayat siswa', async () => {
+  it('admin tidak dapat membuka halaman scan siswa', async () => {
     server.use(
       http.get(`${API_BASE_URL}/me`, () =>
         HttpResponse.json({ data: { user: adminUser } }),
       ),
     )
-    renderApp(['/app/student/history'])
+    renderApp(['/app/student/scan'])
     expect(
       await screen.findByRole('heading', { name: 'Akses ditolak' }),
     ).toBeInTheDocument()

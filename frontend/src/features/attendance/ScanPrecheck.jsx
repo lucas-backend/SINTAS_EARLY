@@ -20,7 +20,7 @@ function DetailRow({ label, value }) {
 // Pre-check sebelum kamera diminta (docs/DESIGN_BRIEF.md 4.2): detail sesi,
 // jendela absensi, dan CTA memulai scan. Layout mengikuti golden master
 // `features/scan/Scan.tsx`; status window tetap dari server.
-export function ScanPrecheck({ sessionItem, missed = false, onBegin, onManual }) {
+export function ScanPrecheck({ sessionItem, missed = false, onBegin }) {
   return (
     <div className="mx-auto w-full max-w-md space-y-4">
       {sessionItem ? (
@@ -101,20 +101,6 @@ export function ScanPrecheck({ sessionItem, missed = false, onBegin, onManual })
       >
         Mulai memindai
       </PrimaryButton>
-
-      <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-black/10" />
-        <span className="text-xs text-slate-700">atau kode manual</span>
-        <span className="h-px flex-1 bg-black/10" />
-      </div>
-
-      <button
-        type="button"
-        onClick={onManual}
-        className="flex w-full items-center justify-center rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-semibold text-blue-500"
-      >
-        Masukkan kode manual
-      </button>
     </div>
   )
 }

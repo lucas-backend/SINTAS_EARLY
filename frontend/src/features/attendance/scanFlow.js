@@ -14,7 +14,6 @@ export function scanErrorPanel(error, sessionItem) {
       title: 'Koneksi terputus',
       message: 'Absensi belum tercatat. Coba lagi saat koneksi tersedia.',
       retry: true,
-      manual: true,
       home: true,
     }
   }
@@ -26,7 +25,6 @@ export function scanErrorPanel(error, sessionItem) {
         title: 'Sesi belum dibuka',
         message: `Absensi dibuka pukul ${formatSchoolTime(sessionItem.startAt)}.`,
         retry: false,
-        manual: false,
         home: true,
       }
     }
@@ -36,7 +34,6 @@ export function scanErrorPanel(error, sessionItem) {
         title: 'Sesi selesai',
         message: 'Jendela absensi sudah ditutup.',
         retry: false,
-        manual: false,
         home: true,
       }
     }
@@ -45,7 +42,6 @@ export function scanErrorPanel(error, sessionItem) {
       title: 'Di luar jendela scan',
       message: fallbackMessage,
       retry: true,
-      manual: true,
       home: true,
     }
   }
@@ -55,9 +51,8 @@ export function scanErrorPanel(error, sessionItem) {
       tone: 'danger',
       title: 'QR Code tidak valid',
       message:
-        'QR Code yang dipindai tidak dikenali. Coba lagi atau masukkan kode secara manual.',
+        'QR Code yang dipindai tidak dikenali. Minta guru menampilkan ulang QR Code lalu coba lagi.',
       retry: true,
-      manual: true,
       home: true,
     }
   }
@@ -68,7 +63,6 @@ export function scanErrorPanel(error, sessionItem) {
       title: 'Sesi tidak ditemukan',
       message: 'Sesi absensi ini tidak tersedia atau sudah tidak aktif.',
       retry: false,
-      manual: false,
       home: true,
     }
   }
@@ -79,7 +73,6 @@ export function scanErrorPanel(error, sessionItem) {
       title: 'Bukan anggota kelas',
       message: 'Anda tidak terdaftar pada kelas sesi ini.',
       retry: false,
-      manual: false,
       home: true,
     }
   }
@@ -90,7 +83,6 @@ export function scanErrorPanel(error, sessionItem) {
       title: 'Terlalu banyak percobaan scan',
       message: fallbackMessage,
       retry: true,
-      manual: false,
       home: true,
     }
   }
@@ -101,7 +93,6 @@ export function scanErrorPanel(error, sessionItem) {
       title: 'Akses ditolak',
       message: fallbackMessage,
       retry: false,
-      manual: false,
       home: true,
     }
   }
@@ -111,7 +102,6 @@ export function scanErrorPanel(error, sessionItem) {
     title: 'Absensi gagal',
     message: fallbackMessage,
     retry: true,
-    manual: true,
     home: true,
   }
 }
@@ -121,10 +111,10 @@ export function cameraAnnouncement(status) {
   if (status === 'starting') return 'Menyalakan kamera.'
   if (status === 'ready') return 'Kamera siap. Arahkan kamera ke QR Code.'
   if (status === 'denied')
-    return 'Akses kamera ditolak. Gunakan tombol kode manual atau izinkan kamera di pengaturan browser.'
+    return 'Akses kamera ditolak. Izinkan kamera di pengaturan browser.'
   if (status === 'unavailable')
-    return 'Kamera tidak tersedia. Gunakan tombol kode manual untuk mengisi kode.'
+    return 'Kamera tidak tersedia pada perangkat ini.'
   if (status === 'error')
-    return 'Kamera gagal dinyalakan. Coba lagi atau gunakan kode manual.'
+    return 'Kamera gagal dinyalakan. Coba lagi.'
   return ''
 }

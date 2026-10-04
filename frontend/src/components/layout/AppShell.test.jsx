@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -6,7 +6,7 @@ import { API_BASE_URL, server } from '../../test/server'
 import { renderApp, studentUser, teacherUser } from '../../test/fixtures'
 
 describe('app shell dan navigasi per role', () => {
-  it('menampilkan navigasi Beranda, Jadwal, Riwayat, dan Profil untuk siswa', async () => {
+  it('menampilkan navigasi Beranda dan Profil pada bottom nav siswa', async () => {
     server.use(
       http.get(`${API_BASE_URL}/me`, () =>
         HttpResponse.json({ data: { user: studentUser } }),
@@ -14,16 +14,19 @@ describe('app shell dan navigasi per role', () => {
     )
     renderApp(['/app/student'])
     await screen.findByRole('heading', { name: 'Halo, Siswa' })
-    expect(screen.getAllByRole('link', { name: 'Beranda' }).length).toBeGreaterThan(0)
+    const bottomNav = screen.getByRole('navigation', { name: 'Navigasi bawah' })
     expect(
-      screen.getAllByRole('link', { name: 'Jadwal' }).length,
-    ).toBeGreaterThan(0)
+      within(bottomNav).getByRole('button', { name: 'Beranda' }),
+    ).toBeInTheDocument()
     expect(
-      screen.getAllByRole('link', { name: 'Riwayat' }).length,
-    ).toBeGreaterThan(0)
+      within(bottomNav).getByRole('button', { name: 'Profil' }),
+    ).toBeInTheDocument()
     expect(
-      screen.getAllByRole('link', { name: 'Profil' }).length,
-    ).toBeGreaterThan(0)
+      within(bottomNav).queryByRole('button', { name: 'Jadwal' }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(bottomNav).queryByRole('button', { name: 'Riwayat' }),
+    ).not.toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'Jadwal' }).getAttribute('href'),
     ).toBe('/app/student/schedule')

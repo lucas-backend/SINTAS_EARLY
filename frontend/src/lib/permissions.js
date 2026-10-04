@@ -28,7 +28,6 @@ const ROLE_NAV = Object.freeze({
   STUDENT: [
     { to: '/app/student', label: 'Beranda', end: true, icon: 'home' },
     { to: '/app/student/schedule', label: 'Jadwal', end: false, icon: 'calendar' },
-    { to: '/app/student/history', label: 'Riwayat', end: false, icon: 'history' },
     { to: '/app/student/profile', label: 'Profil', end: true, icon: 'user' },
   ],
   TEACHER: [
@@ -66,7 +65,10 @@ export function roleNav(role) {
 // Bottom nav mobile memuat item inti per role. Admin hanya menampilkan
 // tombol menuju halaman Pengguna; menu lain ada di sidebar/drawer.
 const ROLE_BOTTOM_NAV = Object.freeze({
-  STUDENT: ROLE_NAV.STUDENT,
+  STUDENT: [
+    { to: '/app/student', label: 'Beranda', end: true, icon: 'home' },
+    { to: '/app/student/profile', label: 'Profil', end: true, icon: 'user' },
+  ],
   TEACHER: ROLE_NAV.TEACHER,
   ADMIN: [
     { to: '/app/admin/academic', label: 'Akademik', end: false, icon: 'school' },

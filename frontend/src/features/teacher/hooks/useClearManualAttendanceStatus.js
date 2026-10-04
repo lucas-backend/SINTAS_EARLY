@@ -1,16 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   attendanceKeys,
-  setManualAttendanceStatus,
+  clearManualAttendanceStatus,
 } from '../../../services/attendanceService'
 
-// Input status manual guru (D24/R3). Setelah sukses, rekap harian & keseluruhan
-// disegarkan — tidak ada perhitungan status di client.
-export function useSetManualAttendanceStatus() {
+// Menghapus override manual per (sesi, siswa); status kembali ke hasil
+// scan/computed. Menyegarkan roster sesi + rekap.
+export function useClearManualAttendanceStatus() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationKey: attendanceKeys.manualOverride,
-    mutationFn: (data) => setManualAttendanceStatus(data),
+    mutationKey: [...attendanceKeys.manualOverride, 'clear'],
+    mutationFn: (data) => clearManualAttendanceStatus(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.sessionRosterBase })
       queryClient.invalidateQueries({ queryKey: attendanceKeys.dailyRecapBase })

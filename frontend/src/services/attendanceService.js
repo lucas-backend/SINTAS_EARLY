@@ -3,13 +3,19 @@ import { apiClient } from '../lib/apiClient'
 export const attendanceKeys = {
   today: ['attendance', 'today'],
   historyBase: ['attendance', 'history'],
-  history: (filters) => ['attendance', 'history', filters],
   scan: ['attendance', 'scan'],
   teacherSessions: ['attendance', 'sessions'],
   adminSessions: ['attendance', 'sessions', 'all'],
   sessionQr: (id) => ['attendance', 'sessions', id, 'qr'],
+  sessionRosterBase: ['attendance', 'roster'],
+  sessionRoster: (id) => ['attendance', 'roster', id],
   classAttendanceBase: ['attendance', 'classes'],
   classAttendance: (classId, filters) => ['attendance', 'classes', classId, filters],
+  manualOverride: ['attendance', 'status-overrides'],
+  dailyRecapBase: ['reports', 'attendance', 'daily'],
+  dailyRecap: (filters) => ['reports', 'attendance', 'daily', filters],
+  recapSummaryBase: ['reports', 'attendance', 'summary'],
+  recapSummary: (filters) => ['reports', 'attendance', 'summary', filters],
   adminReportBase: ['reports', 'attendance'],
   adminReport: (filters) => ['reports', 'attendance', filters],
 }
@@ -27,19 +33,6 @@ export async function scanAttendance(qrPayload) {
   return payload.data
 }
 
-export async function getStudentHistory({
-  from,
-  to,
-  status,
-  page = 1,
-  limit = 20,
-}) {
-  const payload = await apiClient.get('/attendance/history', {
-    params: { from, to, status, page, limit },
-  })
-  return payload.data
-}
-
 // Sesi milik guru yang login (scope backend: assignment aktif miliknya).
 export async function getTeacherSessions() {
   const payload = await apiClient.get('/attendance-sessions')
@@ -50,6 +43,46 @@ export async function getTeacherSessions() {
 // membuat atau menebak payload.
 export async function getSessionQr(id) {
   const payload = await apiClient.get(`/attendance-sessions/${id}/qr`)
+  return payload.data
+}
+
+// Daftar siswa satu sesi + status teresolusi (scan/manual/computed) untuk
+// halaman kehadiran kelas per pertemuan.
+export async function getSessionRoster(id) {
+  const payload = await apiClient.get(`/attendance-sessions/${id}/roster`)
+  return payload.data
+}
+
+// Status manual guru per (sesi, siswa). Server menolak HADIR/TERLAMBAT/
+// TIDAK_HADIR; hanya IZIN/SAKIT/ALFA/DISPEN.
+export async function setManualAttendanceStatus({ sessionId, studentId, status }) {
+  const payload = await apiClient.post('/attendance-status-overrides', {
+    sessionId,
+    studentId,
+    status,
+  })
+  return payload.data
+}
+
+// Hapus override manual sehingga status kembali ke hasil scan/computed.
+export async function clearManualAttendanceStatus({ sessionId, studentId }) {
+  const payload = await apiClient.delete(
+    `/attendance-status-overrides/${sessionId}/${studentId}`,
+  )
+  return payload.data
+}
+
+export async function getDailyRecap({ date, classId } = {}) {
+  const payload = await apiClient.get('/reports/attendance/daily', {
+    params: { date, classId },
+  })
+  return payload.data
+}
+
+export async function getRecapSummary({ from, to, classId } = {}) {
+  const payload = await apiClient.get('/reports/attendance/summary', {
+    params: { from, to, classId },
+  })
   return payload.data
 }
 
