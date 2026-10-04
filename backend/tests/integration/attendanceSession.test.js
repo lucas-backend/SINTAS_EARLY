@@ -17,35 +17,70 @@ const users = [
 
 function createPrisma() {
   const sessions = []
-  const assignment = { id: 60, teacherId: 2, classId: 30, subjectId: 40, isActive: true, class: { id: 30, name: 'X IPA 1' }, subject: { id: 40, name: 'Math' } }
+  const assignments = []
+  const baseAssignment = {
+    id: 60, teacherId: 2, classId: 30, subjectId: 40, isActive: true,
+    class: { id: 30, name: 'X IPA 1' },
+    subject: { id: 40, name: 'Math' },
+    teacher: { id: 2, name: 'Teacher' },
+  }
+  assignments.push(baseAssignment)
+  const teacherAssignment = {
+    findFirst: vi.fn(({ where }) => {
+      if (where.id !== undefined) {
+        const match = assignments.find((value) => value.id === where.id && (where.isActive === undefined || value.isActive === where.isActive))
+        return Promise.resolve(match ?? null)
+      }
+      const match = assignments.find((value) =>
+        value.teacherId === where.teacherId &&
+        value.classId === where.classId &&
+        value.subjectId === where.subjectId &&
+        (where.isActive === undefined || value.isActive === where.isActive),
+      )
+      return Promise.resolve(match ?? null)
+    }),
+    create: vi.fn(({ data }) => {
+      const created = { ...data, id: assignments.length + 1, class: baseAssignment.class, subject: baseAssignment.subject, teacher: baseAssignment.teacher }
+      assignments.push(created)
+      return Promise.resolve(created)
+    }),
+    update: vi.fn(({ where, data }) => {
+      const match = assignments.find((value) => value.id === where.id)
+      Object.assign(match, data)
+      return Promise.resolve(match)
+    }),
+  }
   const prisma = {
     user: {
       findUnique: vi.fn(({ where }) => Promise.resolve(users.find((value) => value.id === where.id || value.username === where.username) ?? null)),
-      findFirst: vi.fn(({ where }) => Promise.resolve(users.find((value) => value.id === where.id && value.role === where.role) ?? null)),
+      findFirst: vi.fn(({ where }) => Promise.resolve(users.find((value) => value.id === where.id && (where.role === undefined || value.role === where.role)) ?? null)),
     },
-    teacherAssignment: {
-      findFirst: vi.fn(({ where }) => Promise.resolve(where.id === assignment.id && where.isActive && (where.teacherId === undefined || where.teacherId === assignment.teacherId) ? assignment : null)),
-    },
+    teacherAssignment,
+    class: { findUnique: vi.fn(({ where }) => Promise.resolve(where.id === 30 ? { id: 30, name: 'X IPA 1' } : null)) },
+    subject: { findUnique: vi.fn(({ where }) => Promise.resolve(where.id === 40 ? { id: 40, name: 'Math' } : null)) },
     attendanceSession: {
       create: vi.fn(({ data }) => {
         if (sessions.some((value) => value.assignmentId === data.assignmentId && value.sessionDate.valueOf() === data.sessionDate.valueOf() && value.startAt.valueOf() === data.startAt.valueOf() && value.endAt.valueOf() === data.endAt.valueOf())) {
           return Promise.reject({ code: 'P2002' })
         }
-        const session = { ...data, id: sessions.length + 1, createdAt: new Date(), assignment, class: assignment.class }
+        const resolved = assignments.find((value) => value.id === data.assignmentId) ?? baseAssignment
+        const session = { ...data, id: sessions.length + 1, createdAt: new Date(), assignment: resolved, class: resolved.class }
         sessions.push(session)
         return Promise.resolve(session)
       }),
-      findMany: vi.fn(({ where }) => Promise.resolve(sessions.filter((value) => !where?.assignment || (where.assignment.teacherId === assignment.teacherId && value.assignment.isActive)))),
-      findFirst: vi.fn(({ where }) => Promise.resolve(sessions.find((value) => value.id === where.id && (!where.assignment || (where.assignment.teacherId === assignment.teacherId && value.assignment.isActive))) ?? null)),
+      findMany: vi.fn(({ where }) => Promise.resolve(sessions.filter((value) => !where?.assignment || (where.assignment.teacherId === value.assignment.teacherId && value.assignment.isActive)))),
+      findFirst: vi.fn(({ where }) => Promise.resolve(sessions.find((value) => value.id === where.id && (!where.assignment || (where.assignment.teacherId === value.assignment.teacherId && value.assignment.isActive))) ?? null)),
       update: vi.fn(({ where, data }) => {
         const session = sessions.find((value) => value.id === where.id)
         Object.assign(session, data)
-        return Promise.resolve({ ...session, assignment, class: assignment.class })
+        const resolved = assignments.find((value) => value.id === session.assignmentId) ?? baseAssignment
+        return Promise.resolve({ ...session, assignment: resolved, class: resolved.class })
       }),
     },
     attendanceRecord: {
       count: vi.fn().mockResolvedValue(0),
     },
+    $transaction: vi.fn((callback) => callback({ teacherAssignment })),
   }
   return { prisma, sessions }
 }
@@ -56,7 +91,9 @@ async function login(app, username) {
 }
 
 const sessionBody = {
-  assignmentId: 60,
+  classId: 30,
+  subjectId: 40,
+  teacherId: 2,
   sessionDate: '2026-09-17',
   startAt: '2026-09-17T08:00:00+07:00',
   endAt: '2026-09-17T09:00:00+07:00',
@@ -64,20 +101,20 @@ const sessionBody = {
 }
 
 describe('attendance session scope', () => {
-  it('rejects an assignment not owned by the authenticated teacher', async () => {
+  it('rejects a teacher from creating a session', async () => {
     const { prisma } = createPrisma()
     const app = createApp({ prisma, env, logger: { error: vi.fn() } })
-    const cookie = await login(app, 'other-teacher')
+    const cookie = await login(app, 'teacher')
     const response = await request(app).post('/api/v1/attendance-sessions').set('Cookie', cookie).send(sessionBody)
     expect(response.status).toBe(403)
-    expect(response.body.error.code).toBe('ASSIGNMENT_FORBIDDEN')
+    expect(response.body.error.code).toBe('FORBIDDEN')
     expect(prisma.attendanceSession.create).not.toHaveBeenCalled()
   })
 
   it('rejects invalid time ranges before creating a session', async () => {
     const { prisma } = createPrisma()
     const app = createApp({ prisma, env, logger: { error: vi.fn() } })
-    const cookie = await login(app, 'teacher')
+    const cookie = await login(app, 'admin')
     const response = await request(app).post('/api/v1/attendance-sessions').set('Cookie', cookie).send({ ...sessionBody, endAt: sessionBody.startAt })
     expect(response.status).toBe(400)
     expect(response.body.error.code).toBe('INVALID_TIME_RANGE')
@@ -87,7 +124,7 @@ describe('attendance session scope', () => {
   it('rejects duplicate sessions and keeps QR payload opaque', async () => {
     const { prisma } = createPrisma()
     const app = createApp({ prisma, env, logger: { error: vi.fn() } })
-    const cookie = await login(app, 'teacher')
+    const cookie = await login(app, 'admin')
     const created = await request(app).post('/api/v1/attendance-sessions').set('Cookie', cookie).send(sessionBody)
     expect(created.status).toBe(200)
     expect(created.body.data.qrPayload).toBeUndefined()
@@ -108,8 +145,10 @@ describe('attendance session scope', () => {
   it('enforces role and teacher ownership on reads', async () => {
     const { prisma } = createPrisma()
     const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const adminCookie = await login(app, 'admin')
+    await request(app).post('/api/v1/attendance-sessions').set('Cookie', adminCookie).send(sessionBody)
     const teacherCookie = await login(app, 'teacher')
-    await request(app).post('/api/v1/attendance-sessions').set('Cookie', teacherCookie).send(sessionBody)
+    expect((await request(app).get('/api/v1/attendance-sessions').set('Cookie', teacherCookie)).body.data).toHaveLength(1)
     const otherCookie = await login(app, 'other-teacher')
     expect((await request(app).get('/api/v1/attendance-sessions').set('Cookie', otherCookie)).body.data).toEqual([])
     expect((await request(app).get('/api/v1/attendance-sessions/1/qr').set('Cookie', otherCookie)).status).toBe(404)
@@ -154,10 +193,29 @@ describe('attendance session scope', () => {
   it('rejects a teacher from updating or deleting sessions', async () => {
     const { prisma } = createPrisma()
     const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const adminCookie = await login(app, 'admin')
+    await request(app).post('/api/v1/attendance-sessions').set('Cookie', adminCookie).send(sessionBody)
     const teacherCookie = await login(app, 'teacher')
-    await request(app).post('/api/v1/attendance-sessions').set('Cookie', teacherCookie).send(sessionBody)
 
     expect((await request(app).patch('/api/v1/attendance-sessions/1').set('Cookie', teacherCookie).send(sessionBody)).status).toBe(403)
     expect((await request(app).delete('/api/v1/attendance-sessions/1').set('Cookie', teacherCookie)).status).toBe(403)
+  })
+
+  it('reactivates an archived assignment instead of creating a new one', async () => {
+    const { prisma } = createPrisma()
+    const archived = { id: 99, teacherId: 2, classId: 30, subjectId: 40, isActive: false, class: { id: 30, name: 'X IPA 1' }, subject: { id: 40, name: 'Math' }, teacher: { id: 2, name: 'Teacher' } }
+    prisma.teacherAssignment.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(archived)
+    prisma.teacherAssignment.update.mockResolvedValueOnce({ ...archived, isActive: true })
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const adminCookie = await login(app, 'admin')
+
+    const response = await request(app).post('/api/v1/attendance-sessions').set('Cookie', adminCookie).send(sessionBody)
+    expect(response.status).toBe(200)
+    expect(prisma.teacherAssignment.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 99 }, data: { isActive: true } }),
+    )
+    expect(prisma.teacherAssignment.create).not.toHaveBeenCalled()
   })
 })

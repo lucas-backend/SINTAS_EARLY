@@ -37,6 +37,9 @@ export function SessionMobileList({ items, onEdit, onDelete }) {
             </span>
             <span className="mt-1 block text-sm text-slate-700">{session.className ?? '—'}</span>
             <span className="mt-0.5 block text-xs text-slate-700">
+              {session.teacherName ? `Guru: ${session.teacherName}` : 'Guru: —'}
+            </span>
+            <span className="mt-0.5 block text-xs text-slate-700">
               {formatSchoolTime(session.startAt)} – {formatSchoolTime(session.endAt)}
             </span>
             <div className="mt-2">
@@ -59,6 +62,7 @@ export function SessionDesktopTable({ items, onEdit, onDelete }) {
             <th scope="col" className="p-3 font-semibold">Tanggal</th>
             <th scope="col" className="p-3 font-semibold">Kelas</th>
             <th scope="col" className="p-3 font-semibold">Mata pelajaran</th>
+            <th scope="col" className="p-3 font-semibold">Guru</th>
             <th scope="col" className="p-3 font-semibold">Waktu</th>
             <th scope="col" className="sr-only p-3">Aksi</th>
           </tr>
@@ -69,6 +73,7 @@ export function SessionDesktopTable({ items, onEdit, onDelete }) {
               <td className="p-3 text-slate-700">{formatSchoolDate(session.sessionDate)}</td>
               <td className="p-3 font-semibold text-ink-900">{session.className ?? '—'}</td>
               <td className="p-3 text-ink-900">{session.subjectName ?? '—'}</td>
+              <td className="p-3 text-slate-700">{session.teacherName ?? '—'}</td>
               <td className="p-3 text-slate-700">
                 {formatSchoolTime(session.startAt)} – {formatSchoolTime(session.endAt)}
               </td>

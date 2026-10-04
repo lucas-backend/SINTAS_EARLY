@@ -16,8 +16,7 @@ export default function TeacherAssignmentsPage() {
       <div>
         <h1 className="text-2xl font-bold text-ink-900">Penugasan saya</h1>
         <p className="mt-1 text-sm text-slate-700">
-          Daftar kelas dan mata pelajaran aktif yang ditugaskan kepada Anda. Buat
-          sesi absensi dari salah satu penugasan.
+          Daftar kelas dan mata pelajaran aktif yang ditugaskan kepada Anda.
         </p>
       </div>
 

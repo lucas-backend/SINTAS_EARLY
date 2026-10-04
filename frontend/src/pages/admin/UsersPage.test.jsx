@@ -195,4 +195,49 @@ describe('halaman pengguna admin', () => {
 
     await waitFor(() => expect(deleted).toBe(true))
   })
+
+  it('menempatkan siswa ke kelas dari halaman pengguna', async () => {
+    const user = userEvent.setup()
+    let body = null
+    renderUsers([
+      http.get(USERS_URL, () =>
+        HttpResponse.json({
+          data: page([
+            {
+              id: 1,
+              username: 'student.demo',
+              role: 'STUDENT',
+              name: 'Siswa Demo',
+              email: null,
+              phone: null,
+              birthDate: null,
+              studentNumber: 'S-0001',
+            },
+          ]),
+        }),
+      ),
+      http.get(`${API_BASE_URL}/academic/memberships`, () =>
+        HttpResponse.json({ data: page([]) }),
+      ),
+      http.get(`${API_BASE_URL}/academic/classes`, () =>
+        HttpResponse.json({ data: page([{ id: 30, name: 'XII IPA 1' }]) }),
+      ),
+      http.post(`${API_BASE_URL}/academic/memberships`, async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({
+          data: { id: 50, classId: 30, studentId: 1, isActive: true },
+        })
+      }),
+    ])
+
+    await screen.findAllByText('Siswa Demo')
+    await user.click(screen.getAllByRole('button', { name: 'Kelas' })[0])
+
+    const dialog = await screen.findByRole('dialog')
+    await user.selectOptions(within(dialog).getByLabelText('Pilih kelas'), '30')
+    await user.click(within(dialog).getByRole('button', { name: 'Tempatkan' }))
+
+    await waitFor(() => expect(body).not.toBeNull())
+    expect(body).toEqual({ classId: 30, studentId: 1 })
+  })
 })

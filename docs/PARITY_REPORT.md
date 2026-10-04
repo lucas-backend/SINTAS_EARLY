@@ -21,11 +21,11 @@ Fase M5 `docs/PLAN_MERGE_UI.md` bagian 10. Keputusan terkunci: `docs/DECISIONS.m
 | Hasil scan | `/scan/result` | (state `/app/student/scan`) | **Parity bahasa visual** | Panel status ikon besar + badge + baris detail + tombol solid biru. Golden menampilkan variasi mock; produksi menampilkan status server (termasuk duplicate). |
 | Riwayat | `/riwayat` | `/app/student/history` | **Parity tinggi (mobile)** | Baris `tanggal \| mapel/kelas \| status` sama; produksi menambah filter, pagination, dan tabel desktop (kemampuan produksi, M3-7). |
 | Profil | `/profil` | `/app/student/profile` (+ guru/admin) | **Parity tinggi** | Avatar bulat `bg-blue-100` + ikon, identitas read-only, kartu form. Produksi memakai `dt/dd` + RHF/zod. |
-| Guru — Buat Absen | `/guru/buat-absen` | `/app/teacher/sessions/new` | **Parity bahasa visual; tanpa referensi penuh** | Gaya form/card/label meniru golden; golden memakai mock. Sidebar desktop (D7) tidak ada referensi. |
+| Guru — Buat Absen | `/guru/buat-absen` | `/app/teacher/sessions/new` (**dihapus**, D22/J1) | **Parity bahasa visual; tanpa referensi penuh** | Gaya form/card/label meniru golden; golden memakai mock. Sidebar desktop (D7) tidak ada referensi. Halaman/form buat sesi guru dihapus; jadwal kini dibuat Admin. |
 | Guru — QR sesi | `/guru/sesi/:id` | `/app/teacher/sessions/:id/qr` | **Parity bahasa visual** | Kartu `rounded-xl border-black/10` + baris metadata sama; produksi merender QR nyata (`QRCodeSVG`), golden placeholder ikon (M4-5). |
 | Guru — Rekap | `/guru/rekap` | `/app/teacher/classes/:id/attendance` | **Parity bahasa visual; tabel** | Tabel semantik + `Pagination` direstyle token golden (M4-2); golden memakai mock list. |
 | Admin — Beranda | (tidak ada referensi, M1-4) | `/app/admin` | **Parity terhadap bahasa M2/M3** | Kartu ringkasan token golden; sidebar desktop didefer (D7). Bottom nav 7 item kini scrollable @320 (M5-2). |
-| Admin — tabel | (tidak ada referensi, M4-1) | `/app/admin/{banners,users,academic,plotting,reports}` | **Parity terhadap bahasa M2/M3** | Tabel `<table>` + `Pagination`, dialog Headless UI, form label terlihat (M4-3). |
+| Admin — tabel | (tidak ada referensi, M4-1) | `/app/admin/{banners,users,academic,sessions,reports}` | **Parity terhadap bahasa M2/M3** | Tabel `<table>` + `Pagination`, dialog Headless UI, form label terlihat (M4-3). Halaman `plotting` dihapus; penempatan via dialog di halaman Pengguna (D22/J3). |
 
 Kesimpulan: **tidak ada divergensi visual tak terduga** pada bahasa visual (warna/radius/spacing/typography/bentuk ikon). Semua perbedaan yang tersisa adalah hasil keputusan yang sudah dikunci (D7, M1-4, M3-4, M4-1) atau tambahan fungsional PRD (filter/tabel/export/forgot-password).
 

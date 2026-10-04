@@ -7,9 +7,9 @@ import { Link } from 'react-router-dom'
 
 const QUICK_LINKS = [
   { to: '/app/admin/banners', label: 'Banner sekolah', description: 'Atur banner yang tampil di beranda.', icon: CampaignRoundedIcon },
-  { to: '/app/admin/users', label: 'Pengguna', description: 'Kelola akun dan reset password.', icon: GroupOutlinedIcon },
+  { to: '/app/admin/users', label: 'Pengguna', description: 'Kelola akun, penempatan, dan reset password.', icon: GroupOutlinedIcon },
   { to: '/app/admin/academic', label: 'Akademik', description: 'Jenjang, kelas, dan mata pelajaran.', icon: SchoolRoundedIcon },
-  { to: '/app/admin/plotting', label: 'Penempatan', description: 'Siswa pada kelas dan guru.', icon: HubOutlinedIcon },
+  { to: '/app/admin/sessions', label: 'Jadwal absensi', description: 'Atur sesi absensi seluruh kelas.', icon: HubOutlinedIcon },
   { to: '/app/admin/reports', label: 'Laporan kehadiran', description: 'Rekap global dan export.', icon: BarChartRoundedIcon },
 ]
 

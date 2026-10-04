@@ -79,27 +79,32 @@ dipetakan ke requirement PRD:
 - Master admin: jenjang (`education-levels`), kelas (`classes`), mata pelajaran
   (`subjects`) — full CRUD ter-scope ADMIN (list jenjang/kelas/subjek juga bisa
   dibaca TEACHER).
-- Plotting siswa ke kelas (`memberships`) — satu kelas aktif per siswa,
-  pelanggaran → `409 ACTIVE_CLASS_MEMBERSHIP_EXISTS`.
-- Plotting guru → kelas + mapel (`assignments`) — `409 DUPLICATE_ASSIGNMENT`
-  untuk penugasan aktif ganda.
+- Penempatan siswa ke kelas (`memberships`) — satu kelas aktif per siswa,
+  pelanggaran → `409 ACTIVE_CLASS_MEMBERSHIP_EXISTS`. Dilakukan di **halaman
+  Pengguna** admin (aksi per baris "Kelas"), bukan halaman terpisah (D22/J3).
+- Penugasan guru → kelas + mapel (`assignments`) — dibentuk **otomatis saat
+  admin membuat sesi/jadwal** (D22/J7): backend me-resolve pakai baris aktif,
+  mengaktifkan arsip nonaktif, atau membuat baru dalam satu transaksi. Tidak ada
+  lagi pengelolaan penugasan di tabel Pengguna; `409 DUPLICATE_ASSIGNMENT` tetap
+  berlaku di endpoint assignment langsung.
 - Guru melihat penugasan miliknya (`GET /api/v1/academic/assignments`);
   Siswa melihat kelas aktifnya (`GET /api/v1/academic/my-classes`);
-  Admin mengelola via `GET /assignments/manage` + `GET /memberships` (ter-paginasi).
+  Admin memakai `GET /memberships` (filter `classId`/`studentId`) untuk
+  penempatan siswa. `GET /assignments/manage` tetap tersedia sebagai endpoint
+  admin (tidak lagi dipakai UI).
 - Manajemen user admin: daftar pengguna, buat user (Siswa/Guru/Admin), reset
   password manual (`GET/POST /api/v1/users`, `PATCH /api/v1/users/:id/password`).
 
 **Sesi Absensi dan QR Code (FR-05)**
-- Guru membuat sesi dari assignment aktif miliknya
-  (`POST /api/v1/attendance-sessions`) dengan `assignmentId`, `sessionDate`,
-  `startAt`, `endAt`, `timezone`.
+- **Admin** membuat sesi/jadwal dengan memilih `classId` + `subjectId` +
+  `teacherId` (penugasan di-resolve otomatis, D22/J1/J7).
 - Validasi timezone (harus = timezone sekolah), rentang waktu, dan tanggal sesi
   sesuai waktu lokal sekolah.
 - QR payload **opaque 43-karakter base64url** hasil `randomBytes(32)` — tidak
   memuat data pribadi dan tidak mudah ditebak (`src/domain/attendanceQr.js`).
 - Sesi duplikat untuk assignment+tanggal+waktu yang sama → `409 DUPLICATE_ATTENDANCE_SESSION`.
 - Guru/Admin membaca daftar sesi (`GET /api/v1/attendance-sessions`) dan QR per
-  sesi (`GET /api/v1/attendance-sessions/:id/qr`).
+  sesi (`GET /api/v1/attendance-sessions/:id/qr`); guru read-only (D22/J2).
 
 **Pemindaian dan Status Absensi (FR-06)**
 - `POST /api/v1/attendance-scans` — jalur scan yang ringan (tanpa query
@@ -204,8 +209,8 @@ backend/
 /login, /forgot-password                     (publik)
 /app                         → ProtectedRoute + AppShell + RoleHome (redirect per role)
   /app/student               → dashboard, schedule, scan, history, profile
-  /app/teacher               → dashboard, assignments, sessions(+new, +:id/qr), classes/:id/attendance, profile
-  /app/admin                 → dashboard, banners, users, academic, plotting, reports, profile
+  /app/teacher               → dashboard, assignments, sessions(+:id/qr), classes/:id/attendance, profile
+  /app/admin                 → dashboard, banners, users, academic, sessions, reports, profile
 *                            → NotFoundPage (Akses Ditolak → AccessDeniedPage untuk 403)
 ```
 
@@ -277,8 +282,8 @@ dibangun di atas API yang stabil. Fase backend mengikuti urutan di
 - **B4 — Master akademik, user, banner:** CRUD jenjang/kelas/subjek, manajemen
   user + reset password admin, plotting siswa-guru, dan banner. Scope
   diterapkan di service sebelum query.
-- **B5 — Sesi + QR:** Guru membuat sesi hanya dari assignment aktif miliknya;
-  QR payload opaque; duplicate → 409; `GET qr` ter-scope.
+- **B5 — Sesi + QR:** sesi dari assignment aktif (awalnya Guru; kini **Admin**
+  saja — D22/J1); QR payload opaque; duplicate → 409; `GET qr` ter-scope.
 - **B6 — Scan idempotent:** validasi berurutan (auth → QR payload → session →
   assignment aktif → membership) lalu insert dalam transaction; P2002
   (unique violation) ditangani sebagai response duplicate. Integration test
@@ -339,8 +344,8 @@ bottom nav per role, serta pemisahan struktur feature-folder di
   (pagination + filter), export XLSX (binary download, nama file dari
   `Content-Disposition`).
 - **F5 — Workspace admin:** banner management, users + reset password,
-  academic master, plotting (via endpoint read `memberships` &
-  `assignments/manage`), laporan global + export. Termasuk **bugfix middleware
+  academic master, penempatan siswa (via `memberships`, di halaman Pengguna),
+  laporan global + export. Termasuk **bugfix middleware
   `validate`** — penggantian `req.query`/`req.params` via
   `Object.defineProperty` agar default pagination/filter benar-benar diterapkan
   di Express 5.1.

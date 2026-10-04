@@ -82,9 +82,9 @@ export async function deleteSubject(id) {
   return payload.data
 }
 
-export async function getMemberships({ page = 1, limit = 20, classId } = {}) {
+export async function getMemberships({ page = 1, limit = 20, classId, studentId } = {}) {
   const payload = await apiClient.get('/academic/memberships', {
-    params: { page, limit, classId },
+    params: { page, limit, classId, studentId },
   })
   return payload.data
 }

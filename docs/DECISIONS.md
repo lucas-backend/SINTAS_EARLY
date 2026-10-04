@@ -511,6 +511,65 @@ Menutup gap CRUD pada halaman admin: `users` (update + delete), `class_students`
 
 Keputusan A0-1 s.d. A0-7 dikunci. Open Item O-2/O-3 boleh dikerjakan dengan nilai default di atas selama product tidak menyatakan sebaliknya; O-1/O-4/O-5/O-6/O-7 tidak memblokir fase A1–A8.
 
+## 22. Jadwal di kendali admin & penempatan di halaman pengguna (PLAN_JADWAL_ADMIN)
+
+**Status: DECIDED untuk MVP — fase P0 `PLAN_JADWAL_ADMIN.md`.**
+
+Memindahkan tata kelola **sesi absensi (jadwal)** sepenuhnya ke Admin dan memindahkan **penempatan** (siswa→kelas, guru→kelas+mapel) ke halaman **Pengguna**; halaman **Penempatan** terpisah dihapus. Tidak ada migration/tabel baru. Entri ini **meng-override** bagian TEACHER create pada A0-4 dan menyimpangi FR-05 (sesi dibuat Guru) atas permintaan pemangku kepentingan.
+
+### J1 — Sesi/jadwal dibuat Admin saja
+
+- **Pilihan final:** `POST /api/v1/attendance-sessions` diubah menjadi `authorize('ADMIN')` saja (mencabut wewenang create TEACHER). Body memakai `classId` + `subjectId` + `teacherId` (bukan `assignmentId`); service memvalidasi guru/kelas/mapel lalu me-resolve penugasan otomatis (lihat J7). Guru tidak lagi dapat membuat sesi. Duplikat tetap `409 DUPLICATE_ATTENDANCE_SESSION`.
+- **Alasan:** Permintaan pemangku kepentingan agar jadwal terpusat di Admin. Meng-override A0-4 yang masih mengizinkan TEACHER create dan menyimpangi FR-05.
+- **Dampak database/API/UI:** Tidak ada migration. Route `attendance.routes.js` + schema/service `createSession` berubah; test `attendanceSession` disesuaikan (teacher `POST` → `403`); `API_CONTRACT`/`openapi.yaml` diperbarui. UI admin halaman Jadwal memakai selector kelas+mapel+guru; guru kehilangan halaman/form buat sesi.
+- **Asumsi yang masih perlu dikonfirmasi:** tidak ada; admin boleh membuat sesi untuk kelas/mapel/guru mana pun.
+
+### J2 — Guru tetap read-only terhadap sesi
+
+- **Pilihan final:** `GET /attendance-sessions` (hanya milik guru), `GET /attendance-sessions/:id/qr`, `GET /attendance/classes/:id`, dan `GET /reports/attendance/export` tidak berubah. Guru tidak lagi melihat aksi "Buat sesi".
+- **Alasan:** Guru masih perlu menampilkan QR di kelas, memantau kehadiran, dan mengekspor rekap; yang dicabut hanya mutasi sesi.
+- **Dampak database/API/UI:** Tidak ada perubahan backend pada jalur baca. UI guru menghapus route/halaman `teacher/sessions/new`, `SessionForm`, `useCreateSession`, dan aksi "Buat sesi" pada dasbor, daftar sesi, dan kartu penugasan.
+- **Asumsi yang masih perlu dikonfirmasi:** tidak ada.
+
+### J3 — Penempatan di halaman Pengguna; halaman Penempatan dihapus
+
+- **Pilihan final:** Penempatan siswa menjadi **aksi per baris** di halaman Pengguna (STUDENT → "Kelas"). Penugasan guru **tidak** lagi dikelola di tabel Pengguna; diberikan saat pembuatan sesi (lihat J7). Halaman `/app/admin/plotting` + item menu "Penempatan" + tautan beranda **dihapus total** (tanpa redirect/deep-link).
+- **Alasan:** Permintaan pemangku kepentingan agar penempatan dilakukan pada halaman pengguna saja; menghindari dua pusat pengelolaan.
+- **Dampak database/API/UI:** Tidak ada migration. UI menghapus `PlottingPage`/route/nav; menambah dialog penempatan dan aksi baris pada `UserViews`; komponen tabel penempatan yang ada dipakai ulang.
+- **Asumsi yang masih perlu dikonfirmasi:** tidak ada; bookmark lama ke `/app/admin/plotting` jatuh ke 404.
+
+### J4 — Ganti kelas siswa non-atomic
+
+- **Pilihan final:** Perpindahan kelas = nonaktifkan membership aktif (`DELETE /academic/memberships/:id`) lalu buat membership baru (`POST /academic/memberships`). Tidak ada endpoint atomik baru pada MVP.
+- **Alasan:** Kedua endpoint sudah ada; scope fase berat pada tata kelola UI, bukan medan API. Risiko kegagalan request kedua diterima pada MVP.
+- **Dampak database/API/UI:** Tidak ada endpoint baru. Dialog siswa mengurutkan dua mutasi; pesan error dari `ACTIVE_CLASS_MEMBERSHIP_EXISTS`/`MEMBERSHIP_ARCHIVED` ditampilkan jelas.
+- **Asumsi yang masih perlu dikonfirmasi:** bila produk ingin atomik, endpoint `PUT` berbasis transaction menjadi keputusan baru (di luar MVP).
+
+### J5 — Filter `studentId` pada daftar membership
+
+- **Pilihan final:** `GET /api/v1/academic/memberships` menerima `studentId` opsional pada allowlist query (`membershipListSchema`) agar dialog per siswa membaca membership-nya tanpa menarik seluruh data. `teacherId` pada `/assignments/manage` sudah ada dan dipakai ulang.
+- **Alasan:** Frontend tidak boleh menjadi sumber kebenaran/pagination; filter dibatasi allowlist backend (strict).
+- **Dampak database/API/UI:** Repository `listMemberships` membangun `where` dari `classId`/`studentId`; `API_CONTRACT`/`openapi.yaml` menambah parameter. Tidak ada migration.
+- **Asumsi yang masih perlu dikonfirmasi:** tidak ada.
+
+### J6 — Label UI "Jadwal"
+
+- **Pilihan final:** Menu/halaman admin untuk sesi absensi diberi label **"Jadwal"** (heading "Jadwal absensi"). Route internal tetap `/app/admin/sessions`; rename path adalah keputusan terpisah.
+- **Alasan:** Menyelaraskan istilah dengan permintaan pemangku kepentingan tanpa churn route/test.
+- **Dampak database/API/UI:** Perubahan label pada `permissions.js`, `SessionsPage`, dan tautan beranda admin.
+- **Asumsi yang masih perlu dikonfirmasi:** label "Sesi absensi" guru dipertahankan; penyeragaman istilah merupakan keputusan lanjutan bila diminta.
+
+### J7 — Penugasan guru dibuat otomatis saat sesi dibuat/diubah
+
+- **Pilihan final:** Form sesi/jadwal admin memilih `classId` + `subjectId` + `teacherId`. Backend me-resolve penugasan dalam satu transaksi (`resolveAssignment`): pakai baris `teacher_assignment` aktif bila ada, aktifkan kembali arsip nonaktif, atau buat baru — sebelum sesi dibuat. Update sesi memakai aturan sama (hanya bila sesi belum punya `attendance_records`). Aksi "Penugasan" pada tabel Pengguna dan dialog penugasan dihapus; `POST`/`PATCH` sesi tidak lagi menerima `assignmentId`.
+- **Alasan:** Permintaan pemangku kepentingan: penugasan diberikan ketika membuat jadwal baru, bukan dikelola terpisah. Menghindari dua pusat pengelolaan penugasan.
+- **Dampak database/API/UI:** Tidak ada migration. Schema `attendanceSessionSchema`/`attendanceSessionPatchSchema` memakai triplet kelas/mapel/guru; repository menambah `resolveAssignment`/`findTeacher`/`findClass`/`findSubject`; `sessionMetadata` menambah `teacherId`/`teacherName`; UI form sesi memakai dua select master + guru, tabel sesi admin menampilkan kolom Guru.
+- **Asumsi yang masih perlu dikonfirmasi:** (a) arsip nonaktif di-reaktivasi (bukan membuat baris baru) mengikuti unique `(teacher,class,subject,isActive)`; (b) konkurensi dua sesi tuple sama dapat memicu `P2002` pada pembuatan assignment — dicatat sebagai open item, dilindungi di level sesi oleh unique sesi.
+
+### Gate fase P0
+
+Keputusan J1–J7 dikunci. Open Item O-1/O-2 pada `PLAN_JADWAL_ADMIN.md` sudah ditutup (hapus total + non-atomic). O-3 s.d. O-8 tidak memblokir fase P1–P6. Implementasi tidak boleh menyimpang dari J1–J7 tanpa memperbarui entri ini.
+
 ## Gate implementasi
 
 Keputusan yang memengaruhi migration dan authorization di atas sudah dikunci untuk scope MVP. Nilai timezone tetap configurable melalui environment dengan default `Asia/Jakarta`.

@@ -1,4 +1,3 @@
-import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded'
 import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded'
 import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
 import { Link } from 'react-router-dom'
@@ -50,16 +49,9 @@ export default function TeacherDashboardPage() {
             Beranda Guru
           </h1>
           <p className="mt-1 text-sm text-slate-700">
-            Kelola sesi absensi dan pantau kehadiran kelas yang Anda ajar.
+            Pantau jadwal absensi dan kehadiran kelas yang Anda ajar.
           </p>
         </div>
-        <Link
-          to="/app/teacher/sessions/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white"
-        >
-          <EventAvailableRoundedIcon className="h-4! w-4!" aria-hidden="true" />
-          Buat sesi
-        </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -70,7 +62,7 @@ export default function TeacherDashboardPage() {
         />
         <SummaryCard
           icon={QrCode2RoundedIcon}
-          label="Sesi dibuat"
+          label="Sesi tersedia"
           value={sessionsQuery.isPending ? '…' : sessions.length}
         />
       </div>
@@ -130,15 +122,7 @@ export default function TeacherDashboardPage() {
             empty={
               <EmptyState
                 title="Belum ada sesi absensi"
-                message="Buat sesi untuk menampilkan QR Code di kelas."
-                action={
-                  <Link
-                    to="/app/teacher/sessions/new"
-                    className="mt-1 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    Buat sesi
-                  </Link>
-                }
+                message="Jadwal sesi akan tampil setelah admin membuatnya."
               />
             }
             skeleton={

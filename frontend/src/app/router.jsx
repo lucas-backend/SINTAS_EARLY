@@ -8,7 +8,6 @@ import { useSessionStore } from '../stores/sessionStore'
 import AdminDashboardPage from '../pages/admin/DashboardPage'
 import AdminAcademicPage from '../pages/admin/AcademicPage'
 import AdminBannersPage from '../pages/admin/BannersPage'
-import AdminPlottingPage from '../pages/admin/PlottingPage'
 import AdminReportsPage from '../pages/admin/ReportsPage'
 import AdminSessionsPage from '../pages/admin/SessionsPage'
 import AdminUsersPage from '../pages/admin/UsersPage'
@@ -22,7 +21,6 @@ import StudentScanPage from '../pages/student/ScanPage'
 import StudentSchedulePage from '../pages/student/SchedulePage'
 import TeacherAssignmentsPage from '../pages/teacher/AssignmentsPage'
 import TeacherClassAttendancePage from '../pages/teacher/ClassAttendancePage'
-import TeacherCreateSessionPage from '../pages/teacher/CreateSessionPage'
 import TeacherDashboardPage from '../pages/teacher/DashboardPage'
 import TeacherSessionQrPage from '../pages/teacher/SessionQrPage'
 import TeacherSessionsPage from '../pages/teacher/SessionsPage'
@@ -62,7 +60,6 @@ export function AppRoutes() {
             <Route index element={<TeacherDashboardPage />} />
             <Route path="assignments" element={<TeacherAssignmentsPage />} />
             <Route path="sessions" element={<TeacherSessionsPage />} />
-            <Route path="sessions/new" element={<TeacherCreateSessionPage />} />
             <Route path="sessions/:sessionId/qr" element={<TeacherSessionQrPage />} />
             <Route
               path="classes/:classId/attendance"
@@ -75,7 +72,6 @@ export function AppRoutes() {
             <Route path="banners" element={<AdminBannersPage />} />
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="academic" element={<AdminAcademicPage />} />
-            <Route path="plotting" element={<AdminPlottingPage />} />
             <Route path="sessions" element={<AdminSessionsPage />} />
             <Route path="reports" element={<AdminReportsPage />} />
             <Route path="profile" element={<ProfilePage />} />

@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form'
 import { getErrorMessage, getFieldErrors } from '../../../lib/errorMapping'
 import { SCHOOL_TIMEZONE, schoolDateString, todaySchoolDate } from '../../../lib/dateTime'
 import { sessionFormSchema, toSessionPayload } from '../../../schemas/session'
+import { useClasses, useSubjects } from '../hooks/useAcademicMasters'
+import { useAdminUsers } from '../hooks/useAdminUsers'
 import { useCreateAdminSession, useUpdateAdminSession } from '../hooks/useAdminSessions'
 import { DialogShell, FieldError, inputClass } from './DialogShell'
 
@@ -21,22 +23,34 @@ function schoolTimeString(value) {
 
 function defaultValues(session) {
   if (!session) {
-    return { assignmentId: '', sessionDate: todaySchoolDate(), start: '', end: '' }
+    return {
+      classId: '',
+      subjectId: '',
+      teacherId: '',
+      sessionDate: todaySchoolDate(),
+      start: '',
+      end: '',
+    }
   }
   return {
-    assignmentId: String(session.assignmentId),
+    classId: session.classId ? String(session.classId) : '',
+    subjectId: session.subjectId ? String(session.subjectId) : '',
+    teacherId: session.teacherId ? String(session.teacherId) : '',
     sessionDate: schoolDateString(session.sessionDate ?? session.startAt),
     start: schoolTimeString(session.startAt),
     end: schoolTimeString(session.endAt),
   }
 }
 
-export function SessionAdminFormDialog({ open, session = null, assignments = [], onClose }) {
+export function SessionAdminFormDialog({ open, session = null, onClose }) {
   const isEdit = Boolean(session)
   const [rootError, setRootError] = useState(null)
   const createSession = useCreateAdminSession()
   const updateSession = useUpdateAdminSession()
   const mutation = isEdit ? updateSession : createSession
+  const { data: classes } = useClasses({ page: 1, limit: 100 })
+  const { data: subjects } = useSubjects({ page: 1, limit: 100 })
+  const { data: teachers } = useAdminUsers({ page: 1, limit: 100, role: 'TEACHER' })
   const {
     register,
     handleSubmit,
@@ -64,8 +78,8 @@ export function SessionAdminFormDialog({ open, session = null, assignments = [],
   return (
     <DialogShell
       open={open}
-      title={isEdit ? 'Ubah sesi absensi' : 'Sesi absensi baru'}
-      description="Sesi yang sudah memiliki kehadiran tidak dapat diubah atau dihapus."
+      title={isEdit ? 'Ubah jadwal absensi' : 'Jadwal absensi baru'}
+      description="Pilih kelas, mata pelajaran, dan guru. Penugasan guru dibuat otomatis."
       onClose={onClose}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -75,26 +89,69 @@ export function SessionAdminFormDialog({ open, session = null, assignments = [],
           </p>
         ) : null}
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="admin-session-class" className="block text-sm font-medium text-slate-700">
+              Kelas
+            </label>
+            <select
+              id="admin-session-class"
+              className={inputClass}
+              aria-invalid={errors.classId ? true : undefined}
+              aria-describedby={errors.classId ? 'admin-session-class-error' : undefined}
+              {...register('classId')}
+            >
+              <option value="">Pilih kelas</option>
+              {classes?.items?.map((entry) => (
+                <option key={entry.id} value={String(entry.id)}>
+                  {entry.name}
+                </option>
+              ))}
+            </select>
+            <FieldError id="admin-session-class-error" message={errors.classId?.message} />
+          </div>
+
+          <div>
+            <label htmlFor="admin-session-subject" className="block text-sm font-medium text-slate-700">
+              Mata pelajaran
+            </label>
+            <select
+              id="admin-session-subject"
+              className={inputClass}
+              aria-invalid={errors.subjectId ? true : undefined}
+              aria-describedby={errors.subjectId ? 'admin-session-subject-error' : undefined}
+              {...register('subjectId')}
+            >
+              <option value="">Pilih mata pelajaran</option>
+              {subjects?.items?.map((entry) => (
+                <option key={entry.id} value={String(entry.id)}>
+                  {entry.name}
+                </option>
+              ))}
+            </select>
+            <FieldError id="admin-session-subject-error" message={errors.subjectId?.message} />
+          </div>
+        </div>
+
         <div>
-          <label htmlFor="admin-session-assignment" className="block text-sm font-medium text-slate-700">
-            Penugasan
+          <label htmlFor="admin-session-teacher" className="block text-sm font-medium text-slate-700">
+            Guru
           </label>
           <select
-            id="admin-session-assignment"
+            id="admin-session-teacher"
             className={inputClass}
-            aria-invalid={errors.assignmentId ? true : undefined}
-            aria-describedby={errors.assignmentId ? 'admin-session-assignment-error' : undefined}
-            {...register('assignmentId')}
+            aria-invalid={errors.teacherId ? true : undefined}
+            aria-describedby={errors.teacherId ? 'admin-session-teacher-error' : undefined}
+            {...register('teacherId')}
           >
-            <option value="">Pilih kelas dan mata pelajaran</option>
-            {assignments.map((entry) => (
+            <option value="">Pilih guru</option>
+            {teachers?.items?.map((entry) => (
               <option key={entry.id} value={String(entry.id)}>
-                {entry.class?.name ?? '—'} — {entry.subject?.name ?? '—'}
-                {entry.teacher?.name ? ` (${entry.teacher.name})` : ''}
+                {entry.name}
               </option>
             ))}
           </select>
-          <FieldError id="admin-session-assignment-error" message={errors.assignmentId?.message} />
+          <FieldError id="admin-session-teacher-error" message={errors.teacherId?.message} />
         </div>
 
         <div>

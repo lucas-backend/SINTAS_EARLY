@@ -1,6 +1,7 @@
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded'
+import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded'
 import { roleLabel } from '../../../lib/permissions'
 import { StatusBadge } from '../../../components/common/StatusBadge'
 
@@ -10,9 +11,19 @@ const ROLE_TONE = {
   STUDENT: 'neutral',
 }
 
-function RowActions({ user, onEdit, onDelete, onResetPassword }) {
+function RowActions({ user, onEdit, onDelete, onResetPassword, onPlacement }) {
   return (
     <div className="flex flex-wrap items-center gap-1">
+      {user.role === 'STUDENT' ? (
+        <button
+          type="button"
+          onClick={() => onPlacement(user)}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-blue-500 hover:bg-blue-100/50"
+        >
+          <SchoolRoundedIcon className="h-4! w-4!" aria-hidden="true" />
+          Kelas
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={() => onEdit(user)}
@@ -41,7 +52,7 @@ function RowActions({ user, onEdit, onDelete, onResetPassword }) {
   )
 }
 
-export function UserMobileList({ items, onResetPassword, onEdit, onDelete }) {
+export function UserMobileList({ items, onResetPassword, onEdit, onDelete, onPlacement }) {
   return (
     <ul className="space-y-3 sm:hidden">
       {items.map((user) => (
@@ -58,7 +69,7 @@ export function UserMobileList({ items, onResetPassword, onEdit, onDelete }) {
               {user.studentNumber ? `NISN ${user.studentNumber}` : user.email ?? 'Tanpa email'}
             </span>
             <div className="mt-2">
-              <RowActions user={user} onEdit={onEdit} onDelete={onDelete} onResetPassword={onResetPassword} />
+              <RowActions user={user} onEdit={onEdit} onDelete={onDelete} onResetPassword={onResetPassword} onPlacement={onPlacement} />
             </div>
           </div>
         </li>
@@ -67,7 +78,7 @@ export function UserMobileList({ items, onResetPassword, onEdit, onDelete }) {
   )
 }
 
-export function UserDesktopTable({ items, onResetPassword, onEdit, onDelete }) {
+export function UserDesktopTable({ items, onResetPassword, onEdit, onDelete, onPlacement }) {
   return (
     <div className="hidden overflow-x-auto rounded-lg border border-black/10 bg-white sm:block">
       <table className="w-full text-left text-sm">
@@ -94,7 +105,7 @@ export function UserDesktopTable({ items, onResetPassword, onEdit, onDelete }) {
               </td>
               <td className="p-3 text-right">
                 <div className="flex justify-end">
-                  <RowActions user={user} onEdit={onEdit} onDelete={onDelete} onResetPassword={onResetPassword} />
+                  <RowActions user={user} onEdit={onEdit} onDelete={onDelete} onResetPassword={onResetPassword} onPlacement={onPlacement} />
                 </div>
               </td>
             </tr>

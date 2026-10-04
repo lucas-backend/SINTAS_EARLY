@@ -15,11 +15,25 @@ const sessionMetadata = (session) => ({
   className: session.class?.name ?? session.assignment?.class?.name,
   subjectId: session.assignment?.subjectId,
   subjectName: session.assignment?.subject?.name,
+  teacherId: session.assignment?.teacherId,
+  teacherName: session.assignment?.teacher?.name ?? null,
   sessionDate: session.sessionDate,
   startAt: session.startAt,
   endAt: session.endAt,
   createdAt: session.createdAt,
 });
+
+const requireAssignmentTargets = async (repository, { classId, subjectId, teacherId }) => {
+  const [teacher, klass, subject] = await Promise.all([
+    repository.findTeacher(teacherId),
+    repository.findClass(classId),
+    repository.findSubject(subjectId),
+  ]);
+  if (!teacher) throw new AppError(404, "NOT_FOUND", "Guru tidak ditemukan.");
+  if (!klass) throw new AppError(404, "NOT_FOUND", "Kelas tidak ditemukan.");
+  if (!subject)
+    throw new AppError(404, "NOT_FOUND", "Mata pelajaran tidak ditemukan.");
+};
 
 function requireReader(user) {
   if (!["ADMIN", "TEACHER"].includes(user.role))
@@ -135,28 +149,19 @@ export function createAttendanceService({
 }) {
   return {
     async createSession(user, data) {
-      if (!["ADMIN", "TEACHER"].includes(user.role))
+      if (user.role !== "ADMIN")
         throw new AppError(
           403,
           "FORBIDDEN",
-          "Hanya guru atau admin yang dapat membuat sesi absensi.",
+          "Hanya admin yang dapat membuat jadwal absensi.",
         );
-      const assignment =
-        user.role === "TEACHER"
-          ? await repository.findActiveAssignmentForTeacher(
-              data.assignmentId,
-              user.id,
-            )
-          : await repository.findActiveAssignmentById(data.assignmentId);
-      if (!assignment)
-        throw user.role === "TEACHER"
-          ? new AppError(
-              403,
-              "ASSIGNMENT_FORBIDDEN",
-              "Penugasan tidak aktif atau bukan milik Anda.",
-            )
-          : new AppError(404, "NOT_FOUND", "Penugasan tidak ditemukan.");
+      await requireAssignmentTargets(repository, data);
       const times = normalizeSessionTimes(data, env.SCHOOL_TIMEZONE);
+      const assignment = await repository.resolveAssignment({
+        teacherId: data.teacherId,
+        classId: data.classId,
+        subjectId: data.subjectId,
+      });
       try {
         const session = await repository.createSession({
           assignmentId: assignment.id,
@@ -194,15 +199,18 @@ export function createAttendanceService({
           "SESSION_HAS_RECORDS",
           "Sesi yang sudah memiliki kehadiran tidak dapat diubah.",
         );
+      const hasAssignmentChange = data.teacherId !== undefined;
       const scheduleProvided = data.startAt !== undefined;
-      let target = {};
-      if (data.assignmentId !== undefined && data.assignmentId !== session.assignmentId) {
-        const assignment = await repository.findActiveAssignmentById(data.assignmentId);
-        if (!assignment)
-          throw new AppError(404, "NOT_FOUND", "Penugasan tidak ditemukan.");
-        target = { assignmentId: assignment.id, classId: assignment.classId };
-      } else if (scheduleProvided) {
-        target = { classId: session.classId };
+      const target = {};
+      if (hasAssignmentChange) {
+        await requireAssignmentTargets(repository, data);
+        const assignment = await repository.resolveAssignment({
+          teacherId: data.teacherId,
+          classId: data.classId,
+          subjectId: data.subjectId,
+        });
+        target.assignmentId = assignment.id;
+        target.classId = assignment.classId;
       }
       if (scheduleProvided) {
         const times = normalizeSessionTimes(data, env.SCHOOL_TIMEZONE);

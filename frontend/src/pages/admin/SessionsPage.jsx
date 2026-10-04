@@ -12,7 +12,6 @@ import {
   useAdminSessions,
   useDeleteAdminSession,
 } from '../../features/admin/hooks/useAdminSessions'
-import { useAssignmentsManage } from '../../features/admin/hooks/usePlotting'
 import { SessionDesktopTable, SessionMobileList } from '../../features/admin/views/SessionViews'
 
 const PAGE_SIZE = 20
@@ -31,10 +30,8 @@ export default function AdminSessionsPage() {
   const deleteSession = useDeleteAdminSession()
 
   const sessionsQuery = useAdminSessions()
-  const assignmentsQuery = useAssignmentsManage({ page: 1, limit: 100 })
 
   const sessions = sessionsQuery.data ?? []
-  const assignments = assignmentsQuery.data?.items ?? []
 
   const classOptions = Array.from(
     sessions.reduce((map, session) => {
@@ -55,9 +52,9 @@ export default function AdminSessionsPage() {
     <section className="mx-auto w-full max-w-5xl space-y-6 min-h-[75vh]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink-900">Sesi absensi</h1>
+          <h1 className="text-2xl font-bold text-ink-900">Jadwal absensi</h1>
           <p className="mt-1 text-sm text-slate-700">
-            Kelola sesi absensi seluruh kelas. Sesi dengan kehadiran terkunci.
+            Kelola jadwal sesi absensi seluruh kelas. Sesi dengan kehadiran terkunci.
           </p>
         </div>
         <button
@@ -69,7 +66,7 @@ export default function AdminSessionsPage() {
           className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white"
         >
           <AddRoundedIcon className="h-4! w-4!" aria-hidden="true" />
-          Sesi baru
+          Jadwal baru
         </button>
       </div>
 
@@ -121,7 +118,7 @@ export default function AdminSessionsPage() {
             title={sessions.length === 0 ? 'Belum ada sesi absensi' : 'Tidak ada sesi yang cocok'}
             message={
               sessions.length === 0
-                ? 'Buat sesi pertama untuk memulai absensi kelas.'
+                ? 'Buat jadwal pertama untuk memulai absensi kelas.'
                 : 'Ubah filter kelas atau tanggal, lalu coba lagi.'
             }
           />
@@ -165,7 +162,6 @@ export default function AdminSessionsPage() {
         key={formOpen ? editing?.id ?? 'new' : 'closed'}
         open={formOpen}
         session={editing}
-        assignments={assignments}
         onClose={() => {
           setFormOpen(false)
           setEditing(null)

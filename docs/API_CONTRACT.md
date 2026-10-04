@@ -407,7 +407,7 @@ Pola identik classes. `GET` (staff) mengembalikan `{ "data": { "items": [Subject
 
 | Method | Path | Admin | Request | Success / Errors |
 |---|---|---|---|---|
-| `GET` | `/memberships` | ya | query list admin | `{ "data": { "items": [ClassStudent+class+student], "meta" } }`; filter opsional `classId` |
+| `GET` | `/academic/memberships` | ya | query list admin | `{ "data": { "items": [ClassStudent+class+student], "meta" } }`; filter opsional `classId` dan/atau `studentId` |
 | `POST` | `/memberships` | ya | body `{ "classId": int>0, "studentId": int>0 }` | `{ "data": ClassStudent+class+student }` (isActive selalu `true`) |
 | `PATCH` | `/memberships/:id` | ya | params id; body `{ "isActive": boolean }` | `{ "data": ClassStudent }`; `404` "Penempatan siswa tidak ditemukan." |
 | `DELETE` | `/memberships/:id` | ya | params id | `{ "data": ClassStudent }` — nonaktifkan (soft delete, D21); `404` "Penempatan siswa tidak ditemukan." |
@@ -584,17 +584,19 @@ Semua route `[authenticate, authorize('ADMIN')]`.
 
 ### 9.1 `POST /api/v1/attendance-sessions`
 
-- Auth: `[authenticate, authorize('ADMIN','TEACHER')]`.
+- Auth: `[authenticate, authorize('ADMIN')]` — **hanya Admin** yang membuat
+  jadwal/sesi absensi (D22/J1). Guru/role lain → `403 FORBIDDEN`
+  "Hanya admin yang dapat membuat jadwal absensi.".
 - Body (`attendanceSessionSchema`) — strict:
-  - `assignmentId`: int > 0
+  - `classId`, `subjectId`, `teacherId`: int > 0 (penugasan di-resolve server)
   - `sessionDate`: string `YYYY-MM-DD` (regex)
   - `startAt`, `endAt`: ISO 8601 **dengan offset** (wajib `datetime({offset:true})`)
   - `timezone`: string ≤100 — **wajib sama persis** dengan `SCHOOL_TIMEZONE`
 - Rules service:
-  - TEACHER: assignment wajib milik guru dan aktif →
-    `403 ASSIGNMENT_FORBIDDEN` "Penugasan tidak aktif atau bukan milik Anda."
-  - ADMIN: assignment cukup ada dan aktif (tanpa cek ownership) → `404 NOT_FOUND`
-    "Penugasan tidak ditemukan." bila tidak.
+  - Guru/kelas/mapel wajib ada → `404 NOT_FOUND` ("Guru/Kelas/Mata pelajaran
+    tidak ditemukan.").
+  - Penugasan di-resolve otomatis (D22/J7): pakai baris aktif `(teacher, class,
+    subject)`, aktifkan kembali arsip nonaktif, atau buat baru dalam transaksi.
   - `timezone` tidak valid / beda dari sekolah →
     `400 INVALID_TIMEZONE` (fieldError `timezone`)
   - `endAt <= startAt` → `400 INVALID_TIME_RANGE` (fieldError `endAt`)
@@ -616,7 +618,9 @@ Content-Type: application/json
 x-csrf-token: <csrf_token>
 
 {
-  "assignmentId": 60,
+  "classId": 30,
+  "subjectId": 40,
+  "teacherId": 2,
   "sessionDate": "2026-09-17",
   "startAt": "2026-09-17T08:00:00+07:00",
   "endAt": "2026-09-17T09:00:00+07:00",
@@ -640,7 +644,8 @@ x-csrf-token: <csrf_token>
 ### 9.2 `GET /api/v1/attendance-sessions`
 
 - Auth: `[authenticate, authorize('ADMIN','TEACHER')]`.
-- ADMIN: semua sesi. TEACHER: hanya sesi dari **assignment aktif miliknya**.
+- ADMIN: semua sesi. TEACHER: hanya sesi dari **assignment aktif miliknya**
+  (read-only; guru tidak membuat/mengubah/menghapus sesi — D22/J1/J2).
 - Success `200`: `{ "data": [ sessionMetadata, ... ] }`. **Tidak terpaginasi**;
   urut `sessionDate desc, startAt desc`.
 - `403 FORBIDDEN` untuk role lain.
@@ -660,9 +665,11 @@ dapat diambil QR-nya, dan tidak dapat dipindai.
 ### 9.4 `PATCH /api/v1/attendance-sessions/:id`
 
 - Auth: ADMIN only. Params `id` int > 0. Body (`attendanceSessionPatchSchema`)
-  — strict: `assignmentId?`, `sessionDate?`, `startAt?`, `endAt?`, `timezone?`.
-  Bila salah satu field jadwal dikirim, `sessionDate` + `startAt` + `endAt` +
-  `timezone` wajib dikirim sekaligus (superRefine); minimal satu field berubah.
+  — strict: `classId?`, `subjectId?`, `teacherId?`, `sessionDate?`, `startAt?`,
+  `endAt?`, `timezone?`. Bila salah satu dari triplet penugasan dikirim, ketiganya
+  (`classId`+`subjectId`+`teacherId`) wajib sekaligus; bila salah satu field
+  jadwal dikirim, `sessionDate` + `startAt` + `endAt` + `timezone` wajib sekaligus
+  (superRefine); minimal satu perubahan (`assignmentId` tidak lagi diterima).
 - Guard: `404 NOT_FOUND` "Sesi absensi tidak ditemukan." bila sesi tidak ada
   atau ter-soft-delete.
 - `409 SESSION_HAS_RECORDS` "Sesi yang sudah memiliki kehadiran tidak dapat
@@ -891,8 +898,8 @@ Perilaku bersama:
 | `POST` | `/api/v1/banners` | cookie | ADMIN | Banner |
 | `PATCH` | `/api/v1/banners/:id` | cookie | ADMIN | Banner |
 | `DELETE` | `/api/v1/banners/:id` | cookie | ADMIN | Banner |
-| `POST` | `/api/v1/attendance-sessions` | cookie | ADMIN, TEACHER* | Sesi |
-| `GET` | `/api/v1/attendance-sessions` | cookie | ADMIN, TEACHER* | Sesi |
+| `POST` | `/api/v1/attendance-sessions` | cookie | ADMIN | Jadwal |
+| `GET` | `/api/v1/attendance-sessions` | cookie | ADMIN, TEACHER* | Jadwal |
 | `PATCH` | `/api/v1/attendance-sessions/:id` | cookie | ADMIN | Sesi |
 | `DELETE` | `/api/v1/attendance-sessions/:id` | cookie | ADMIN | Sesi |
 | `GET` | `/api/v1/attendance-sessions/:id/qr` | cookie | ADMIN, TEACHER* | QR |
@@ -963,7 +970,7 @@ Metode verifikasi yang dijalankan saat dokumen ini dibuat:
    `laporan-kehadiran-{from}-{to}.xlsx` + `404 NO_DATA_TO_EXPORT` (D7),
    timezone UTC + configurable (D1).
 5. **Test.** `npm test` (unit + integration) di `backend/` hijau: 14 file,
-   93 test. Menutup login/logout/forgot, role rejection, CRUD admin
+   95 test. Menutup login/logout/forgot, role rejection, CRUD admin
    users/membership/assignment/session (soft delete D21), create session,
    invalid/duplicate scan (sequential + concurrent + P2002), boundary
    `-15/0/+15` menit, history scope, teacher class detail scope, admin global
@@ -998,5 +1005,7 @@ Metode verifikasi yang dijalankan saat dokumen ini dibuat:
    kontrak; buka issue/migration test bila ingin menetapkan `409`.
 4. `GET /api/v1/users` search cocok `username` ATAU `name`. Listing
    penempatan/assignment untuk admin memakai `GET /memberships` (filter
-   `classId`) dan `GET /assignments/manage` (filter `teacherId`) yang
-   ditambahkan bersama F5 (lihat §6.4 dan §6.5).
+   `classId`/`studentId`) dan `GET /assignments/manage` (filter `teacherId`)
+   yang ditambahkan bersama F5 (lihat §6.4 dan §6.5). `POST
+   /attendance-sessions` kini ADMIN-only (D22/J1); guru membaca sesi miliknya
+   untuk menampilkan QR.

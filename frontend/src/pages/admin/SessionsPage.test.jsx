@@ -2,11 +2,20 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import { renderApp, adminUser, assignmentItem } from '../../test/fixtures'
+import { renderApp, adminUser } from '../../test/fixtures'
 import { API_BASE_URL, server } from '../../test/server'
 
 const SESSIONS_URL = `${API_BASE_URL}/attendance-sessions`
-const ASSIGNMENTS_URL = `${API_BASE_URL}/academic/assignments/manage`
+const CLASSES_URL = `${API_BASE_URL}/academic/classes`
+const SUBJECTS_URL = `${API_BASE_URL}/academic/subjects`
+const USERS_URL = `${API_BASE_URL}/users`
+
+function page(items) {
+  return {
+    items,
+    meta: { page: 1, limit: 100, total: items.length, totalPages: 1 },
+  }
+}
 
 function session(overrides) {
   return {
@@ -16,6 +25,8 @@ function session(overrides) {
     className: 'XII IPA 1',
     subjectId: 40,
     subjectName: 'Matematika',
+    teacherId: 2,
+    teacherName: 'Guru Demo',
     sessionDate: '2026-09-17T00:00:00.000Z',
     startAt: '2026-09-17T01:00:00.000Z',
     endAt: '2026-09-17T02:00:00.000Z',
@@ -29,10 +40,14 @@ function renderSessions(handlers) {
     http.get(`${API_BASE_URL}/me`, () =>
       HttpResponse.json({ data: { user: adminUser } }),
     ),
-    http.get(ASSIGNMENTS_URL, () =>
-      HttpResponse.json({
-        data: { items: [assignmentItem({ teacher: { name: 'Guru Demo' } })], meta: { page: 1, limit: 20, total: 1, totalPages: 1 } },
-      }),
+    http.get(CLASSES_URL, () =>
+      HttpResponse.json({ data: page([{ id: 30, name: 'XII IPA 1' }]) }),
+    ),
+    http.get(SUBJECTS_URL, () =>
+      HttpResponse.json({ data: page([{ id: 40, name: 'Matematika' }]) }),
+    ),
+    http.get(USERS_URL, () =>
+      HttpResponse.json({ data: page([{ id: 2, name: 'Guru Demo', role: 'TEACHER', username: 'teacher.demo' }]) }),
     ),
     ...handlers,
   )
@@ -40,7 +55,7 @@ function renderSessions(handlers) {
 }
 
 describe('halaman sesi admin', () => {
-  it('membuat sesi dan mengirim payload kontrak', async () => {
+  it('membuat jadwal dan mengirim payload kontrak', async () => {
     const user = userEvent.setup()
     let body = null
     renderSessions([
@@ -52,10 +67,12 @@ describe('halaman sesi admin', () => {
     ])
 
     await screen.findAllByText('Matematika')
-    await user.click(screen.getByRole('button', { name: 'Sesi baru' }))
+    await user.click(screen.getByRole('button', { name: 'Jadwal baru' }))
 
     const dialog = await screen.findByRole('dialog')
-    await user.selectOptions(within(dialog).getByLabelText('Penugasan'), '60')
+    await user.selectOptions(within(dialog).getByLabelText('Kelas'), '30')
+    await user.selectOptions(within(dialog).getByLabelText('Mata pelajaran'), '40')
+    await user.selectOptions(within(dialog).getByLabelText('Guru'), '2')
     await user.clear(within(dialog).getByLabelText('Tanggal'))
     await user.type(within(dialog).getByLabelText('Tanggal'), '2026-09-18')
     await user.type(within(dialog).getByLabelText('Jam mulai'), '08:00')
@@ -64,7 +81,9 @@ describe('halaman sesi admin', () => {
 
     await waitFor(() => expect(body).not.toBeNull())
     expect(body).toEqual({
-      assignmentId: 60,
+      classId: 30,
+      subjectId: 40,
+      teacherId: 2,
       sessionDate: '2026-09-18',
       startAt: '2026-09-18T08:00:00+07:00',
       endAt: '2026-09-18T09:00:00+07:00',
@@ -94,7 +113,9 @@ describe('halaman sesi admin', () => {
 
     await waitFor(() => expect(body).not.toBeNull())
     expect(body).toEqual({
-      assignmentId: 60,
+      classId: 30,
+      subjectId: 40,
+      teacherId: 2,
       sessionDate: '2026-09-17',
       startAt: '2026-09-17T08:00:00+07:00',
       endAt: '2026-09-17T10:00:00+07:00',

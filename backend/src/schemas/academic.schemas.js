@@ -61,6 +61,7 @@ export const membershipListSchema = z.object({
   sort: z.enum(['createdAt']).default('createdAt'),
   order: z.enum(['asc', 'desc']).default('desc'),
   classId: id.optional(),
+  studentId: id.optional(),
 }).strict()
 
 export const assignmentListSchema = z.object({

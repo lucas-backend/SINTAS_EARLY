@@ -11,6 +11,7 @@ import { useIsOnline } from '../../hooks/useIsOnline'
 import { roleLabel } from '../../lib/permissions'
 import { UserFormDialog } from '../../features/admin/forms/UserFormDialog'
 import { ResetPasswordDialog } from '../../features/admin/forms/ResetPasswordDialog'
+import { StudentPlacementDialog } from '../../features/admin/forms/StudentPlacementDialog'
 import { useAdminUsers, useDeleteUser } from '../../features/admin/hooks/useAdminUsers'
 import { UserDesktopTable, UserMobileList } from '../../features/admin/views/UserViews'
 
@@ -28,7 +29,12 @@ export default function AdminUsersPage() {
   const [editTarget, setEditTarget] = useState(null)
   const [passwordTarget, setPasswordTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [placementTarget, setPlacementTarget] = useState(null)
   const deleteUser = useDeleteUser()
+
+  const openPlacement = (target) => {
+    if (target.role === 'STUDENT') setPlacementTarget(target)
+  }
 
   const filters = {
     page: applied.page,
@@ -148,12 +154,14 @@ export default function AdminUsersPage() {
           onResetPassword={setPasswordTarget}
           onEdit={setEditTarget}
           onDelete={setDeleteTarget}
+          onPlacement={openPlacement}
         />
         <UserDesktopTable
           items={items}
           onResetPassword={setPasswordTarget}
           onEdit={setEditTarget}
           onDelete={setDeleteTarget}
+          onPlacement={openPlacement}
         />
 
         <Pagination
@@ -193,6 +201,14 @@ export default function AdminUsersPage() {
         }}
         onClose={() => setDeleteTarget(null)}
       />
+      {placementTarget ? (
+        <StudentPlacementDialog
+          key={`placement-${placementTarget.id}`}
+          open
+          user={placementTarget}
+          onClose={() => setPlacementTarget(null)}
+        />
+      ) : null}
     </section>
   )
 }

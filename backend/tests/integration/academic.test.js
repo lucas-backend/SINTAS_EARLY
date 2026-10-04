@@ -156,6 +156,21 @@ describe('academic, assignment, membership, and banner scope', () => {
     )
   })
 
+  it('filters memberships by studentId for the admin', async () => {
+    const { prisma } = createPrisma()
+    const app = createApp({ prisma, env, logger: { error: vi.fn() } })
+    const cookie = await login(app, 'admin')
+    const response = await request(app).get('/api/v1/academic/memberships?studentId=3').set('Cookie', cookie)
+    expect(response.status).toBe(200)
+    expect(response.body.data.items).toHaveLength(1)
+    expect(prisma.classStudent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { studentId: 3 },
+        include: { class: true, student: true },
+      }),
+    )
+  })
+
   it('rejects non-admin listing of memberships without querying', async () => {
     const { prisma } = createPrisma()
     const app = createApp({ prisma, env, logger: { error: vi.fn() } })

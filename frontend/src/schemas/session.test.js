@@ -3,7 +3,9 @@ import { sessionFormSchema, toSessionPayload } from './session'
 
 describe('sessionFormSchema', () => {
   const valid = {
-    assignmentId: '60',
+    classId: '30',
+    subjectId: '40',
+    teacherId: '2',
     sessionDate: '2026-09-17',
     start: '08:00',
     end: '09:00',
@@ -29,13 +31,17 @@ describe('toSessionPayload', () => {
   it('menyusun payload kontrak dengan offset timezone sekolah', () => {
     expect(
       toSessionPayload({
-        assignmentId: '60',
+        classId: '30',
+        subjectId: '40',
+        teacherId: '2',
         sessionDate: '2026-09-17',
         start: '08:00',
         end: '09:00',
       }),
     ).toEqual({
-      assignmentId: 60,
+      classId: 30,
+      subjectId: 40,
+      teacherId: 2,
       sessionDate: '2026-09-17',
       startAt: '2026-09-17T08:00:00+07:00',
       endAt: '2026-09-17T09:00:00+07:00',

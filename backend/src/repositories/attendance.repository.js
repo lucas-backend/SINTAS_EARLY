@@ -66,23 +66,54 @@ export function createAttendanceRepository(prisma) {
   };
 
   return {
-    findActiveAssignmentForTeacher(assignmentId, teacherId) {
-      return prisma.teacherAssignment.findFirst({
-        where: { id: assignmentId, teacherId, isActive: true },
-        include: { class: true, subject: true },
+    findTeacher(teacherId) {
+      return prisma.user.findFirst({
+        where: { id: teacherId, role: "TEACHER", deletedAt: null },
       });
     },
-    findActiveAssignmentById(assignmentId) {
-      return prisma.teacherAssignment.findFirst({
-        where: { id: assignmentId, isActive: true },
-        include: { class: true, subject: true },
+    findClass(classId) {
+      return prisma.class.findUnique({ where: { id: classId } });
+    },
+    findSubject(subjectId) {
+      return prisma.subject.findUnique({ where: { id: subjectId } });
+    },
+    // Resolve penugasan (guru+kelas+mapel): pakai baris aktif bila ada,
+    // aktifkan kembali arsip nonaktif, atau buat baru — semuanya dalam satu
+    // transaksi sebelum sesi dibuat (D22/J2).
+    resolveAssignment({ teacherId, classId, subjectId }) {
+      const include = {
+        class: true,
+        subject: true,
+        teacher: { select: { name: true } },
+      };
+      return prisma.$transaction(async (transaction) => {
+        const active = await transaction.teacherAssignment.findFirst({
+          where: { teacherId, classId, subjectId, isActive: true },
+          include,
+        });
+        if (active) return active;
+        const archived = await transaction.teacherAssignment.findFirst({
+          where: { teacherId, classId, subjectId, isActive: false },
+          include,
+        });
+        if (archived) {
+          return transaction.teacherAssignment.update({
+            where: { id: archived.id },
+            data: { isActive: true },
+            include,
+          });
+        }
+        return transaction.teacherAssignment.create({
+          data: { teacherId, classId, subjectId, isActive: true },
+          include,
+        });
       });
     },
     createSession(data) {
       return prisma.attendanceSession.create({
         data,
         include: {
-          assignment: { include: { class: true, subject: true } },
+          assignment: { include: { class: true, subject: true, teacher: { select: { name: true } } } },
           class: true,
         },
       });
@@ -92,7 +123,7 @@ export function createAttendanceRepository(prisma) {
         where: { deletedAt: null, assignment: { teacherId, isActive: true } },
         orderBy: [{ sessionDate: "desc" }, { startAt: "desc" }],
         include: {
-          assignment: { include: { class: true, subject: true } },
+          assignment: { include: { class: true, subject: true, teacher: { select: { name: true } } } },
           class: true,
         },
       });
@@ -102,7 +133,7 @@ export function createAttendanceRepository(prisma) {
         where: { deletedAt: null },
         orderBy: [{ sessionDate: "desc" }, { startAt: "desc" }],
         include: {
-          assignment: { include: { class: true, subject: true } },
+          assignment: { include: { class: true, subject: true, teacher: { select: { name: true } } } },
           class: true,
         },
       });
@@ -115,7 +146,7 @@ export function createAttendanceRepository(prisma) {
       return prisma.attendanceSession.findFirst({
         where,
         include: {
-          assignment: { include: { class: true, subject: true } },
+          assignment: { include: { class: true, subject: true, teacher: { select: { name: true } } } },
           class: true,
         },
       });
@@ -125,7 +156,7 @@ export function createAttendanceRepository(prisma) {
         where: { id },
         data,
         include: {
-          assignment: { include: { class: true, subject: true } },
+          assignment: { include: { class: true, subject: true, teacher: { select: { name: true } } } },
           class: true,
         },
       });

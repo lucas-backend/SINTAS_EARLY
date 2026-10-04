@@ -24,7 +24,7 @@ export function createAttendanceRouter({ prisma, env }) {
   router.post(
     "/",
     authenticate,
-    authorize("ADMIN", "TEACHER"),
+    authorize("ADMIN"),
     validate(attendanceSessionSchema),
     controller.createSession,
   );

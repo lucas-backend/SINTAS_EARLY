@@ -259,6 +259,7 @@ paths:
       {
         tags: [Academic],
         security: [{ cookieAuth: [] }],
+        description: "ADMIN. Filter opsional classId dan/atau studentId (query strict).",
         responses: { "200": { $ref: "#/components/responses/Data" }, "403": { $ref: "#/components/responses/Forbidden" } },
       }
     post:
@@ -423,6 +424,7 @@ paths:
       {
         tags: [Attendance],
         security: [{ cookieAuth: [] }],
+        description: "ADMIN only (D22/J1); guru tidak membuat sesi (403). Teacher hanya membaca sesi miliknya via GET.",
         requestBody: { $ref: "#/components/requestBodies/Session" },
         responses:
           {
@@ -693,10 +695,12 @@ components:
                   {
                     type: object,
                     required:
-                      [assignmentId, sessionDate, startAt, endAt, timezone],
+                      [classId, subjectId, teacherId, sessionDate, startAt, endAt, timezone],
                     properties:
                       {
-                        assignmentId: { type: integer },
+                        classId: { type: integer },
+                        subjectId: { type: integer },
+                        teacherId: { type: integer },
                         sessionDate: { type: string, format: date },
                         startAt: { type: string, format: date-time },
                         endAt: { type: string, format: date-time },

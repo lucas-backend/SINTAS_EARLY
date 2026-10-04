@@ -18,7 +18,7 @@ function renderAssignments(handlers) {
 }
 
 describe('halaman penugasan guru', () => {
-  it('menampilkan penugasan aktif dengan tautan buat sesi yang memilih penugasan', async () => {
+  it('menampilkan penugasan aktif beserta kelasnya', async () => {
     renderAssignments([
       http.get(ASSIGNMENTS_URL, () =>
         HttpResponse.json({ data: [assignmentItem()] }),
@@ -27,11 +27,9 @@ describe('halaman penugasan guru', () => {
 
     expect(await screen.findByText('Matematika')).toBeInTheDocument()
     expect(screen.getByText(/XII IPA 1/)).toBeInTheDocument()
-    const link = screen.getByRole('link', { name: 'Buat sesi' })
-    expect(link).toHaveAttribute(
-      'href',
-      '/app/teacher/sessions/new?assignmentId=60',
-    )
+    expect(
+      screen.queryByRole('link', { name: 'Buat sesi' }),
+    ).not.toBeInTheDocument()
   })
 
   it('menampilkan state kosong saat tidak ada penugasan', async () => {

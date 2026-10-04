@@ -34,11 +34,11 @@ describe('beranda guru', () => {
       await screen.findByRole('heading', { name: 'Beranda Guru' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Penugasan aktif')).toBeInTheDocument()
-    expect(screen.getByText('Sesi dibuat')).toBeInTheDocument()
+    expect(screen.getByText('Sesi tersedia')).toBeInTheDocument()
     expect((await screen.findAllByText('Matematika')).length).toBeGreaterThan(0)
   })
 
-  it('menampilkan ajakan membuat sesi saat belum ada sesi', async () => {
+  it('menampilkan state kosong saat belum ada sesi', async () => {
     renderDashboard([
       http.get(`${API_BASE_URL}/academic/assignments`, () =>
         HttpResponse.json({ data: [assignmentItem()] }),

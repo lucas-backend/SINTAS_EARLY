@@ -156,7 +156,10 @@ export function createAcademicRepository(prisma) {
       });
     },
     listMemberships(query) {
-      const where = query.classId ? { classId: query.classId } : undefined;
+      const filters = {};
+      if (query.classId) filters.classId = query.classId;
+      if (query.studentId) filters.studentId = query.studentId;
+      const where = Object.keys(filters).length > 0 ? filters : undefined;
       const args = pageArgs(query);
       return Promise.all([
         prisma.classStudent.findMany({

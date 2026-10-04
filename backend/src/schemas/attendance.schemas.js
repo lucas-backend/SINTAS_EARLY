@@ -4,7 +4,9 @@ const id = z.coerce.number().int().positive()
 const isoDateTime = z.string().datetime({ offset: true })
 
 export const attendanceSessionSchema = z.object({
-  assignmentId: id,
+  classId: id,
+  subjectId: id,
+  teacherId: id,
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Gunakan format tanggal YYYY-MM-DD.'),
   startAt: isoDateTime,
   endAt: isoDateTime,
@@ -16,17 +18,23 @@ export const attendanceScanSchema = z.object({
 }).strict()
 
 export const attendanceSessionPatchSchema = z.object({
-  assignmentId: id.optional(),
+  classId: id.optional(),
+  subjectId: id.optional(),
+  teacherId: id.optional(),
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Gunakan format tanggal YYYY-MM-DD.').optional(),
   startAt: isoDateTime.optional(),
   endAt: isoDateTime.optional(),
   timezone: z.string().trim().min(1).max(100).optional(),
 }).strict().superRefine((value, context) => {
+  const assignmentFields = ['classId', 'subjectId', 'teacherId'].filter((field) => value[field] !== undefined)
+  if (assignmentFields.length > 0 && assignmentFields.length < 3) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Sertakan classId, subjectId, dan teacherId sekaligus.' })
+  }
   const scheduleFields = ['sessionDate', 'startAt', 'endAt', 'timezone'].filter((field) => value[field] !== undefined)
   if (scheduleFields.length > 0 && scheduleFields.length < 4) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: 'Sertakan sessionDate, startAt, endAt, dan timezone sekaligus.' })
   }
-  if (value.assignmentId === undefined && scheduleFields.length === 0) {
+  if (assignmentFields.length === 0 && scheduleFields.length === 0) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: 'Tidak ada perubahan yang dikirim.' })
   }
 })
