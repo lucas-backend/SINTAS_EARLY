@@ -4,6 +4,8 @@
 
 Set `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN`, and `SCHOOL_TIMEZONE` from the deployment secret/configuration store. Production rejects the development JWT secret and localhost CORS. `REQUEST_TIMEOUT_MS` defaults to 10 seconds and `SCAN_RATE_LIMIT` defaults to 120 requests per IP per minute; use a shared rate-limit store when running more than one instance.
 
+`TRUST_PROXY` must be set whenever the app runs behind a reverse proxy (nginx, Caddy, load balancer) that sets `X-Forwarded-For`. It accepts `false` (default), `true`, a hop count such as `1`, or a comma-separated list of trusted IPs/subnets such as `10.0.0.1,192.168.0.0/16`. Without it, Express resolves every request to the proxy's IP and `express-rate-limit` aborts with `ERR_ERL_UNEXPECTED_X_FORWARDED_FOR`, which breaks `/auth/login`, `/auth/forgot-password`, and `/attendance-scans`. Prefer an explicit hop count or IP allowlist over `true`; trusting every hop lets clients spoof their IP and bypass rate limits.
+
 Run migrations before routing traffic:
 
 ```bash

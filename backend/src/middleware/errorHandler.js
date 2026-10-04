@@ -34,6 +34,10 @@ export function errorHandler(error, req, res, next, logger = defaultLogger) {
     err: error,
     requestId: req.requestId,
     statusCode,
+    method: req.method,
+    url: req.originalUrl,
+    userId: req.user?.id ?? null,
+    userRole: req.user?.role ?? null,
   }, 'request failed')
 
   res.status(statusCode).json(response)

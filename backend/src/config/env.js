@@ -1,6 +1,25 @@
 import "dotenv/config";
 import { z } from "zod";
 
+const TRUST_PROXY_MESSAGE =
+  "TRUST_PROXY harus false, true, jumlah hop, atau daftar IP/subnet.";
+
+const trustProxyHopList = z
+  .string()
+  .min(1)
+  .transform((value) =>
+    value.split(",").map((hop) => hop.trim()).filter(Boolean),
+  )
+  .refine((hops) => hops.length > 0, { message: TRUST_PROXY_MESSAGE });
+
+const trustProxyValue = z.union([
+  z.boolean(),
+  z.literal("false").transform(() => false),
+  z.literal("true").transform(() => true),
+  z.string().regex(/^\d+$/).transform(Number),
+  trustProxyHopList,
+]);
+
 const envSchema = z
   .object({
     NODE_ENV: z
@@ -27,6 +46,7 @@ const envSchema = z
       .max(120000)
       .default(10000),
     SCAN_RATE_LIMIT: z.coerce.number().int().min(10).max(1000).default(120),
+    TRUST_PROXY: trustProxyValue.default(false),
   })
   .superRefine((value, context) => {
     try {

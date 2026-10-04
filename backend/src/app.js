@@ -18,6 +18,9 @@ export function createApp({
   const env = configuredEnv ?? getEnv();
 
   app.disable("x-powered-by");
+  if (env.TRUST_PROXY !== undefined) {
+    app.set("trust proxy", env.TRUST_PROXY);
+  }
   app.use(helmet());
   const allowedOrigins = env.CORS_ORIGIN.split(",").map((origin) =>
     origin.trim(),
@@ -30,6 +33,25 @@ export function createApp({
     }),
   );
   app.use(requestId);
+  app.use((req, res, next) => {
+    const startedAt = process.hrtime.bigint();
+    res.on("finish", () => {
+      if (typeof logger?.info !== "function") return;
+      logger.info(
+        {
+          requestId: req.requestId,
+          method: req.method,
+          url: req.originalUrl,
+          statusCode: res.statusCode,
+          durationMs: Number(process.hrtime.bigint() - startedAt) / 1e6,
+          userId: req.user?.id ?? null,
+          userRole: req.user?.role ?? null,
+        },
+        "request completed",
+      );
+    });
+    next();
+  });
   app.use((req, res, next) => {
     const timer = setTimeout(() => {
       if (!res.headersSent)

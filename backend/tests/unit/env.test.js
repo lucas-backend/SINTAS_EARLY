@@ -28,4 +28,23 @@ describe("environment configuration", () => {
       }),
     ).toThrow();
   });
+
+  it("defaults TRUST_PROXY to false so a bare app trusts no proxy hop", () => {
+    expect(
+      parseEnv({ DATABASE_URL: "mysql://user:pass@localhost:3306/app" }),
+    ).toMatchObject({ TRUST_PROXY: false });
+  });
+
+  it("parses TRUST_PROXY as a boolean, hop count, or trusted proxy list", () => {
+    const base = { DATABASE_URL: "mysql://user:pass@localhost:3306/app" };
+    expect(parseEnv({ ...base, TRUST_PROXY: "true" })).toMatchObject({
+      TRUST_PROXY: true,
+    });
+    expect(parseEnv({ ...base, TRUST_PROXY: "1" })).toMatchObject({
+      TRUST_PROXY: 1,
+    });
+    expect(
+      parseEnv({ ...base, TRUST_PROXY: "10.0.0.1, 192.168.0.0/16" }),
+    ).toMatchObject({ TRUST_PROXY: ["10.0.0.1", "192.168.0.0/16"] });
+  });
 });
